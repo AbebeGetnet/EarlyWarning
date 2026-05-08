@@ -145,8 +145,8 @@ namespace EarlyWarning.Data
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
-                    FirstName = "System",
-                    LastName = "Admin",
+                    FirstName = "Abebe",
+                    LastName = "Getnet",
                     LocationId = defaultLocation.Id,
                     UserLocationLevl = defaultLocation.Level ?? LocationLevel.ሀገር,
                     EmailConfirmed = true,
@@ -169,8 +169,8 @@ namespace EarlyWarning.Data
                 {
                     UserName = userEmail,
                     Email = userEmail,
-                    FirstName = "Regular",
-                    LastName = "User",
+                    FirstName = "Abaynew",
+                    LastName = "Kassa",
                     LocationId = defaultLocation.Id,
                     UserLocationLevl = LocationLevel.ክልል,
                     EmailConfirmed = true
