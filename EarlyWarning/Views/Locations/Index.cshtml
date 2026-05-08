@@ -1,0 +1,101 @@
+﻿@using EarlyWarning.Enums
+@model IEnumerable<Locations>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="card">
+    <div class="btn btn-info">
+        <h4 style="color: white;padding-left:10px;">የአድራሻ መመዝገቢያ</h4>
+    </div>
+    <div class="card-body">
+        <table id="dataTable" class="table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.LocationAmharicName)
+                    </th>  
+                    <th>
+                        @Html.DisplayNameFor(model => model.LocationName)
+                    </th>   
+                    <th>
+                        @Html.DisplayNameFor(model => model.LocationCode)
+                    </th> 
+                    <th>
+                        @Html.DisplayNameFor(model => model.Level)
+                    </th> 
+                    <th>
+                        @Html.DisplayNameFor(model => model.CardHeaderTitle)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Parent)
+                    </th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+        @foreach (var item in Model) {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LocationAmharicName)
+                    </td>  
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LocationName)
+                    </td>                   
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LocationCode)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Level)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CardHeaderTitle)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Parent.LocationAmharicName)
+                    </td>
+                    <td>
+                        @if(item.Level == LocationLevel.ክልል)
+                        {
+                            <a asp-action="AddNewZone" asp-route-id="@item.Id" class="btn btn-success">ዞን ጨምር</a>
+                        }
+                        else if (item.Level == LocationLevel.ዞን)
+                        {
+                            <a asp-action="AddNewWoreda" asp-route-id="@item.Id" class="btn btn-success">ወረዳ ጨምር</a>
+                        }
+                        else 
+                        {
+                            <a asp-action="AddNewKebelie" asp-route-id="@item.ParentId" class="btn btn-success">ቀበሌ ጨምር </a>
+                        }
+                    </td>
+
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning">አስተካክል</a>
+                    </td>
+                    <td>
+                        @if (item.Level == LocationLevel.ክልል)
+                        {
+                            <a asp-action="LocationIndex" asp-route-id="@item.Id" class="btn btn-info">ዞኖች</a>
+                        }
+                        else if (item.Level == LocationLevel.ዞን)
+                        {
+                            <a asp-action="LocationIndex" asp-route-id="@item.Id" class="btn btn-info">ወረዳዎች</a>
+                        }
+                        else 
+                        {
+                            <a asp-action="LocationIndex" asp-route-id="@item.ParentId" class="btn btn-info">ቀበሌዎች </a>
+                        }
+                    </td>
+                    <td>
+                        <a asp-area="Identity" asp-page="/Account/Register" asp-route-id="@item.Id" class="btn btn-primary">አዲስ ተጠቃሚ </a>
+                    </td>
+                </tr>
+        }
+            </tbody>
+        </table>
+    </div>
+</div>

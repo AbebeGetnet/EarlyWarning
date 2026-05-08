@@ -1,0 +1,62 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="container col-md-6">
+    <div class="card o-hidden border-0 shadow-lg ">
+        <div class="card-body p-0">
+            <!-- Nested Row within Card Body -->
+            <div class="row">
+                <div class="p-5">
+                    <h5 class="h4 text-gray-900 mb-4 align-center">አዲስ ተጥቃሚ መዝግብ</h5>
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="user">
+                        <div class="form-group col-md-16">
+                            <input type="hidden" asp-for="LocationId" type="hidden" class="form-control" id="exampleFirstName" />
+                        </div> 
+                        <div class="form-group col-md-16">
+                            <input asp-for="Input.FirstName" autocomplete="username" aria-required="true" class="form-control" id="exampleFirstName"
+                                   placeholder="ስም">
+                            <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-16">
+                            <input asp-for="Input.LastName" autocomplete="new-password" aria-required="true" class="form-control" id="exampleLastName"
+                                   placeholder="የአባት ስም">
+                            <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-16">
+                            <input asp-for="Input.Email" autocomplete="new-password" aria-required="true" class="form-control" id="exampleInputEmail"
+                                   placeholder="ኢሜል">
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-16">
+                            <input asp-for="Input.Password" autocomplete="new-password" aria-required="true" class="form-control"
+                                   id="exampleInputPassword" placeholder="የሚስጥር ቁጥር">
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-16">
+                            <input asp-for="Input.ConfirmPassword" autocomplete="new-password" aria-required="true" class="form-control"
+                                   id="exampleRepeatPassword" placeholder="ሚስጥር ቁጥርወን በድጋሜ ያስገቡ">
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        </div>
+                        <button id="registerSubmit" type="submit" class="btn btn-primary col-md-6">
+                            አስቀምጥ
+                        </button>
+                    </form>
+                    <div class="text-center">
+                        <a class="nav-link btn-btn-secondary" asp-area="Identity" asp-page="/Account/Login">
+                            አካውን ካለወት? በዚህ ይግቡ!
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

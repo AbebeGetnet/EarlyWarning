@@ -1,0 +1,65 @@
+﻿@page
+@using SIMS.Areas.Identity.Pages.Account
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<h2 style="color:whitesmoke">መግቢያ</h2>
+<div class="container col-md-6">
+
+    <!-- Outer Row -->
+    <div class="row justify-content-center">
+
+        <div class="col-xl-10 col-lg-12 col-md-9">
+
+            <div class="card o-hidden border-0 shadow-lg ">
+                <div class="card-body p-0">
+                    <!-- Nested Row within Card Body -->
+                    <div class="row">
+                        <div class="col-lg-10">
+                            <div class="p-5">
+                                <h4 class="h4 text-gray-900 mb-4 align-center">መግቢያ</h4>
+                                <form id="account" method="post" class="user">
+                                    <div class="form-group">
+                                        <input asp-for="Input.Email" autocomplete="username" aria-required="true" class="form-control"
+                                               id="exampleInputEmail" aria-describedby="emailHelp"
+                                               placeholder="ኢሜል">
+                                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <input asp-for="Input.Password" autocomplete="current-password" aria-required="true" type="password" class="form-control"
+                                               id="exampleInputPassword" placeholder="የሚስጥር ቁጥር" />
+                                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="checkbox">
+                                            <label asp-for="Input.RememberMe" class="form-label">
+                                                <input class="form-check-input" asp-for="Input.RememberMe" />
+                                                @Html.DisplayNameFor(m => m.Input.RememberMe)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button id="login-submit" type="submit" class="btn btn-primary col-md-6">
+                                        ግባ
+                                    </button>
+                                </form>
+                                <hr>
+                                <div>
+                                    <p>
+                                        <a id="forgot-password" asp-page="./ForgotPassword">የይለፍ ቃል ረሱ?</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

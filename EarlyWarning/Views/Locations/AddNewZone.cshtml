@@ -1,0 +1,58 @@
+﻿@model Locations
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<div class="card">
+    <div class="btn btn-info">
+        <h4 style="color: white;padding-left:10px;">አዲስ መዝግብ</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <form asp-action="AddNewZone">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="row col-md-12">
+                        <div class="col-md-3">
+                            <label asp-for="LocationName" class="control-label"></label>
+                            <input asp-for="LocationName" class="form-control" autocomplete="off"/>
+                            <span asp-validation-for="LocationName" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="LocationAmharicName" class="control-label"></label>
+                            <input asp-for="LocationAmharicName" class="form-control" autocomplete="off"/>
+                            <span asp-validation-for="LocationAmharicName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label asp-for="LocationCode " class="control-label"></label>
+                            <input asp-for="LocationCode" class="form-control" autocomplete="off"/>
+                            <span asp-validation-for="LocationCode" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label asp-for="PhoneNumber" class="control-label"></label>
+                            <input asp-for="PhoneNumber" class="form-control" autocomplete="off"/>
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label asp-for="CardHeaderTitle" class="control-label"></label>
+                            <input asp-for="CardHeaderTitle" class="form-control" autocomplete="off"/>
+                            <span asp-validation-for="CardHeaderTitle" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label style="color:white">.</label>
+                            <br />
+                            <input type="submit" value="አስቀምጥ" class="btn btn-primary" />
+                            <a asp-action="Index" class="btn btn-secondary">ተመለስ</a>
+                        </div>
+                    </div>
+                    <br />            
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

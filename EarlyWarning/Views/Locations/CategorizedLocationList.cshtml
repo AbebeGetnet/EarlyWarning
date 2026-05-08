@@ -1,0 +1,244 @@
+﻿@using EarlyWarning.Enums
+@using EarlyWarning.ViewModel
+@model LocationViewModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="card">
+    <div class="btn btn-info">
+        <h4 style="color: white;padding-left:10px;">የአድራሻ መመዝገቢያ</h4>
+    </div>
+    <div class="card-body">
+        <div>
+            <button class="btn btn-secondary" onclick="zones()">የዞን ዝርዝር</button>
+            <button class="btn btn-info" onclick="woredas()">የወረዳ ዝርዝር</button>
+            <button class="btn btn-success" onclick="kebelies()">የቀበሌ ዝርዝር</button>
+        </div>
+        <div id="zone">
+            <table id="dataTable" class="table">
+                <thead>
+                    <tr>
+                        <th>
+                            ስም
+                        </th>
+                        @*  <th>
+                        Name
+                        </th>   *@
+                        <th>
+                            ኮድ
+                        </th>
+                        <th>
+                            ደረጃ
+                        </th>
+                        <th>
+                            ሄደር
+                        </th>
+
+                        <th>
+                            ስልክ
+                        </th>
+                        <th>
+                            እናት ተቋም
+                        </th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.ZoneList)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.LocationAmharicName)
+                            </td>
+                            @* <td>
+                        @Html.DisplayFor(modelItem => item.LocationName)
+                        </td> *@
+
+                            <td>
+                                @Html.DisplayFor(modelItem => item.LocationCode)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Level)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CardHeaderTitle)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.PhoneNumber)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Parent.LocationAmharicName)
+                            </td>
+                            <td>
+                                @if (item.Level == LocationLevel.ክልል)
+                                {
+                                    <a asp-action="AddNewZone" asp-route-id="@item.Id" class="btn btn-success">ዞን ጨምር</a>
+                                    <a asp-area="Identity" asp-page="/Account/Register" asp-route-id="@item.ParentId" class="btn btn-primary">አዲስ ተጠቃሚ </a>
+                                }
+                                else if (item.Level == LocationLevel.ዞን)
+                                {
+                                    <a asp-action="AddNewWoreda" asp-route-id="@item.Id" class="btn btn-success">ወረዳ ጨምር</a>
+                                }
+                                else if(item.Level == LocationLevel.ወረዳ)
+                                {
+                                    <a asp-action="AddNewKebelie" asp-route-id="@item.Id" class="btn btn-success">ቀበሌ ጨምር </a>
+                                }
+                                else if (item.Level == LocationLevel.ቀበሌ)
+                                { 
+                                }
+                                </td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning">አስተካክል</a>
+                            </td>
+                            <td>
+                                <a asp-area="Identity" asp-page="/Account/Register" asp-route-id="@item.Id" class="btn btn-primary">አዲስ ተጠቃሚ </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div id="woreda">
+            <table id="dataTable1" class="table">
+                <thead>
+                    <tr>
+                        <th>ስም</th>  
+                        <th> ኮድ</th>  
+                        <th>ደረጃ</th> 
+                        <th>ሄደር</th>
+
+                        <th>ስልክ</th>
+                        <th>እናት ተቋም</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+            @foreach (var item in Model.WoredaList) {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.LocationAmharicName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.LocationCode)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Level)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.CardHeaderTitle)
+                        </td>
+
+                        <td>
+                            @Html.DisplayFor(modelItem => item.PhoneNumber)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Parent.LocationAmharicName)
+                        </td>
+                        <td>
+                            @if(item.Level == LocationLevel.ሀገር)
+                            {
+                                @* <a asp-action="AddNewZone" asp-route-id="@item.Id" class="btn btn-success">ክልል ጨምር</a> *@
+                            }
+                            else if (item.Level == LocationLevel.ክልል)
+                            {
+                                <a asp-action="AddNewZone" asp-route-id="@item.Id" class="btn btn-success">ዞን ጨምር</a>
+                            }
+                            else if (item.Level == LocationLevel.ዞን)
+                            {
+                                <a asp-action="AddNewWoreda" asp-route-id="@item.Id" class="btn btn-success">ወረዳ ጨምር</a>
+                            }
+                            else 
+                            {
+                                <a asp-action="AddNewKebelie" asp-route-id="@item.Id" class="btn btn-success">ቀበሌ ጨምር </a>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning">አስተካክል</a>
+                        </td>
+                        <td>
+                            <a asp-area="Identity" asp-page="/Account/Register" asp-route-id="@item.Id" class="btn btn-primary">አዲስ ተጠቃሚ </a>
+                        </td>
+                    </tr>
+            }
+                </tbody>
+            </table>
+        </div>
+        <div id="kebelie">
+            <table id="dataTable2" class="table">
+                <thead>
+                    <tr>
+                        <th>ስም</th> 
+                        <th>ኮድ</th>  
+                        <th>ደረጃ</th> 
+                        <th>ሄደር</th>
+
+                        <th>ስልክ</th>
+                        <th>እናት ተቋም</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+            @foreach (var item in Model.KebelieList) {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.LocationAmharicName)
+                        </td>                   
+                        <td>
+                            @Html.DisplayFor(modelItem => item.LocationCode)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Level)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.CardHeaderTitle)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.PhoneNumber)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Parent.LocationAmharicName)
+                        </td>                       
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning">አስተካክል</a>
+                        </td>
+                        <td>
+                            <a asp-area="Identity" asp-page="/Account/Register" asp-route-id="@item.Id" class="btn btn-primary">አዲስ ተጠቃሚ </a>
+                        </td>
+                    </tr>
+            }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#zone").hide();
+        $("#woreda").hide();
+        $("#kebelie").hide();
+    });
+
+    function zones() {
+        $("#zone").show();
+        $("#woreda").hide();
+        $("#kebelie").hide();
+    }
+    function woredas() {
+        $("#zone").hide();
+        $("#woreda").show();
+        $("#kebelie").hide();
+    }
+    function kebelies() {
+        $("#zone").hide();
+        $("#woreda").hide();
+        $("#kebelie").show();
+    }
+</script>

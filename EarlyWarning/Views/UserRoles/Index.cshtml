@@ -1,0 +1,64 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+  @model IEnumerable<ApplicationUser>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="card">
+    <div style="background:#4775d1;">
+        <h4 style="color: white;padding-left:10px;"> Users</h4>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped table-sm table-bordered" id="dataTable">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Location</th>
+                    <th>Password actions</th>
+                    <th>Lock/Unlock</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.FirstName</td>
+                        <td>@user.LastName</td>
+                        <td>@user.Email</td>
+                        <td>@user.Location.LocationName</td>
+                        @if (SignInManager.IsSignedIn(User) && User.IsInRole("Supper Administrator"))
+                        {
+                            <td>                                
+                                <a asp-controller="UserRoles" asp-action="ResetPassword" asp-route-userId="@user.Id" class="btn btn-warning">Reset Password</a>
+                                <a asp-controller="UserRoles" asp-action="ChangePassword" asp-route-userId="@user.Id" class="btn btn-danger">Change Password</a>
+                            </td>
+                        }
+                        else if (SignInManager.IsSignedIn(User) && User.IsInRole("Administrator"))
+                        {
+                            <td>                                
+                                <a asp-controller="UserRoles" asp-action="ResetPassword" asp-route-userId="@user.Id" class="btn btn-warning">Reset Password</a>
+                                <a asp-controller="UserRoles" asp-action="ChangePassword" asp-route-userId="@user.Id" class="btn btn-danger">Change Password</a>
+                            </td>
+                        }
+                        @if (@user.LockoutEnd == null)
+                        {
+                            <td>
+                                <a asp-controller="UserRoles" asp-action="LockUser" asp-route-userId="@user.Id" class="btn btn-dark">Lock user</a>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <a asp-controller="UserRoles" asp-action="UnLockUser" asp-route-userId="@user.Id" class="btn btn-outline-primary">UnlockUser</a>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

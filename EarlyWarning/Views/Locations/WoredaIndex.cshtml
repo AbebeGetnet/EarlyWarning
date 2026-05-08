@@ -1,0 +1,69 @@
+﻿@model IEnumerable<Locations>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="card">
+    <div class="btn btn-info">
+        <h4 style="color: white;padding-left:10px;">የአድራሻ መመዝገቢያ</h4>
+    </div>
+    <div class="card-body">
+        <table id="dataTable" class="table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.LocationAmharicName)
+                    </th>  
+                    <th>
+                        @Html.DisplayNameFor(model => model.LocationName)
+                    </th>  
+                    <th>
+                        @Html.DisplayNameFor(model => model.LocationCode)
+                    </th>  
+                    <th>
+                        @Html.DisplayNameFor(model => model.Level)
+                    </th>
+
+                    <th>
+                        @Html.DisplayNameFor(model => model.PhoneNumber)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.CardHeaderTitle)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Parent)
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+        @foreach (var item in Model) {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LocationAmharicName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LocationName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LocationCode)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Level)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.PhoneNumber)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CardHeaderTitle)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Parent.LocationAmharicName)
+                    </td>
+                </tr>
+        }
+            </tbody>
+        </table>
+    </div>
+</div>
