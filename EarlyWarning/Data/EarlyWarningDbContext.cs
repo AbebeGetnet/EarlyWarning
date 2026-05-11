@@ -18,6 +18,14 @@ namespace EarlyWarning.Data
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }        
         public DbSet<Locations> Locations {  get; set; } 
         public DbSet<PasswordResetKey> PasswordResetKeys {  get; set; }
+        public DbSet<RainfallReport> RainfallReports {  get; set; }
+        public DbSet<FarmingActivity> FarmingActivities {  get; set; }
+        public DbSet<CropPestAndDesease> CropPestAndDesease { get; set; } = default!;
+        public DbSet<CropPestAndDeseaseReport> CropPestAndDeseaseReports { get; set; } = default!;
+        public DbSet<CropGrowth> CropGrowths { get; set; } = default!;
+        public DbSet<PastureStatus> PastureStatuses { get; set; } = default!;
+        public DbSet<AnimalWaterSupplyStatus> AnimalWaterSupplyStatuses { get; set; } = default!;
+        public DbSet<AnimalHealthStatus> AnimalHealthStatuses { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -70,6 +78,7 @@ namespace EarlyWarning.Data
                 }
             );
         }
+        public DbSet<AnimalDisease> AnimalDisease { get; set; } = default!;
     }
 
     public static class DbInitializer
@@ -77,37 +86,37 @@ namespace EarlyWarning.Data
         // Existing location-only initializer (synchronous)
         public static void Initialize(EarlyWarningDbContext context)
         {
-            context.Database.EnsureCreated(); // or Migrate()
+            context.Database.EnsureCreated(); 
 
             if (context.Locations.Any())
                 return;
 
-            var ethiopia = new Locations
+            var amhara = new Locations
             {
                 Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                LocationName = "Ethiopia",
-                LocationAmharicName = "ኢትዮጵያ",
-                LocationCode = "ETH",
+                LocationName = "Amhara",
+                LocationAmharicName = "አማራ",
+                LocationCode = "AM",
                 PhoneNumber = "+251-111-111111",
-                Level = LocationLevel.ሀገር,
-                CardHeaderTitle = "National HQ",
+                Level = LocationLevel.ክልል,
+                CardHeaderTitle = "Amhara Regional Administration",
                 IsActive = true
             };
 
-            var addis = new Locations
+            var centralGondar = new Locations
             {
                 Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                LocationName = "Addis Ababa",
-                LocationAmharicName = "አዲስ አበባ",
-                LocationCode = "ETH-ADD",
+                LocationName = "Central Gondar",
+                LocationAmharicName = "ማዕከላዊ ጎንደር",
+                LocationCode = "AM-CG",
                 PhoneNumber = "+251-111-222222",
-                Level = LocationLevel.ክልል,
-                CardHeaderTitle = "City Administration",
+                Level = LocationLevel.ዞን,
+                CardHeaderTitle = "ማዕከላዊ ጎንደር አስተዳደር",
                 IsActive = true,
-                ParentId = ethiopia.Id
+                ParentId = amhara.Id
             };
 
-            context.Locations.AddRange(ethiopia, addis);
+            context.Locations.AddRange(amhara, centralGondar);
             context.SaveChanges();
         }
 
@@ -123,7 +132,7 @@ namespace EarlyWarning.Data
             Initialize(context);
 
             // ---------- 1. Seed Roles ----------
-            string[] roleNames = { "Supper Administrator", "Data Encoder", "Data Approver" };
+            string[] roleNames = { "Supper Administrator", "Data Encoder", "Data Approver", "Data Evaluator", "User" };
             foreach (var roleName in roleNames)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))

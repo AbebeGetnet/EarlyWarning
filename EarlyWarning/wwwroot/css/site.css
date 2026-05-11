@@ -45,4 +45,53 @@ body {
     .card-text {
         font-size: 16px;
     }
+    .waving-header {
+        background: linear-gradient(135deg, #0d47a1, #1976d2, #42a5f5, #64b5f6, #1e88e5);
+        background-size: 200% 200%;
+        animation: waveGradient 6s ease infinite;
+        border-radius: 8px 8px 0 0;
+        padding: 1rem 1rem;
+        margin-bottom: 0;
+    }
+
+    @@keyframes waveGradient {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    .report-card {
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .card-body {
+        background-color: #fdfbf7;
+    }
+
+    /* Blue button overrides */
+    .btn-primary {
+        background-color: #1976d2;
+        border-color: #0d47a1;
+    }
+
+        .btn-primary:hover {
+            background-color: #0d47a1;
+            border-color: #0a3b7a;
+        }
+
+    /* Blue section headers */
+    .text-primary-custom {
+        color: #1976d2 !important;
+    }
 }

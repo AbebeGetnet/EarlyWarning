@@ -1,0 +1,151 @@
+﻿@using EarlyWarning.Enums
+@model CropPestAndDeseaseReport
+@{
+    ViewData["Title"] = "የሰብል ተባይ/በሽታ ሪፖርት ዝርዝር";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h3>@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <!-- Woreda and Dates -->
+                <dt class="col-sm-3">ወረዳ</dt>
+                <dd class="col-sm-9">@Model.Woreda?.LocationName</dd>
+
+                <dt class="col-sm-3">የሪፖርት መጀመሪያ ቀን</dt>
+                <dd class="col-sm-9">@(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")</dd>
+
+                <dt class="col-sm-3">የሪፖርት መጨረሻ ቀን</dt>
+                <dd class="col-sm-9">@(Model.EndDate?.ToString("yyyy-MM-dd") ?? "")</dd>
+
+                <!-- Pest/Disease Occurrence -->
+                <dt class="col-sm-3">ተባይ/በሽታ አጋጥሟል?</dt>
+                <dd class="col-sm-9">@(Model.HasPestAndDeseasOccured ? "አዎ" : "አይ")</dd>
+
+                @if (Model.HasPestAndDeseasOccured)
+                {
+                    <dt class="col-sm-3">የተጎዳ መሬት (ሄክታር)</dt>
+                    <dd class="col-sm-9">@Model.AffectedLandInHectar</dd>
+
+                    <dt class="col-sm-3">የተጎዳ ሰብል አይነት</dt>
+                    <dd class="col-sm-9">@Model.TypeOfCropAffected</dd>
+
+                    <dt class="col-sm-3">ተባዮች/በሽታዎች</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.DiseaseNames != null && Model.DiseaseNames.Any())
+                        {
+                            <ul>
+                                @foreach (var disease in Model.DiseaseNames)
+                                {
+                                    <li>@disease</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span class="text-muted">ምንም የተመረጠ ተባይ/በሽታ የለም</span>
+                        }
+                    </dd>
+                }
+
+                <!-- Household Demographics -->
+                <dt class="col-sm-3">የቤተሰብ ብዛት (ወንድ)</dt>
+                <dd class="col-sm-9">@Model.MaleHouseHold</dd>
+
+                <dt class="col-sm-3">የቤተሰብ ብዛት (ሴት)</dt>
+                <dd class="col-sm-9">@Model.FemaleHouseHold</dd>
+
+                <dt class="col-sm-3">ህጻናት ከ5 አመት በታች (ወንድ)</dt>
+                <dd class="col-sm-9">@Model.ChildhMale</dd>
+
+                <dt class="col-sm-3">ህጻናት ከ5 አመት በታች (ሴት)</dt>
+                <dd class="col-sm-9">@Model.ChildFemale</dd>
+
+                <dt class="col-sm-3">ወጣቶች (ወንድ)</dt>
+                <dd class="col-sm-9">@Model.YouthMale</dd>
+
+                <dt class="col-sm-3">ወጣቶች (ሴት)</dt>
+                <dd class="col-sm-9">@Model.YouthFemale</dd>
+
+                <dt class="col-sm-3">አረጋውያን (ወንድ)</dt>
+                <dd class="col-sm-9">@Model.ElderlyMale</dd>
+
+                <dt class="col-sm-3">አረጋውያን (ሴት)</dt>
+                <dd class="col-sm-9">@Model.ElderlyFemale</dd>
+
+                <dt class="col-sm-3">አካል ጉዳተኞች (ወንድ)</dt>
+                <dd class="col-sm-9">@Model.DisabledMale</dd>
+
+                <dt class="col-sm-3">አካል ጉዳተኞች (ሴት)</dt>
+                <dd class="col-sm-9">@Model.DisabledFemale</dd>
+
+                <!-- Status and Approvals -->
+                <dt class="col-sm-3">ሁኔታ</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Status == ReportStatus.Draft)
+                    {
+                        <span class="badge bg-secondary">ረቂቅ</span>
+                    }
+                    else if (Model.Status == ReportStatus.Submitted)
+                    {
+                        <span class="badge bg-primary">ቀርቧል</span>
+                    }
+                    else if (Model.Status == ReportStatus.ZoneApproved)
+                    {
+                        <span class="badge bg-success">በዞን ጸድቋል</span>
+                    }
+                    else if (Model.Status == ReportStatus.RegionApproved)
+                    {
+                        <span class="badge bg-success">በክልል ጸድቋል</span>
+                    }
+                    else if (Model.Status == ReportStatus.Rejected)
+                    {
+                        <span class="badge bg-danger">ውድቅ ተደርጓል</span>
+                    }
+                </dd>
+
+                @if (Model.SubmittedAt.HasValue)
+                {
+                    <dt class="col-sm-3">የተላከበት ቀን</dt>
+                    <dd class="col-sm-9">@Model.SubmittedAt.Value.ToString("yyyy-MM-dd HH:mm")</dd>
+                }
+
+                @if (Model.ZoneApprovedAt.HasValue)
+                {
+                    <dt class="col-sm-3">በዞን የጸደቀበት ቀን</dt>
+                    <dd class="col-sm-9">@Model.ZoneApprovedAt.Value.ToString("yyyy-MM-dd HH:mm")</dd>
+                }
+
+                @if (Model.RegionApprovedAt.HasValue)
+                {
+                    <dt class="col-sm-3">በክልል የጸደቀበት ቀን</dt>
+                    <dd class="col-sm-9">@Model.RegionApprovedAt.Value.ToString("yyyy-MM-dd HH:mm")</dd>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.ZoneRejectionRemark))
+                {
+                    <dt class="col-sm-3">የዞን ውድቅ ማብራሪያ</dt>
+                    <dd class="col-sm-9">@Model.ZoneRejectionRemark</dd>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.RegionRejectionRemark))
+                {
+                    <dt class="col-sm-3">የክልል ውድቅ ማብራሪያ</dt>
+                    <dd class="col-sm-9">@Model.RegionRejectionRemark</dd>
+                }
+
+                <!-- Remarks -->
+                <dt class="col-sm-3">ማስታወሻ</dt>
+                <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Remarks) ? "—" : Model.Remarks)</dd>
+            </dl>
+
+            <div class="mt-3">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">አርትዕ</a>
+                <a asp-action="Index" class="btn btn-secondary">ወደ ዝርዝር ተመለስ</a>
+            </div>
+        </div>
+    </div>
+</div>

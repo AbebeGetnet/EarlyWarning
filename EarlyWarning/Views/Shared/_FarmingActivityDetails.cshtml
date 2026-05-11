@@ -1,0 +1,84 @@
+@model FarmingActivity
+
+<dl class="row">
+    <dt class="col-sm-3">ወረዳ</dt>
+    <dd class="col-sm-9">@Model.Woreda?.LocationName</dd>
+
+    <dt class="col-sm-3">መህር ግብርና ዕቅድ</dt>
+    <dd class="col-sm-9">@Model.MeherFarmPlan</dd>
+
+    <dt class="col-sm-3">መህር ተሰነዘረ</dt>
+    <dd class="col-sm-9">@Model.MeherPloughed</dd>
+
+    <dt class="col-sm-3">መህር የዘነበ</dt>
+    <dd class="col-sm-9">@Model.MeherSown</dd>
+
+    <dt class="col-sm-3">መህር ምርት</dt>
+    <dd class="col-sm-9">@Model.MeherHarvestingHHarvesting</dd>
+
+    <dt class="col-sm-3">መህር በእርጥበት የዘነበ</dt>
+    <dd class="col-sm-9">@Model.MeherSownWithResidualMoisture</dd>
+
+    <dt class="col-sm-3">ንዋይ ግብርና ዕቅድ</dt>
+    <dd class="col-sm-9">@Model.AutumnFarmPlan</dd>
+
+    <dt class="col-sm-3">ንዋይ ተሰነዘረ</dt>
+    <dd class="col-sm-9">@Model.AutumnPloughed</dd>
+
+    <dt class="col-sm-3">ንዋይ የዘነበ</dt>
+    <dd class="col-sm-9">@Model.AutumnSown</dd>
+
+    <dt class="col-sm-3">ንዋይ ምርት</dt>
+    <dd class="col-sm-9">@Model.AutumnHarvestingHHarvesting</dd>
+
+    <dt class="col-sm-3">ንዋይ በእርጥበት የዘነበ</dt>
+    <dd class="col-sm-9">@Model.AutumnSownWithResidualMoisture</dd>
+
+    <dt class="col-sm-3">ማስታወሻ</dt>
+    <dd class="col-sm-9">@Model.Remarks</dd>
+
+    <dt class="col-sm-3">ሁኔታ</dt>
+    <dd class="col-sm-9">@Model.Status</dd>
+
+    <dt class="col-sm-3">ያስገባው ተጠቃሚ</dt>
+    <dd class="col-sm-9">@Model.SubmittedById</dd>
+
+    <dt class="col-sm-3">የተላከበት ቀን</dt>
+    <dd class="col-sm-9">@(Model.SubmittedAt?.ToString("yyyy-MM-dd HH:mm") ?? "")</dd>
+
+    <dt class="col-sm-3">በዞን ያጸደቀው</dt>
+    <dd class="col-sm-9">@Model.ZoneApprovedById</dd>
+
+    <dt class="col-sm-3">የዞን ማጽደቂያ ቀን</dt>
+    <dd class="col-sm-9">@(Model.ZoneApprovedAt?.ToString("yyyy-MM-dd HH:mm") ?? "")</dd>
+
+    @if (!string.IsNullOrEmpty(Model.ZoneRejectionRemark))
+    {
+        <dt class="col-sm-3">የዞን ውድቅ ማብራሪያ</dt>
+        <dd class="col-sm-9">@Model.ZoneRejectionRemark</dd>
+
+        <dt class="col-sm-3">በዞን ውድቅ የተደረገበት ቀን</dt>
+        <dd class="col-sm-9">@(Model.ZoneRejectedAt?.ToString("yyyy-MM-dd HH:mm") ?? "")</dd>
+
+        <dt class="col-sm-3">በዞን ውድቅ ያደረገው ተጠቃሚ</dt>
+        <dd class="col-sm-9">@Model.ZoneRejectedById</dd>
+    }
+
+    <dt class="col-sm-3">በክልል ያጸደቀው</dt>
+    <dd class="col-sm-9">@Model.RegionApprovedById</dd>
+
+    <dt class="col-sm-3">የክልል ማጽደቂያ ቀን</dt>
+    <dd class="col-sm-9">@(Model.RegionApprovedAt?.ToString("yyyy-MM-dd HH:mm") ?? "")</dd>
+
+    @if (!string.IsNullOrEmpty(Model.RegionRejectionRemark))
+    {
+        <dt class="col-sm-3">የክልል ውድቅ ማብራሪያ</dt>
+        <dd class="col-sm-9">@Model.RegionRejectionRemark</dd>
+
+        <dt class="col-sm-3">በክልል ውድቅ የተደረገበት ቀን</dt>
+        <dd class="col-sm-9">@(Model.RegionRejectedAt?.ToString("yyyy-MM-dd HH:mm") ?? "")</dd>
+
+        <dt class="col-sm-3">በክልል ውድቅ ያደረገው ተጠቃሚ</dt>
+        <dd class="col-sm-9">@Model.RegionRejectedById</dd>
+    }
+</dl>

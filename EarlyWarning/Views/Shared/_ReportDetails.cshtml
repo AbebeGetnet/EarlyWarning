@@ -1,0 +1,100 @@
+﻿@using System.Collections
+@model EarlyWarning.Models.RainfallReport
+
+<dl class="row">
+    <dt class="col-sm-3">ወረዳ</dt>
+    <dd class="col-sm-9">@Model.Woreda?.LocationName</dd>
+
+    <dt class="col-sm-3">የዝናብ ቀን</dt>
+    <dd class="col-sm-9">@(Model.StartDate?.ToString("yyyy-MM-dd") ?? "") እስከ @(Model.EndDate?.ToString("yyyy-MM-dd") ?? "")</dd>
+
+    <dt class="col-sm-3">ሙሉ ሽፋን ቀበሌዎች</dt>
+    <dd class="col-sm-9">@Model.FullCoverageKebeles</dd>
+
+    <dt class="col-sm-3">ከፊል ሽፋን ቀበሌዎች</dt>
+    <dd class="col-sm-9">@Model.PartialCoverageKebeles</dd>
+
+    <dt class="col-sm-3">ዝናብ ያልዘነበባቸው</dt>
+    <dd class="col-sm-9">@Model.NoRainKebeles</dd>
+
+    <dt class="col-sm-3">መረጃ የሌለባቸው</dt>
+    <dd class="col-sm-9">@Model.NoDataKebeles</dd>
+
+    <dt class="col-sm-3">ዝቅተኛ መጠን</dt>
+    <dd class="col-sm-9">@Model.LowAmountKebeles</dd>
+
+    <dt class="col-sm-3">ዝቅተኛ-መካከለኛ</dt>
+    <dd class="col-sm-9">@Model.LowMediumAmountKebeles</dd>
+
+    <dt class="col-sm-3">መካከለኛ</dt>
+    <dd class="col-sm-9">@Model.MediumAmountKebeles</dd>
+
+    <dt class="col-sm-3">መካከለኛ-ከፍተኛ</dt>
+    <dd class="col-sm-9">@Model.MediumHighAmountKebeles</dd>
+
+    <dt class="col-sm-3">ከፍተኛ</dt>
+    <dd class="col-sm-9">@Model.HighAmountKebeles</dd>
+
+    <dt class="col-sm-3">ማስታወሻ</dt>
+    <dd class="col-sm-9">@Model.Remarks</dd>
+
+    <dt class="col-sm-3">ሁኔታ</dt>
+    <dd class="col-sm-9">@Model.Status</dd>
+
+    <dt class="col-sm-3">ያስገባው ተጠቃሚ</dt>
+    <dd class="col-sm-9">@Model.SubmittedById</dd>
+
+    <dt class="col-sm-3">የተላከበት ቀን</dt>
+    <dd class="col-sm-9">@(Model.SubmittedAt?.ToString("yyyy-MM-dd HH:mm") ?? "")</dd>
+
+    <dt class="col-sm-3">በዞን ያጸደቀው</dt>
+    <dd class="col-sm-9">@Model.ZoneApprovedById</dd>
+
+    <dt class="col-sm-3">የዞን ማጽደቂያ ቀን</dt>
+    <dd class="col-sm-9">@(Model.ZoneApprovedAt?.ToString("yyyy-MM-dd HH:mm") ?? "")</dd>
+
+    <dt class="col-sm-3">በክልል ያጸደቀው</dt>
+    <dd class="col-sm-9">@Model.RegionApprovedById</dd>
+
+    <dt class="col-sm-3">የክልል ማጽደቂያ ቀን</dt>
+    <dd class="col-sm-9">@(Model.RegionApprovedAt?.ToString("yyyy-MM-dd HH:mm") ?? "")</dd>
+    <dt>
+    <dt class="col-sm-3">በጎርፍ የተጎዱ ቀበሌዎች</dt>
+    <dd class="col-sm-9">
+        @{
+            var kebeleList = ViewBag.KebeleNames as IEnumerable;
+            if (kebeleList != null && kebeleList.Cast<dynamic>().Any())
+            {
+                <ul>
+                    @foreach (dynamic kebele in kebeleList)
+                    {
+                        <li>@kebele.LocationName (@kebele.LocationAmharicName)</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <span>ምንም ቀበሌ አልተመረጠም</span>
+            }
+        }
+    </dd>
+    <dt class="col-sm-3">በድርቅ የተጎዱ ቀበሌዎች</dt>
+    <dd class="col-sm-9">
+        @{
+            var droughtKebeleList = ViewBag.KebeleNames as IEnumerable;
+            if (droughtKebeleList != null && droughtKebeleList.Cast<dynamic>().Any())
+            {
+                <ul>
+                    @foreach (dynamic kebele in droughtKebeleList)
+                    {
+                        <li>@kebele.LocationName (@kebele.LocationAmharicName)</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <span>ምንም ቀበሌ አልተመረጠም</span>
+            }
+        }
+    </dd>
+</dl>

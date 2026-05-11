@@ -1,0 +1,49 @@
+﻿@using EarlyWarning.Models
+@model CropPestAndDeseaseReport
+@{
+    ViewData["Title"] = "ሪፖርት ሰርዝ";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h3>@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+            <h4>እርግጠኛ ነዎት ይህን ሪፖርት መሰረዝ ይፈልጋሉ?</h4>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-3">ወረዳ</dt>
+                <dd class="col-sm-9">@Model.Woreda?.LocationName</dd>
+
+                <dt class="col-sm-3">የሪፖርት ጊዜ</dt>
+                <dd class="col-sm-9">@Model.StartDate?.ToString("yyyy-MM-dd") → @Model.EndDate?.ToString("yyyy-MM-dd")</dd>
+
+                <dt class="col-sm-3">ተባይ/በሽታ አጋጥሟል?</dt>
+                <dd class="col-sm-9">@(Model.HasPestAndDeseasOccured ? "አዎ" : "አይ")</dd>
+
+                @if (Model.HasPestAndDeseasOccured)
+                {
+                    <dt class="col-sm-3">የተጎዳ መሬት (ሄክ)</dt>
+                    <dd class="col-sm-9">@Model.AffectedLandInHectar</dd>
+
+                    <dt class="col-sm-3">ተጎዳ ሰብል</dt>
+                    <dd class="col-sm-9">@Model.TypeOfCropAffected</dd>
+
+                    <dt class="col-sm-3">ተባዮች/በሽታዎች</dt>
+                    <dd class="col-sm-9">@(Model.DiseaseNames != null ? string.Join(", ", Model.DiseaseNames) : "")</dd>
+                }
+
+                <dt class="col-sm-3">ሁኔታ</dt>
+                <dd class="col-sm-9">@Model.Status</dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-danger">አዎ ሰርዝ</button>
+                <a asp-action="Index" class="btn btn-secondary">ተመለስ</a>
+            </form>
+        </div>
+    </div>
+</div>

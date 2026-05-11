@@ -1,5 +1,7 @@
 using EarlyWarning.Data;
 using EarlyWarning.Models;
+using EarlyWarning.Repositories;
+using EarlyWarning.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +10,22 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Services.AddScoped<IAnimalHealthStatusRepository, AnimalHealthStatusRepository>();
+builder.Services.AddScoped<AnimalHealthStatusService>(); 
+builder.Services.AddScoped<IAnimalWaterSupplyStatusRepository, AnimalWaterSupplyStatusRepository>();
+builder.Services.AddScoped<AnimalWaterSupplyStatusService>();
+builder.Services.AddScoped<IPastureStatusRepository, PastureStatusRepository>();
+builder.Services.AddScoped<PastureStatusService>();
+builder.Services.AddScoped<IRainfallReportRepository, RainfallReportRepository>();
+builder.Services.AddScoped<ICropPestAndDeseasReportRepository, CropPestAndDeseasReportRepository>();
+builder.Services.AddScoped<ICropGrowthRepository, CropGrowthRepository>();
+builder.Services.AddScoped<RainfallReportService>();
+builder.Services.AddScoped<IFarmingActivityRepository, FarmingActivityRepository>();
+builder.Services.AddScoped<FarmingActivityService>();
+builder.Services.AddScoped<ICropGrowthRepository, CropGrowthRepository>();
+builder.Services.AddScoped<CropGrowthService>();
+builder.Services.AddHttpContextAccessor();
+
 
 builder.Services.AddDbContext<EarlyWarningDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -63,7 +81,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-// Initialize database
+ //Initialize database
 using (var scope = app.Services.CreateScope())
 {
     try

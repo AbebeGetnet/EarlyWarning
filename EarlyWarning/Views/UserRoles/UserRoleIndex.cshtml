@@ -14,6 +14,7 @@
                 <tr>
                     <th>First Name</th>
                     <th>Last Name</th>
+                    <th>Location Name</th>
                     <th>Email</th>
                     <th>Roles</th>
                     <th>Action</th>
@@ -25,6 +26,7 @@
                     <tr>
                         <td>@user.FirstName</td>
                         <td>@user.LastName</td>
+                        <td>@user.LocationName</td>
                         <td>@user.Email</td>
                         <td>@string.Join(" , ", user.Roles.ToList())</td>
                         <td>
