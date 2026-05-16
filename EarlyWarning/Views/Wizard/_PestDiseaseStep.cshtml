@@ -1,0 +1,88 @@
+﻿@model EarlyWarning.Models.Wizard.CombinedReportWizardModel
+
+@{
+    var cropPestDiseases = ViewBag.CropPestDiseases as IEnumerable<SelectListItem> ?? new List<SelectListItem>();
+}
+
+<div class="form-check">
+    <input asp-for="PestDisease.HasPestAndDeseasOccured" class="form-check-input" />
+    <label asp-for="PestDisease.HasPestAndDeseasOccured" class="form-check-label"></label>
+</div>
+
+<div class="form-group">
+    <label>የሰብል ተባዮች/በሽታዎች</label>
+    <select asp-for="PestDisease.SelectedDiseaseIds" class="form-control" multiple
+            asp-items="@cropPestDiseases"></select>
+</div>
+
+<div class="form-group">
+    <label asp-for="PestDisease.AffectedLandInHectar"></label>
+    <input asp-for="PestDisease.AffectedLandInHectar" class="form-control" />
+    <span asp-validation-for="PestDisease.AffectedLandInHectar" class="text-danger"></span>
+</div>
+
+<div class="form-group">
+    <label asp-for="PestDisease.TypeOfCropAffected"></label>
+    <input asp-for="PestDisease.TypeOfCropAffected" class="form-control" />
+</div>
+
+<h5>ተጎጂ ህዝብ ቆጠራ</h5>
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label asp-for="PestDisease.MaleHouseHold"></label>
+            <input asp-for="PestDisease.MaleHouseHold" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PestDisease.MaleFamily"></label>
+            <input asp-for="PestDisease.MaleFamily" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PestDisease.ChildhMale"></label>
+            <input asp-for="PestDisease.ChildhMale" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PestDisease.YouthMale"></label>
+            <input asp-for="PestDisease.YouthMale" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PestDisease.ElderlyMale"></label>
+            <input asp-for="PestDisease.ElderlyMale" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PestDisease.DisabledMale"></label>
+            <input asp-for="PestDisease.DisabledMale" class="form-control" />
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label asp-for="PestDisease.FemaleHouseHold"></label>
+            <input asp-for="PestDisease.FemaleHouseHold" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PestDisease.FemaleFamily"></label>
+            <input asp-for="PestDisease.FemaleFamily" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PestDisease.ChildFemale"></label>
+            <input asp-for="PestDisease.ChildFemale" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PestDisease.YouthFemale"></label>
+            <input asp-for="PestDisease.YouthFemale" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PestDisease.ElderlyFemale"></label>
+            <input asp-for="PestDisease.ElderlyFemale" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="PestDisease.DisabledFemale"></label>
+            <input asp-for="PestDisease.DisabledFemale" class="form-control" />
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <label asp-for="PestDisease.Remarks"></label>
+    <textarea asp-for="PestDisease.Remarks" class="form-control" rows="2"></textarea>
+</div>

@@ -1,0 +1,100 @@
+﻿@model EarlyWarning.Models.Wizard.CombinedReportWizardModel
+@{
+    ViewData["Title"] = "የሪፖርት አሰራር መምሪያ";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">የቅድመ ማስጠንቀቂያ ሪፖርት ማስገቢያ መምሪያ</h2>
+
+    <!-- Wizard Steps Progress Bar -->
+    <ul class="nav nav-tabs mb-4" id="wizardTabs">
+        <li class="nav-item step-1"><a class="nav-link" href="#">1. ዝናብ</a></li>
+        <li class="nav-item step-2"><a class="nav-link" href="#">2. የእርሻ ተግባር</a></li>
+        <li class="nav-item step-3"><a class="nav-link" href="#">3. የሰብል እድገት</a></li>
+        <li class="nav-item step-4"><a class="nav-link" href="#">4. ተባይ/በሽታ</a></li>
+        <li class="nav-item step-5"><a class="nav-link" href="#">5. የግጦሽ ሁኔታ</a></li>
+        <li class="nav-item step-6"><a class="nav-link" href="#">6. የውሃ አቅርቦት</a></li>
+        <li class="nav-item step-7"><a class="nav-link" href="#">7. የእንስሳት በሽታ</a></li>
+        <li class="nav-item step-preview"><a class="nav-link" href="#">ገምጋሚ</a></li>
+    </ul>
+
+    <form id="wizardForm" method="post" asp-action="NextStep" asp-controller="Wizard">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="CurrentStep" id="currentStep" />
+        <input type="hidden" asp-for="WoredaId" />
+        <input type="hidden" asp-for="ReportingWeekStart" />
+
+        <div id="stepContent">
+            @switch (Model.CurrentStep)
+            {
+                case 1:
+                    <partial name="_RainfallStep" model="Model.Rainfall" />
+                    break;
+                case 2:
+                    <partial name="_FarmingStep" model="Model.Farming" />
+                    break;
+                case 3:
+                    <partial name="_CropGrowthStep" model="Model.Growth" />
+                    break;
+                case 4:
+                    <partial name="_PestDiseaseStep" model="Model.PestDisease" />
+                    break;
+                case 5:
+                    <partial name="_PastureStep" model="Model.Pasture" />
+                    break;
+                case 6:
+                    <partial name="_WaterSupplyStep" model="Model.WaterSupply" />
+                    break;
+                case 7:
+                    <partial name="_AnimalHealthStep" model="Model.AnimalHealth" />
+                    break;
+                case 8:
+                    <partial name="_PreviewStep" model="Model" />
+                    break;
+                default:
+                    <partial name="_RainfallStep" model="Model.Rainfall" />
+                    break;
+            }
+        </div>
+
+        <div class="mt-3 d-flex justify-content-between">
+            @if (Model.CurrentStep > 1 && Model.CurrentStep <= 8)
+            {
+                <button type="submit" name="action" value="prev" class="btn btn-secondary">◀ ቀዳሚ</button>
+            }
+            else
+            {
+                <div></div>
+            }
+
+            @if (Model.CurrentStep < 8)
+            {
+                <button type="submit" name="action" value="next" class="btn btn-primary">ቀጣይ ▶</button>
+            }
+            else if (Model.CurrentStep == 8)
+            {
+                <button type="submit" name="action" value="submit" class="btn btn-success">አስገባ</button>
+            }
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Highlight active step in tabs
+        let currentStep = @Model.CurrentStep;
+        $('.nav-link').removeClass('active');
+        $(`.step-${currentStep} .nav-link`).addClass('active');
+
+        // Optional: client-side validation on each step
+        $('#wizardForm').on('submit', function(e) {
+            let step = currentStep;
+            let isValid = true;
+            // You can add step-specific validation here if needed
+            if (!isValid) {
+                e.preventDefault();
+                alert('እባክዎ ሁሉንም አስፈላጊ መረጃዎች ይሙሉ።');
+            }
+        });
+    </script>
+}

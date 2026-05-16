@@ -1,0 +1,67 @@
+﻿@model EarlyWarning.Models.Wizard.CombinedReportWizardModel
+
+<div class="row">
+    <div class="col-md-6">
+        <h5>መኸር ወቅት</h5>
+        <div class="form-group">
+            <label asp-for="Farming.MeherFarmPlan"></label>
+            <input asp-for="Farming.MeherFarmPlan" class="form-control" />
+            <span asp-validation-for="Farming.MeherFarmPlan" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Farming.MeherPloughed"></label>
+            <input asp-for="Farming.MeherPloughed" class="form-control" />
+            <span asp-validation-for="Farming.MeherPloughed" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Farming.MeherSown"></label>
+            <input asp-for="Farming.MeherSown" class="form-control" />
+            <span asp-validation-for="Farming.MeherSown" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Farming.MeherHarvestingHHarvesting"></label>
+            <input asp-for="Farming.MeherHarvestingHHarvesting" class="form-control" />
+            <span asp-validation-for="Farming.MeherHarvestingHHarvesting" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Farming.MeherSownWithResidualMoisture"></label>
+            <input asp-for="Farming.MeherSownWithResidualMoisture" class="form-control" />
+            <span asp-validation-for="Farming.MeherSownWithResidualMoisture" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <h5>በልግ ወቅት</h5>
+        <div class="form-group">
+            <label asp-for="Farming.AutumnFarmPlan"></label>
+            <input asp-for="Farming.AutumnFarmPlan" class="form-control" />
+            <span asp-validation-for="Farming.AutumnFarmPlan" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Farming.AutumnPloughed"></label>
+            <input asp-for="Farming.AutumnPloughed" class="form-control" />
+            <span asp-validation-for="Farming.AutumnPloughed" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Farming.AutumnSown"></label>
+            <input asp-for="Farming.AutumnSown" class="form-control" />
+            <span asp-validation-for="Farming.AutumnSown" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Farming.AutumnHarvestingHHarvesting"></label>
+            <input asp-for="Farming.AutumnHarvestingHHarvesting" class="form-control" />
+            <span asp-validation-for="Farming.AutumnHarvestingHHarvesting" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Farming.AutumnSownWithResidualMoisture"></label>
+            <input asp-for="Farming.AutumnSownWithResidualMoisture" class="form-control" />
+            <span asp-validation-for="Farming.AutumnSownWithResidualMoisture" class="text-danger"></span>
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <label asp-for="Farming.Remarks"></label>
+    <textarea asp-for="Farming.Remarks" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Farming.Remarks" class="text-danger"></span>
+</div>

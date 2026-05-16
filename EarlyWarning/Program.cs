@@ -24,6 +24,7 @@ builder.Services.AddScoped<IFarmingActivityRepository, FarmingActivityRepository
 builder.Services.AddScoped<FarmingActivityService>();
 builder.Services.AddScoped<ICropGrowthRepository, CropGrowthRepository>();
 builder.Services.AddScoped<CropGrowthService>();
+builder.Services.AddScoped<IReportSaveService, ReportSaveService>();
 builder.Services.AddHttpContextAccessor();
 
 
