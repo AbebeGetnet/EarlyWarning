@@ -1,0 +1,95 @@
+﻿@model AnimalHealthStatus
+@{
+    ViewData["Title"] = "የእንስሣት ጤና ሁኔታ ዝርዝር";
+}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h3>@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">ወረዳ</dt>
+                <dd class="col-sm-9">@Model.Woreda?.LocationName</dd>
+
+                <dt class="col-sm-3">የእንስሣት በሽታ አለ?</dt>
+                <dd class="col-sm-9">@(Model.Enough ? "አለ" : "የለም")</dd>
+
+                @if (Model.Enough)
+                {
+                    <dt class="col-sm-3">የበሽታ ዝርዝር</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.DiseaseNames != null && Model.DiseaseNames.Any())
+                        {
+                            <ul>@foreach (var d in Model.DiseaseNames) {
+                            <li>@d</li>
+                        }
+    </ul>
+                    }
+                    else
+                    {
+
+                        <span>—</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3">ጠቅላላ ተጎጂዎች</dt>
+                <dd class="col-sm-9">@Model.TotalAffected (ወንድ: @Model.TotalMale, ሴት: @Model.TotalFemale)</dd>
+                                }
+
+                <dt class="col-sm-3">አባወራ</dt>
+                <dd class="col-sm-9">@Model.MaleHouseHold</dd>
+
+                <dt class="col-sm-3">እማወራ</dt>
+                <dd class="col-sm-9">@Model.FemaleHouseHold</dd>
+
+                <dt class="col-sm-3">ድምር</dt>
+                <dd class="col-sm-9">@Model.TotalHouseHold</dd>
+
+                <dt class="col-sm-3">ወንድ ቤተሰብ</dt>
+                <dd class="col-sm-9">@Model.MaleFamily</dd>
+
+                <dt class="col-sm-3">ሴት ቤተሰብ</dt>
+                <dd class="col-sm-9">@Model.FemaleFamily</dd>
+
+                <dt class="col-sm-3">ድምር </dt>
+                <dd class="col-sm-9">@Model.TotalFamily</dd>
+
+                <dt class="col-sm-3">ወጣት ወንድ </dt>
+                <dd class="col-sm-9">@Model.YouthMale</dd>
+
+                <dt class="col-sm-3">ወጣት ሴት</dt>
+                <dd class="col-sm-9">@Model.YouthFemale</dd>
+
+                <dt class="col-sm-3">ድምር</dt>
+                <dd class="col-sm-9">@Model.Totalyouth</dd>
+
+                <dt class="col-sm-3">አረጋዊ ወንድ </dt>
+                <dd class="col-sm-9">@Model.ElderlyMale</dd>
+
+                <dt class="col-sm-3">አረጋዊ ሴት</dt>
+                <dd class="col-sm-9">@Model.ElderlyFemale</dd>
+
+                <dt class="col-sm-3">ድምር</dt>
+                <dd class="col-sm-9">@Model.TotalElderly</dd>
+
+                <dt class="col-sm-3">አካል ጉዳተኛ ወንድ </dt>
+                <dd class="col-sm-9">@Model.DisabledMale</dd>
+
+                <dt class="col-sm-3">አካል ጉዳተኛ ሴት</dt>
+                <dd class="col-sm-9">@Model.DisabledFemale</dd>
+
+                <dt class="col-sm-3">ድምር</dt>
+                <dd class="col-sm-9">@Model.TotalDisable</dd>
+
+                @if (!string.IsNullOrEmpty(Model.Remarks))
+                {
+                    <dt class="col-sm-3">ማስታወሻ</dt>
+                    <dd class="col-sm-9">@Model.Remarks</dd>
+                }
+            </dl>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">አርትዕ</a>
+            <a asp-action="Index" class="btn btn-secondary">ወደ ዝርዝር</a>
+        </div>
+    </div>
+</div>

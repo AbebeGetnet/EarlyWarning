@@ -1,0 +1,137 @@
+﻿@using EarlyWarning.Models;
+@model CropPestAndDeseaseReport
+@{
+    ViewData["Title"] = "የሰብል ተባይ/በሽታ ሪፖርት አርትዕ";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <h3>@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post" id="cropReportForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="WoredaId" />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>ወረዳ</label>
+                        <input class="form-control" value="@ViewBag.WoredaName" readonly disabled />
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="StartDate"></label>
+                        <input asp-for="StartDate" type="date" required class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="EndDate"></label>
+                        <input asp-for="EndDate" type="date" required class="form-control" />
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Main checkbox -->
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="HasPestCheck" asp-for="HasPestAndDeseasOccured" />
+                    <label class="form-check-label" asp-for="HasPestAndDeseasOccured"></label>
+                </div>
+
+                <!-- Detailed section (shown only when HasPestCheck is checked) -->
+                <div id="pestDetails" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ተባዮች/በሽታዎች ይምረጡ</label>
+                        <div class="disease-checkbox-list">
+                            @if (ViewBag.CropPestAndDeseases != null && ((IEnumerable<CropPestAndDesease>)ViewBag.CropPestAndDeseases).Any())
+                            {
+                                foreach (var disease in ViewBag.CropPestAndDeseases)
+                                {
+                                    // Check if the current disease ID is in the model's SelectedDiseaseIds list
+                                    bool isChecked = Model.SelectedDiseaseIds != null && Model.SelectedDiseaseIds.Contains(disease.Id);
+                                    <div class="form-check form-check-inline">
+                                        <input type="checkbox" name="SelectedDiseaseIds" value="@disease.Id" class="form-check-input" id="disease_@disease.Id" @(isChecked ? "checked" : "") />
+                                        <label class="form-check-label" for="disease_@disease.Id">
+                                            @disease.Name (@disease.CPDType)
+                                        </label>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted">ምንም የተመዘገቡ ተባይ/በሽታዎች የሉም።</p>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col">
+                            <label asp-for="AffectedLandInHectar"></label>
+                            <input asp-for="AffectedLandInHectar" class="form-control" />
+                        </div>
+                        <div class="col">
+                            <label asp-for="TypeOfCropAffected"></label>
+                            <input asp-for="TypeOfCropAffected" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Household demographics -->
+                <h5>የቤተሰብ ብዛት</h5>
+                <div class="row">
+                    <div class="col"><label asp-for="MaleHouseHold"></label><input asp-for="MaleHouseHold" class="form-control" /></div>
+                    <div class="col"><label asp-for="FemaleHouseHold"></label><input asp-for="FemaleHouseHold" class="form-control" /></div>
+                    <div class="col"><label asp-for="ChildhMale"></label><input asp-for="ChildhMale" class="form-control" /></div>
+                    <div class="col"><label asp-for="ChildFemale"></label><input asp-for="ChildFemale" class="form-control" /></div>
+                </div>
+                <div class="row">
+                    <div class="col"><label asp-for="YouthMale"></label><input asp-for="YouthMale" class="form-control" /></div>
+                    <div class="col"><label asp-for="YouthFemale"></label><input asp-for="YouthFemale" class="form-control" /></div>
+                    <div class="col"><label asp-for="ElderlyMale"></label><input asp-for="ElderlyMale" class="form-control" /></div>
+                    <div class="col"><label asp-for="ElderlyFemale"></label><input asp-for="ElderlyFemale" class="form-control" /></div>
+                </div>
+                <div class="row">
+                    <div class="col"><label asp-for="DisabledMale"></label><input asp-for="DisabledMale" class="form-control" /></div>
+                    <div class="col"><label asp-for="DisabledFemale"></label><input asp-for="DisabledFemale" class="form-control" /></div>
+                </div>
+
+                <div class="mt-3">
+                    <label asp-for="Remarks"></label>
+                    <textarea asp-for="Remarks" class="form-control"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">አስቀምጥ</button>
+                <a asp-action="Index" class="btn btn-secondary mt-3">ተመለስ</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toggle disease details section based on checkbox
+        $('#HasPestCheck').change(function() {
+            if ($(this).is(':checked')) {
+                $('#pestDetails').slideDown();
+            } else {
+                $('#pestDetails').slideUp();
+                // Uncheck all disease checkboxes when hiding
+                $('input[name="SelectedDiseaseIds"]').not('[type="hidden"]').prop('checked', false);
+            }
+        });
+
+        // Initial state based on current checkbox value
+        if ($('#HasPestCheck').is(':checked')) {
+            $('#pestDetails').show();
+        } else {
+            $('#pestDetails').hide();
+        }
+
+        // Ensure that if the main checkbox is not checked, we remove any disease IDs from the submission.
+        $('form').on('submit', function(e) {
+            if (!$('#HasPestCheck').is(':checked')) {
+                $('input[name="SelectedDiseaseIds"]').not('[type="hidden"]').remove();
+            }
+        });
+    </script>
+}

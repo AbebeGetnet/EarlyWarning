@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EarlyWarning.Migrations
 {
     [DbContext(typeof(EarlyWarningDbContext))]
-    [Migration("20260508192634_redisign")]
-    partial class redisign
+    [Migration("20260509104743_addAffectedKebelieListJson")]
+    partial class addAffectedKebelieListJson
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,9 +33,6 @@ namespace EarlyWarning.Migrations
 
                     b.Property<string>("CardHeaderTitle")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DeletedAt")
                         .HasColumnType("datetime2");
@@ -71,10 +68,31 @@ namespace EarlyWarning.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("RegionApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmittedById")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ZoneApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneApprovedById")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -82,6 +100,52 @@ namespace EarlyWarning.Migrations
                     b.HasIndex("ParentId");
 
                     b.ToTable("Locations");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            CardHeaderTitle = "National HQ",
+                            DeletedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            LasModifiedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Level = 0,
+                            LocationAmharicName = "ኢትዮጵያ",
+                            LocationCode = "ETH",
+                            LocationName = "Ethiopia",
+                            PhoneNumber = "+251-111-111111",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            CardHeaderTitle = "City Administration",
+                            DeletedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            LasModifiedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Level = 1,
+                            LocationAmharicName = "አዲስ አበባ",
+                            LocationCode = "ETH-ADD",
+                            LocationName = "Addis Ababa",
+                            ParentId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            PhoneNumber = "+251-111-222222",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            CardHeaderTitle = "Kirkos District",
+                            DeletedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            LasModifiedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Level = 3,
+                            LocationAmharicName = "ቂርቆስ",
+                            LocationCode = "ETH-ADD-KIR",
+                            LocationName = "Kirkos",
+                            ParentId = new Guid("22222222-2222-2222-2222-222222222222"),
+                            PhoneNumber = "+251-111-333333",
+                            Status = 0
+                        });
                 });
 
             modelBuilder.Entity("EarlyWarning.Models.PasswordResetKey", b =>
@@ -100,6 +164,106 @@ namespace EarlyWarning.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PasswordResetKeys");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.RainfallReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AffectedKebelesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FullCoverageKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FullCoveredKebelieList")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HighAmountKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HighRainKebelieList")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LasModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LowAmountKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LowMediumAmountKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LowRainKebeliesList")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MediumAmountKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MediumHighAmountKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NoDataKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NoRainKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NoRainKebelieList")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PartialCoverageKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RegionApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmittedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ZoneApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WoredaId");
+
+                    b.ToTable("RainfallReports");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -345,9 +509,21 @@ namespace EarlyWarning.Migrations
                 {
                     b.HasOne("EarlyWarning.Models.Locations", "Parent")
                         .WithMany("Children")
-                        .HasForeignKey("ParentId");
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.RainfallReport", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Woreda");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

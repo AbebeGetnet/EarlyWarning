@@ -1,0 +1,329 @@
+﻿@model RainfallReport
+@{
+    ViewData["Title"] = "የዝናብ ሪፖርት አርትዕ";
+}
+
+<style>
+    /* Same styles as Create view */
+    .waving-header {
+        background: linear-gradient(135deg, #0d47a1, #1976d2, #42a5f5, #64b5f6, #1e88e5);
+        background-size: 200% 200%;
+        animation: waveGradient 6s ease infinite;
+        border-radius: 8px 8px 0 0;
+        padding: 1rem 1rem;
+        margin-bottom: 0;
+    }
+
+    @@keyframes waveGradient {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    .report-card {
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .card-body {
+        background-color: #fdfbf7;
+    }
+
+    .btn-primary {
+        background-color: #1976d2;
+        border-color: #0d47a1;
+    }
+
+        .btn-primary:hover {
+            background-color: #0d47a1;
+            border-color: #0a3b7a;
+        }
+
+    .text-primary-custom {
+        color: #1976d2 !important;
+    }
+
+    .kebele-checkbox-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 6px;
+        background: #f9f9f9;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .validation-summary-error {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background-color: #f8d7da;
+        border-radius: 4px;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="card report-card">
+        <div class="waving-header text-white">
+            <h3 class="mb-0"><i class="bi bi-cloud-rain"></i> @ViewData["Title"]</h3>
+            <small>የዝናብ መረጃ ለወረዳዎች - ማስተካከያ</small>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Edit" method="post" id="rainfallForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="WoredaId" />
+                <input type="hidden" id="totalKebeles" value="@ViewBag.TotalKebeles" />
+
+                <div class="row mb-1">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ወረዳ</label>
+                        <input type="text" class="form-control" value="@ViewBag.WoredaName" readonly disabled />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ጠቅላላ ቀበሌዎች</label>
+                        <input type="text" class="form-control" value="@ViewBag.TotalKebeles" readonly disabled />
+                    </div>
+                </div>
+
+                <!-- Date range row -->
+                <div class="section-card mb-1 p-3 bg-light rounded">
+                    <h5 class="text-primary-custom"><i class="bi bi-calendar-week"></i> የሪፖርት ጊዜ/ሳምንት</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label asp-for="StartDate" class="form-label fw-bold"></label>
+                            <input asp-for="StartDate" type="date" class="form-control" />
+                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EndDate" class="form-label fw-bold"></label>
+                            <input asp-for="EndDate" type="date" class="form-control" />
+                            <span asp-validation-for="EndDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div id="dateRangeError" class="validation-summary-error" style="display:none;"></div>
+                </div>
+
+                <!-- Coverage section -->
+                <div class="section-card mb-1 p-3 bg-light rounded">
+                    <h5 class="text-primary-custom"><i class="bi bi-brightness-alt-high"></i> የዝናብ ሽፋን (የቀበሌዎች ብዛት)</h5>
+                    <div class="row">
+                        <div class="col"><label asp-for="FullCoverageKebeles"></label> <input asp-for="FullCoverageKebeles" class="form-control coverage-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="PartialCoverageKebeles"></label> <input asp-for="PartialCoverageKebeles" class="form-control coverage-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="NoRainKebeles"></label> <input asp-for="NoRainKebeles" class="form-control coverage-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="NoDataKebeles"></label> <input asp-for="NoDataKebeles" class="form-control coverage-field" type="number" min="0" /></div>
+                    </div>
+                    <div id="coverageError" class="validation-summary-error" style="display:none;"></div>
+                </div>
+
+                <!-- Amount section -->
+                <div class="section-card mb-1 p-3 bg-light rounded">
+                    <h5 class="text-primary-custom"><i class="bi bi-droplet"></i> የዝናብ መጠን (የቀበሌዎች ብዛት)</h5>
+                    <div class="row">
+                        <div class="col"><label asp-for="LowAmountKebeles"></label> <input asp-for="LowAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="LowMediumAmountKebeles"></label> <input asp-for="LowMediumAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="MediumAmountKebeles"></label> <input asp-for="MediumAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col"><label asp-for="MediumHighAmountKebeles"></label> <input asp-for="MediumHighAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="HighAmountKebeles"></label> <input asp-for="HighAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
+                    </div>
+                    <div id="amountError" class="validation-summary-error" style="display:none;"></div>
+                </div>
+
+                <!-- Flood affected kebeles toggle -->
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="showFloodKebelesCheckbox" />
+                    <label class="form-check-label fw-bold" for="showFloodKebelesCheckbox">
+                        በጎርፍ የተጎዱ ቀበሌዎች ካለ ይምረጡ (ዝርዝሩን ለማየት ምልክት ያድርጉ)
+                    </label>
+                </div>
+
+                <div id="floodKebeleListContainer" class="mb-3" style="display: none;">
+                    <label class="form-label fw-bold">በጎርፍ የተጎዱ ቀበሌዎች</label>
+                    <div class="kebele-checkbox-list">
+                        @if (((IEnumerable<Locations>)ViewBag.Kebeles).Any())
+                        {
+                            foreach (var kebele in ViewBag.Kebeles)
+                            {
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" name="SelectedKebeleIds" value="@kebele.Id" class="form-check-input" id="flood_keb_@kebele.Id"
+                                           @(Model.SelectedKebeleIds.Contains(kebele.Id) ? "checked" : "") />
+                                    <label class="form-check-label" for="flood_keb_@kebele.Id">@kebele.LocationName (@kebele.LocationAmharicName)</label>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted">በዚህ ወረዳ ምንም ቀበሌዎች አልተመዘገቡም።</p>
+                        }
+                    </div>
+                    <small class="form-text text-muted">በጎርፍ የተጎዱትን ቀበሌዎች ምልክት ያድርጉ</small>
+                </div>
+
+                <!-- Drought affected kebeles toggle -->
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="showDroughtKebelesCheckbox" />
+                    <label class="form-check-label fw-bold" for="showDroughtKebelesCheckbox">
+                        በድርቅ የተጎዱ ቀበሌዎች ካለ ይምረጡ (ዝርዝሩን ለማየት ምልክት ያድርጉ)
+                    </label>
+                </div>
+
+                <div id="droughtKebeleListContainer" class="mb-3" style="display: none;">
+                    <label class="form-label fw-bold">በድርቅ የተጎዱ ቀበሌዎች</label>
+                    <div class="kebele-checkbox-list">
+                        @if (((IEnumerable<Locations>)ViewBag.Kebeles).Any())
+                        {
+                            foreach (var kebele in ViewBag.Kebeles)
+                            {
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" name="SelectedDroughtAffectedKebeleIds" value="@kebele.Id" class="form-check-input" id="drought_keb_@kebele.Id"
+                                           @(Model.SelectedDroughtKebeleIds.Contains(kebele.Id) ? "checked" : "") />
+                                    <label class="form-check-label" for="drought_keb_@kebele.Id">@kebele.LocationName (@kebele.LocationAmharicName)</label>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted">በዚህ ወረዳ ምንም ቀበሌዎች አልተመዘገቡም።</p>
+                        }
+                    </div>
+                    <small class="form-text text-muted">በድርቅ የተጎዱትን ቀበሌዎች ምልክት ያድርጉ</small>
+                </div>
+@* 
+                <!-- Remarks -->
+                <div class="mb-4">
+                    <label asp-for="Remarks" class="form-label"></label>
+                    <textarea asp-for="Remarks" class="form-control" rows="2"></textarea>
+                </div> *@
+
+                <!-- Buttons -->
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save"></i> አስቀምጥ</button>
+                    <a asp-action="Index" class="btn btn-secondary px-4"><i class="bi bi-arrow-left"></i> ተመለስ</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="~/js/dateRangeValidator.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Date range validation
+            $('form').validateDateRange({
+                startDateSelector: '#StartDate',
+                endDateSelector: '#EndDate',
+                maxDays: 8,
+                errorMessage: 'የሪፖርት ጊዜው ከሳምንት መብለጥ የለበትም (ቢበዛ 7 ቀናት)።',
+                errorSpanId: 'dateRangeError'
+            });
+
+            var totalKebeles = parseInt($('#totalKebeles').val()) || 0;
+
+            function sumFields(className) {
+                var sum = 0;
+                $(className).each(function() {
+                    var val = parseInt($(this).val());
+                    if (!isNaN(val)) sum += val;
+                });
+                return sum;
+            }
+
+            function validateTotals() {
+                var coverageSum = sumFields('.coverage-field');
+                var amountSum = sumFields('.amount-field');
+
+                var coverageValid = (coverageSum === totalKebeles);
+                var amountValid = (amountSum === totalKebeles);
+
+                if (!coverageValid) {
+                    $('#coverageError').text('የሽፋን ቀበሌዎች ድምር ' + coverageSum + ' ነው። ከጠቅላላ ቀበሌዎች (' + totalKebeles + ') ጋር እኩል መሆን አለበት።').show();
+                } else {
+                    $('#coverageError').hide().empty();
+                }
+
+                if (!amountValid) {
+                    $('#amountError').text('የዝናብ መጠን ቀበሌዎች ድምር ' + amountSum + ' ነው። ከጠቅላላ ቀበሌዎች (' + totalKebeles + ') ጋር እኩል መሆን አለበት።').show();
+                } else {
+                    $('#amountError').hide().empty();
+                }
+
+                return coverageValid && amountValid;
+            }
+
+            $('.coverage-field, .amount-field').on('input', function() {
+                validateTotals();
+            });
+
+            // Flood toggle
+            $('#showFloodKebelesCheckbox').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#floodKebeleListContainer').slideDown();
+                } else {
+                    $('#floodKebeleListContainer').slideUp();
+                    $('input[name="SelectedKebeleIds"]').prop('checked', false);
+                }
+            });
+
+            // Drought toggle
+            $('#showDroughtKebelesCheckbox').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#droughtKebeleListContainer').slideDown();
+                } else {
+                    $('#droughtKebeleListContainer').slideUp();
+                    $('input[name="SelectedDroughtAffectedKebeleIds"]').prop('checked', false);
+                }
+            });
+
+            // If any flood kebele is pre‑checked, show the container and check the toggle
+            if ($('input[name="SelectedKebeleIds"]:checked').length > 0) {
+                $('#showFloodKebelesCheckbox').prop('checked', true);
+                $('#floodKebeleListContainer').show();
+            }
+
+            // If any drought kebele is pre‑checked, show the container and check the toggle
+            if ($('input[name="SelectedDroughtAffectedKebeleIds"]:checked').length > 0) {
+                $('#showDroughtKebelesCheckbox').prop('checked', true);
+                $('#droughtKebeleListContainer').show();
+            }
+
+            // Submit handler
+            $('form').on('submit', function(e) {
+                if (!validateTotals()) {
+                    e.preventDefault();
+                    alert('የሽፋን እና የዝናብ መጠን ድምሮች ከጠቅላላ ቀበሌዎች ጋር እኩል መሆን አለባቸው።');
+                    return false;
+                }
+                if (!$('#showFloodKebelesCheckbox').is(':checked')) {
+                    $('input[name="SelectedKebeleIds"]').remove();
+                }
+                if (!$('#showDroughtKebelesCheckbox').is(':checked')) {
+                    $('input[name="SelectedDroughtAffectedKebeleIds"]').remove();
+                }
+            });
+
+            validateTotals();
+        });
+    </script>
+}

@@ -34,8 +34,10 @@
     <link rel="stylesheet" href="~/AdminLte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="~/AdminLte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <link rel="stylesheet" href="~/css/site.css">
 
     <!-- Theme style -->
+    @RenderSection("Styles", required: false)
 </head>
 <body class="hold-transition sidebar-mini layout-fixed" style="background-color:#f5f6f6">
         <div class="wrapper">
@@ -83,10 +85,10 @@
                     <!-- Brand Logo -->
 
                     <a href="#" class="brand-link">
-                        <img src="~/images/logo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="background-color:white;width:80pxl; height:80pxl" />
-                        <span class="brand-text font-weight-light">የአብክመ አደጋ መከላከልና </span><br />
+                        <img src="~/images/Logo_with_bgc-removebg-preview.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="background-color:white;width:80pxl; height:80pxl" />
+                        <span class="brand-text font-weight-light">የአብክመ አደጋ ስጋት </span><br />
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <span class="brand-text font-weight-light">ምግብ ዋስትና ኮሚሽን</span>
+                        <span class="brand-text font-weight-light">ስራ አመራር ኮሚሽን</span>
                     </a>
 
                     <!-- Sidebar -->
@@ -95,7 +97,7 @@
                     <nav class="mt-2">
                         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
 
-                            @if (SignInManager.IsSignedIn(User) && User.IsInRole("System Administrator"))
+                            @if (SignInManager.IsSignedIn(User) @* && User.IsInRole("Supper Administrator") *@)
                             {
                                 <li class="nav-item">
                                     <a href="#" class="nav-link">
@@ -138,29 +140,99 @@
                                         </li>
                                     </ul>
                                 </li>
-
+                            }
+                            @if (SignInManager.IsSignedIn(User) @* && User.IsInRole("Supper Administrator") *@)
+                            {
                                 <li class="nav-item">
                                     <a href="#" class="nav-link">
                                         <i class="fa fa-regular fa-folder"></i>
                                         <p>
-                                            ወርሃዊ ቅድመ ማስጠንቀቂያ መረጃ ማስገቢያ
+                                            ማስተካከያ
                                             <i class="fas fa-angle-left right"></i>
                                         </p>
                                     </a>
                                     <ul class="nav nav-treeview">
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-area="" asp-controller="RainDistributions" asp-action="Index">
-                                            <i class="far fa-circle nav-icon"></i>
-                                            <p>የአየር ንብረት መረጃ</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="AgricultureCropData" asp-action="Index">
-                                            <i class="far fa-circle nav-icon"></i>
-                                            <p>ክፍል ለ ግብርና ሰብል</p>
-                                        </a>
-                                    </li>                                            
-                                </ul>
+                                        <li class="nav-item">
+                                            <a asp-controller="CropPestAndDeseases" asp-action="Index" class="nav-link">
+                                                <i class="far fa-circle nav-icon"></i>
+                                                <p>
+                                                    የሰብል ተባይና በሽታ
+                                                </p>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a asp-controller="AnimalDiseases" asp-action="Index" class="nav-link">
+                                                <i class="far fa-circle nav-icon"></i>
+                                                <p>
+                                                    የእንስሣት በሽታ ዝርዝር
+                                                </p>
+                                            </a>
+                                        </li>
+                                        
+                                    </ul>
+                                </li>                                
+                            }
+
+                            @if (SignInManager.IsSignedIn(User))
+                            {
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="fa fa-regular fa-folder"></i>
+                                        <p>
+                                            ሳምንታዊ መረጃ 
+                                            <i class="fas fa-angle-left right"></i>
+                                        </p>
+                                    </a>
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item">
+                                            <a asp-controller="RainfallReports" asp-action="Index" class="nav-link">
+                                                <i class="far fa-circle nav-icon"></i>
+                                                <p>
+                                                    የዝናብ ሁኔታ
+                                                </p>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a asp-controller="FarmingActivities" asp-action="Index" class="nav-link">
+                                                <i class="far fa-circle nav-icon"></i>
+                                                <p>
+                                                    የእርሻ ሥራ እንቅስቃሴ
+                                                </p>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a asp-controller="CropGrowths" asp-action="Index" class="nav-link">
+                                                <i class="far fa-circle nav-icon"></i>
+                                                <p>
+                                                    የሰብል ዕድገት
+                                                </p>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a asp-controller="CropPestAndDeseasReports" asp-action="Index" class="nav-link">
+                                                <i class="far fa-circle nav-icon"></i>
+                                                <p>የሰብል ተባይና በሽታ ክስተት</p>                                            
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a asp-controller="AnimalWaterSupplyStatus" asp-action="Index" class="nav-link">
+                                                <i class="far fa-circle nav-icon"></i>
+                                                <p>የእንስሣት ውሃ አቅርቦት </p>                                            
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a asp-controller="AnimalWaterSupplyStatus" asp-action="Index" class="nav-link">
+                                                <i class="far fa-circle nav-icon"></i>
+                                                <p>የግጦሽ ሁኔታ </p>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a asp-controller="AnimalHealthStatus" asp-action="Index" class="nav-link">
+                                                <i class="far fa-circle nav-icon"></i>
+                                                <p>የእንሣት ጤና ሁኔታ </p>
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </li>
                                 }
 
@@ -425,6 +497,7 @@
                                     </li>
                                 </ul>
                             </li>
+                            }
                         </ul>
                     </nav>
                     <!-- /.sidebar-menu -->
@@ -459,8 +532,7 @@
         $.widget.bridge('uibutton', $.ui.button)
     </script>
     <!-- Bootstrap 4 -->
-@*     <script src="~/AdminLte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
- *@    <!-- ChartJS -->
+    <!-- ChartJS -->
     <script src="~/AdminLte/plugins/chart.js/Chart.min.js"></script>
     <!-- Sparkline -->
     <script src="~/AdminLte/plugins/sparklines/sparkline.js"></script>
@@ -537,6 +609,8 @@
             }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,0 +1,85 @@
+﻿@using EarlyWarning.Enums
+@model IEnumerable<CropPestAndDeseaseReport>
+@{
+    ViewData["Title"] = "የሰብል ተባይ/በሽታ ሪፖርቶች";
+}
+<h2>@ViewData["Title"]</h2>
+@if (User.IsInRole("Data Encoder"))
+{
+    <a asp-action="Create" class="btn btn-primary">+ አዲስ መረጃ አስገባ </a>
+}
+<div class="table-responsive">
+    <table class="table table-bordered table-striped" id="datatable">
+        <thead>
+            <tr>
+                <th>ወረዳ</th>
+                <th>ሪፖርት ወር/ሳምንት</th>
+                <th>ተባይ/በሽታ አጋጥሟል?</th>
+                <th>የተጎዳ መሬት (ሄክ)</th>
+                <th>ተባዮች/በሽታዎች</th>   @* ← new column *@
+                <th>የተጎዱ ወንዶች</th>
+                <th>የተጎዱ እሴቶች</th>
+                <th>አጠቃላይ የተጎዱ</th>
+                <th>ሁኔታ</th>
+                <th>ድርጊት</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Woreda?.LocationName</td>
+                    <td>@(item.StartDate?.ToString("yyyy-MM-dd") ?? "") → @(item.EndDate?.ToString("yyyy-MM-dd") ?? "")</td>
+                    <td>@(item.HasPestAndDeseasOccured == true ? "አዎ" : "አይ")</td>
+                    <td>@item.AffectedLandInHectar</td>
+                    <td>
+                        @if (item.HasPestAndDeseasOccured == true && item.DiseaseNames != null && item.DiseaseNames.Any())
+                        {
+                            @string.Join(", ", item.DiseaseNames)
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    <td>@item.TotalMale</td>
+                    <td>@item.TotalFemale</td>
+                    <td>@item.TotalAffected</td>
+                    <td>@item.Status</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">ዝርዝር</a>
+                        @if ((item.Status == ReportStatus.Draft || item.Status == ReportStatus.Rejected) && User.IsInRole("Data Encoder"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">አርትዕ</a>
+                            <form asp-action="Submit" asp-route-id="@item.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-success">ላክ</button>
+                            </form>
+                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('ሰርዝ?')">ሰርዝ</button>
+                            </form>
+                        }
+                        @if (item.Status == ReportStatus.Submitted && User.IsInRole("ZoneAdmin"))
+                        {
+                            <form asp-action="ApproveByZone" asp-route-id="@item.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-sm btn-primary">በዞን አጽድቅ</button>
+                            </form>
+                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#zoneRejectModal" onclick="setRejectId('@item.Id', 'zone')">ውድቅ</button>
+                        }
+                        @if (item.Status == ReportStatus.ZoneApproved && User.IsInRole("RegionAdmin"))
+                        {
+                            <form asp-action="ApproveByRegion" asp-route-id="@item.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-sm btn-secondary">በክልል አጽድቅ</button>
+                            </form>
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#regionRejectModal" onclick="setRejectId('@item.Id', 'region')">ውድቅ</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<!-- Modals for rejection (same as RainfallReport) -->

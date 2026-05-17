@@ -1,0 +1,14 @@
+﻿@model PastureStatus
+@{
+    ViewData["Title"] = "ሪፖርት ሰርዝ";
+}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-danger text-white"><h3>@ViewData["Title"]</h3></div>
+        <div class="card-body">
+            <h4>እርግጠኛ ነዎት ይህን ሪፖርት መሰረዝ ይፈልጋሉ?</h4>
+            <dl class="row"><dt class="col-sm-3">ወረዳ</dt><dd class="col-sm-9">@Model.Woreda?.LocationName</dd></dl>
+            <form asp-action="Delete" method="post">@Html.AntiForgeryToken()<input type="hidden" asp-for="Id" /><button type="submit" class="btn btn-danger">አዎ ሰርዝ</button><a asp-action="Index" class="btn btn-secondary">ተመለስ</a></form>
+        </div>
+    </div>
+</div>

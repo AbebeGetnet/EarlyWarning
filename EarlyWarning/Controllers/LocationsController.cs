@@ -224,6 +224,104 @@ namespace EarlyWarning.Controllers
             return View(location);
         }
 
+        public async Task<IActionResult> AddNewZone(Guid id)
+        {
+            return View();
+        }
+
+        // POST: Locations/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddNewZone(Guid id, Locations location)
+        {
+            if (!ModelState.IsValid)
+            {
+                if (!await ZoneCodeExistsAsync(location.LocationCode))
+                {
+                    location.Id = Guid.NewGuid();
+                    location.ParentId = id;
+                    location.Level = LocationLevel.ዞን;
+                    _context.Add(location);
+                                        
+                    await _context.SaveChangesAsync();
+                    TempData["success"] = "በትክክል ተመዝግቧል።";
+                    return RedirectToAction(nameof(Index));
+                }
+                TempData["error"] = "ያስገቡት የአድራሻ መለያ ኮድ ተይዟል።";
+                return RedirectToAction(nameof(Index));
+            }
+            TempData["error"] = "ያስገቡትን መረጃ ይፈትሹ።";
+            return View(location);
+        }
+        
+
+        public async Task<IActionResult> AddNewWoreda(Guid id)
+        {
+            return View();
+        }
+
+        // POST: Locations/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddNewWoreda(Guid id, Locations location)
+        {
+            if (!ModelState.IsValid)
+            {
+                if (!await ZoneCodeExistsAsync(location.LocationCode))
+                {
+                    location.Id = Guid.NewGuid();
+                    location.ParentId = id;
+                    location.Level = LocationLevel.ወረዳ;
+                    _context.Add(location);
+                                        
+                    await _context.SaveChangesAsync();
+                    TempData["success"] = "በትክክል ተመዝግቧል።";
+                    return RedirectToAction(nameof(Index));
+                }
+                TempData["error"] = "ያስገቡት የአድራሻ መለያ ኮድ ተይዟል።";
+                return RedirectToAction(nameof(Index));
+            }
+            TempData["error"] = "ያስገቡትን መረጃ ይፈትሹ።";
+            return View(location);
+        }
+        
+
+        public async Task<IActionResult> AddNewKebelie(Guid id)
+        {
+            return View();
+        }
+
+        // POST: Locations/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddNewKebelie(Guid id, Locations location)
+        {
+            if (!ModelState.IsValid)
+            {
+                if (!await ZoneCodeExistsAsync(location.LocationCode))
+                {
+                    location.Id = Guid.NewGuid();
+                    location.ParentId = id;
+                    location.Level = LocationLevel.ቀበሌ;
+                    _context.Add(location);
+                                        
+                    await _context.SaveChangesAsync();
+                    TempData["success"] = "በትክክል ተመዝግቧል።";
+                    return RedirectToAction(nameof(Index));
+                }
+                TempData["error"] = "ያስገቡት የአድራሻ መለያ ኮድ ተይዟል።";
+                return RedirectToAction(nameof(Index));
+            }
+            TempData["error"] = "ያስገቡትን መረጃ ይፈትሹ።";
+            return View(location);
+        }
+
         // GET: Locations/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
@@ -290,6 +388,18 @@ namespace EarlyWarning.Controllers
         private Task<bool> LocationCodeExistsAsync(LocationLevel? level, string code)
         {
             return _context.Locations.AnyAsync(e => e.Level == level && e.LocationCode == code);
+        }
+        private Task<bool> ZoneCodeExistsAsync(string code)
+        {
+            return _context.Locations.AnyAsync(e => e.LocationCode == code);
+        }
+        private Task<bool> WoredaCodeExistsAsync(string code)
+        {
+            return _context.Locations.AnyAsync(e => e.LocationCode == code);
+        }
+        private Task<bool> KebeleCodeExistsAsync(string code)
+        {
+            return _context.Locations.AnyAsync(e => e.LocationCode == code);
         }
     }
 }

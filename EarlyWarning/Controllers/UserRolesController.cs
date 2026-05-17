@@ -62,6 +62,9 @@ namespace EarlyWarning.Controllers
             {
                 var thisViewModel = new UserRolesViewModel();
                 thisViewModel.UserId = user.Id;
+                thisViewModel.FirstName = user.FirstName;
+                thisViewModel.LastName = user.LastName;
+                thisViewModel.LocationName = user.Location.LocationName;
                 thisViewModel.Email = user.Email;
                 thisViewModel.Roles = await GetUserRoles(user);
                 userRolesViewModel.Add(thisViewModel);

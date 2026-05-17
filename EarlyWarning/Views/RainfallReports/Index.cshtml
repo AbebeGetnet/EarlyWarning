@@ -1,0 +1,152 @@
+﻿@using EarlyWarning.Enums
+@model IEnumerable<RainfallReport>
+@{
+    ViewData["Title"] = "የዝናብ ሪፖርት";
+}
+<h2>@ViewData["Title"]</h2>
+<p>
+    @if (User.IsInRole("Data Encoder"))
+    {
+        <a asp-action="Create" class="btn btn-primary">+ ሳምንታዊ የዝናብ ሪፖርት</a>
+    }
+</p>
+<div class="table-responsive">
+    <table id="dataTable" class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ወረዳ</th>
+                <th>የሪፖርት ሳምንት</th>
+                <th colspan="4">የዝናብ ሽፋን</th>
+                <th colspan="5">የዝናብ መጠን</th>
+                <th>ሁኔታ</th>
+                <th>ድርጊት</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th></th>
+                <th>ሙሉ</th>
+                <th>ከፊል</th>
+                <th>ዝናብ የሌለ</th>
+                <th>መረጃ የሌለ</th>
+                <th>ዝቅተኛ</th>
+                <th>ዝቅ-መካ</th>
+                <th>መካከለኛ</th>
+                <th>መካ-ከፍ</th>
+                <th>ከፍተኛ</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Woreda?.LocationName</td>
+                    <td>@(item.StartDate?.ToString("yyyy-MM-dd")) → @(item.EndDate?.ToString("yyyy-MM-dd"))</td>
+                    <td>@item.FullCoverageKebeles</td>
+                    <td>@item.PartialCoverageKebeles</td>
+                    <td>@item.NoRainKebeles</td>
+                    <td>@item.NoDataKebeles</td>
+                    <td>@item.LowAmountKebeles</td>
+                    <td>@item.LowMediumAmountKebeles</td>
+                    <td>@item.MediumAmountKebeles</td>
+                    <td>@item.MediumHighAmountKebeles</td>
+                    <td>@item.HighAmountKebeles</td>
+                    <td>@item.Status</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">ዝርዝር</a>
+                        @if ((item.Status == ReportStatus.Draft || item.Status == ReportStatus.Rejected) && User.IsInRole("ZoneAdmin"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">አርትዕ</a>
+                            <form asp-action="Submit" asp-route-id="@item.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('ለማስገባት እንደሚፈልጉ እርግጠኛ ነዎት?')">ላክ</button>
+                            </form>
+                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('መሰረዝ ይፈልጋሉ?')">ሰርዝ</button>
+                            </form>
+                        }
+                        @if (item.Status == ReportStatus.Submitted && User.IsInRole("ZoneAdmin"))
+                        {
+                            <form asp-action="ApproveByZone" asp-route-id="@item.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-primary">በዞን አጽድቅ</button>
+                            </form>
+                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#zoneRejectModal" onclick="setRejectId('@item.Id', 'ዞን')">ውድቅ አድርግ</button>
+
+                        }
+                        @if (item.Status == ReportStatus.ZoneApproved && User.IsInRole("RegionAdmin"))
+                        {
+                            <form asp-action="ApproveByRegion" asp-route-id="@item.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-secondary">በክልል አጽድቅ</button>
+                            </form>
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#regionRejectModal" onclick="setRejectId('@item.Id', 'ክልል')">በክልል ውድቅ አድርግ</button>
+
+                        }
+                    </td>                    
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<!-- Zone Rejection Modal -->
+<div class="modal fade" id="zoneRejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="RejectByZone">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="zoneRejectId" />
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">በዞን ውድቅ ለማድረግ ምክንያት ያስገቡ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">ማብራሪያ</label>
+                    <textarea name="rejectionRemark" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ይቅር</button>
+                    <button type="submit" class="btn btn-warning">አረጋግጥ ውድቅ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Region Rejection Modal -->
+<div class="modal fade" id="regionRejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="RejectByRegion">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="regionRejectId" />
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">በክልል ውድቅ ለማድረግ ምክንያት ያስገቡ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">ማብራሪያ</label>
+                    <textarea name="rejectionRemark" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ይቅር</button>
+                    <button type="submit" class="btn btn-danger">አረጋግጥ ውድቅ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    function setRejectId(id, level) {
+        // Clear textareas
+        document.querySelectorAll('textarea[name="rejectionRemark"]').forEach(ta => ta.value = '');
+        
+        if (level === 'ዞን') {
+            document.getElementById('zoneRejectId').value = id;
+        } else if (level === 'ክልል') {
+            document.getElementById('regionRejectId').value = id;
+        }
+    }
+</script>

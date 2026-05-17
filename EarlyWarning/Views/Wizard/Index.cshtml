@@ -1,0 +1,195 @@
+﻿@model EarlyWarning.Models.Wizard.CombinedReportWizardModel
+@{
+    ViewData["Title"] = "የቅድመ ማስጠንቀቂያ ሪፖርት ማስገቢያ መምሪያ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .wizard-step-indicator {
+        margin-bottom: 30px;
+    }
+
+    .step-tab {
+        cursor: pointer;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 10px 15px;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+        .step-tab.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .step-tab.completed {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+    .card-step {
+        border-top: 3px solid #007bff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .preview-section {
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="container mt-4">
+    <h2 class="mb-4">@ViewData["Title"]</h2>
+
+    <!-- Progress tabs -->
+    <div class="row wizard-step-indicator">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between flex-wrap">
+                @{
+                    var steps = new Dictionary<int, string>
+                                {
+                                {1, "ዝናብ"},
+                                {2, "የእርሻ ተግባር"},
+                                {3, "የሰብል እድገት"},
+                                {4, "ተባይ/በሽታ"},
+                                {5, "የግጦሽ ሁኔታ"},
+                                {6, "የውሃ አቅርቦት"},
+                                {7, "የእንስሳት በሽታ"},
+                                {8, "ገምጋሚ"}
+                                };
+                }
+                @foreach (var step in steps)
+                {
+                    <div class="step-tab @(Model.CurrentStep == step.Key ? "active" : "")
+                                            @(Model.CurrentStep > step.Key ? "completed" : "")"
+                         data-step="@step.Key">
+                        @step.Value
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Common fields (Woreda & Reporting week) – shown on first step only -->
+    @if (Model?.CurrentStep == 1)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label asp-for="WoredaId"></label>
+                        <select asp-for="WoredaId" class="form-control" asp-items="ViewBag.Woredas">
+                            <option value="">-- ምረጥ --</option>
+                        </select>
+                        <span asp-validation-for="WoredaId" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ReportingWeekStart"></label>
+                        <input type="date" asp-for="ReportingWeekStart" class="form-control" />
+                        <span asp-validation-for="ReportingWeekStart" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Main form -->
+    <form id="wizardForm" method="post" asp-action="NextStep" asp-controller="Wizard">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="CurrentStep" id="currentStep" />
+        <!-- Keep common fields in hidden inputs so they are posted on every step -->
+        <input type="hidden" asp-for="WoredaId" />
+        <input type="hidden" asp-for="ReportingWeekStart" />
+
+        <div class="card card-step">
+            <div class="card-body">
+                <div id="stepContent">
+                    @switch (Model.CurrentStep)
+                    {
+                        case 1:
+                            <partial name="_RainfallStep" model="Model" />
+                            break;
+                        case 2:
+                            <partial name="_FarmingStep" model="Model" />
+                            break;
+                        case 3:
+                            <partial name="_CropGrowthStep" model="Model" />
+                            break;
+                        case 4:
+                            <partial name="_PestDiseaseStep" model="Model" />
+                            break;
+                        case 5:
+                            <partial name="_PastureStep" model="Model" />
+                            break;
+                        case 6:
+                            <partial name="_WaterSupplyStep" model="Model" />
+                            break;
+                        case 7:
+                            <partial name="_AnimalHealthStep" model="Model" />
+                            break;
+                        case 8:
+                            <partial name="_PreviewStep" model="Model" />
+                            break;
+                    }
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                @if (Model.CurrentStep > 1 && Model.CurrentStep <= 8)
+                {
+                    <button type="submit" name="action" value="prev" class="btn btn-secondary">
+                        ◀ ቀዳሚ
+                    </button>
+                }
+                else
+                {
+                    <div></div>
+                }
+
+                @if (Model.CurrentStep < 8)
+                {
+                    <button type="submit" name="action" value="next" class="btn btn-primary">
+                        ቀጣይ ▶
+                    </button>
+                }
+                else if (Model.CurrentStep == 8)
+                {
+                    <button type="submit" name="action" value="submit" class="btn btn-success" id="submitBtn">
+                        አስገባ
+                    </button>
+                }
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.step-tab').on('click', function() {
+                var step = $(this).data('step');
+                var currentStep = parseInt($('#currentStep').val());
+                if (step < currentStep) {
+                    $('#currentStep').val(step);
+                    $('#wizardForm').append('<input type="hidden" name="action" value="prev" />');
+                    $('#wizardForm').submit();
+                } else if (step > currentStep) {
+                    alert("እባክዎ በቅደም ተከተል ይምሩ።");
+                }
+            });
+
+            $('#submitBtn').on('click', function(e) {
+                if (!confirm("ሁሉንም መረጃዎች በሚገባ መሙላትዎን ያረጋግጡ። ሪፖርቱን ማስገባት ይፈልጋሉ?")) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,21 @@
+﻿@model EarlyWarning.Models.AnimalHealthStatus
+
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        የእንስሳት በሽታ ሁኔታ
+    </div>
+    <div class="card-body">
+        <div class="form-check">
+            <input asp-for="Enough" class="form-check-input" />
+            <label asp-for="Enough" class="form-check-label"></label>
+        </div>
+
+        <div class="form-group">
+            <label>የእንስሳት በሽታዎች</label>
+            <select asp-for="SelectedDiseaseIds" class="form-control" multiple
+                    asp-items="ViewBag.AnimalDiseases"></select>
+        </div>
+
+        <!-- demographic fields as in the model -->
+    </div>
+</div>

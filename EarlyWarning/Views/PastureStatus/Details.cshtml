@@ -1,0 +1,41 @@
+﻿@model PastureStatus
+@{
+    ViewData["Title"] = "ዝርዝር ሪፖርት";
+}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-info text-white"><h3>@ViewData["Title"]</h3></div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">ወረዳ</dt>
+                <dd class="col-sm-9">@Model.Woreda?.LocationName</dd>
+                <dt class="col-sm-3">በቂ ነው?</dt>
+                <dd class="col-sm-9">@(Model.Enough ? "አዎ" : "አይ")</dd>
+                <dt class="col-sm-3">ዝቅተኛ</dt>
+                <dt class="col-sm-3">የተጎዱ እንስሳት</dt>
+                <dd class="col-sm-9">@Model.NumberOfAnimalsAffected</dd>
+                <dt class="col-sm-3">ጠቅላላ ተጎጂዎች</dt>
+                <dd class="col-sm-9">@Model.TotalAffected (ወንድ: @Model.TotalMale, ሴት: @Model.TotalFemale)</dd>
+                <dt class="col-sm-3">ሁኔታ</dt>
+                <dd class="col-sm-9">@Model.Status</dd>
+                @if (!string.IsNullOrEmpty(Model.Remarks))
+                {
+                    <dt class="col-sm-3">ማስታወሻ</dt>
+                    <dd class="col-sm-9">@Model.Remarks</dd>
+ }
+                @if (Model.ZoneRejectionRemark != null)
+                {
+                    <dt class="col-sm-3">የዞን ውድቅ ምክንያት</dt>
+                    <dd class="col-sm-9">@Model.ZoneRejectionRemark</dd>
+ }
+                @if (Model.RegionRejectionRemark != null)
+                {
+                    <dt class="col-sm-3">የክልል ውድቅ ምክንያት</dt>
+                    <dd class="col-sm-9">@Model.RegionRejectionRemark</dd>
+ }
+            </dl>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">አርትዕ</a>
+            <a asp-action="Index" class="btn btn-secondary">ወደ ዝርዝር</a>
+        </div>
+    </div>
+</div>

@@ -4,24 +4,25 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EarlyWarning.Enums
 {
-    public enum ApprovalStatus
+    public enum ReportStatus
     {
-        በሂደት_ላይ,
-        የተፈቀደ,
-        የተከለከለ,
+        Draft,          
+        Submitted,      
+        ZoneApproved,  
+        RegionApproved,
+        Rejected
     }
-    public enum Job
-    {
-        ፈላጊ,
-        የመንግስት,
-        የግል,
-        ተማሪ,
-        የቤት_እመቤት, ጦሮታ
-    }
+   
     public enum Gender
     {
         ወንድ,
         ሴት
+    }
+   
+    public enum CPDType
+    {
+        Pest,
+        Desease
     }
 
     public enum Months

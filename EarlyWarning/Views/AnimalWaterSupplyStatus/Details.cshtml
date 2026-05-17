@@ -1,0 +1,56 @@
+﻿@model AnimalWaterSupplyStatus
+@{
+    ViewData["Title"] = "የእንስሣት ውሃ አቅርቦት ሁኔታ ዝርዝር";
+}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h3>@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">ወረዳ</dt>
+                <dd class="col-sm-9">@Model.Woreda?.LocationName</dd>
+
+                <dt class="col-sm-3">የውሃ አቅርቦት ሁኔታ</dt>
+                <dd class="col-sm-9">@(Model.Enough ? "በቂ ነው" : "በቂ አይደለም")</dd>
+
+                @if (!Model.Enough)
+                {
+                    <dt class="col-sm-3">በሳምንቱ የግጦሽ ችግር ያለባቸው ቀበሌዎች</dt>
+                    <dd class="col-sm-9">@Model.NoOfKebeliesWithPastureShortage</dd>
+
+                    <dt class="col-sm-3">በሳምንቱ የውሃ ችግር ያለባቸው ቀበሌዎች</dt>
+                    <dd class="col-sm-9">@Model.NoOfKebeliesWithWaterSupply</dd>
+
+                    <dt class="col-sm-3">ጠቅላላ ተጎጂዎች</dt>
+                    <dd class="col-sm-9">@Model.TotalAffected (ወንድ: @Model.TotalMale, ሴት: @Model.TotalFemale)</dd>
+                }
+
+                <dt class="col-sm-3">ሁኔታ</dt>
+                <dd class="col-sm-9">@Model.Status</dd>
+
+                @if (!string.IsNullOrEmpty(Model.Remarks))
+                {
+                    <dt class="col-sm-3">ማስታወሻ</dt>
+                    <dd class="col-sm-9">@Model.Remarks</dd>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.ZoneRejectionRemark))
+                {
+                    <dt class="col-sm-3">የዞን ውድቅ ምክንያት</dt>
+                    <dd class="col-sm-9">@Model.ZoneRejectionRemark</dd>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.RegionRejectionRemark))
+                {
+                    <dt class="col-sm-3">የክልል ውድቅ ምክንያት</dt>
+                    <dd class="col-sm-9">@Model.RegionRejectionRemark</dd>
+                }
+            </dl>
+
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">አርትዕ</a>
+            <a asp-action="Index" class="btn btn-secondary">ወደ ዝርዝር</a>
+        </div>
+    </div>
+</div>

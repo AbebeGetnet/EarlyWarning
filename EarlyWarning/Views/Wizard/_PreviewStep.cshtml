@@ -1,0 +1,25 @@
+﻿@model EarlyWarning.Models.Wizard.CombinedReportWizardModel
+
+<h4>የሪፖርት ማጠቃለያ</h4>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">ዝናብ</div>
+            <div class="card-body">
+                <p>ሙሉ ሽፋን ቀበሌዎች: @Model.Rainfall.FullCoverageKebeles</p>
+                <p>ከፊል ሽፋን: @Model.Rainfall.PartialCoverageKebeles</p>
+                <!-- ... other summary fields ... -->
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">የእንስሳት በሽታ</div>
+            <div class="card-body">
+                <p>በቂ ነው? @(Model.AnimalHealth.Enough ? "አዎ" : "አይ")</p>
+                <p>ጠቅላላ ተጎጂዎች: @Model.AnimalHealth.TotalAffected</p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Similarly for all other sections -->
