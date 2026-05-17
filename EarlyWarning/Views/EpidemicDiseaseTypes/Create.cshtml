@@ -1,0 +1,439 @@
+﻿@model EarlyWarning.Models.EpidemicDisease.EpidemicDiseaseType
+
+@{
+    ViewData["Title"] = "አዲስ የወረርሽኝ በሽታ ይመዝግቡ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 25px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+        .form-header i {
+            font-size: 2rem;
+        }
+
+        .form-header h3 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+    .form-body {
+        padding: 30px 25px;
+    }
+
+    .form-group-custom {
+        margin-bottom: 25px;
+    }
+
+    .form-label-custom {
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        color: #333;
+    }
+
+        .form-label-custom i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+        .form-control-custom:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+
+    textarea.form-control-custom {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .checkbox-group {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .checkbox-label {
+        font-weight: 600;
+        margin: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .checkbox-label input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+    .badge-status {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+
+        .badge-status.inactive {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #721c24;
+        }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        justify-content: flex-end;
+    }
+
+    .btn-custom {
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-back:hover {
+            color: white;
+            text-decoration: none;
+        }
+
+    .validation-message {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }
+
+    .info-hint {
+        background: #e8f4f8;
+        border-left: 4px solid #667eea;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        font-size: 0.85rem;
+        color: #555;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .form-body {
+            padding: 20px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-custom {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .checkbox-group {
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="form-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-plus-circle"></i> @ViewData["Title"]
+            </h1>
+            <p>እባክዎ አዲስ የወረርሽኝ በሽታ ዝርዝር መረጃ ይሙሉ</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            <div class="form-header">
+                <i class="fas fa-virus"></i>
+                <h3>የበሽታ መረጃ</h3>
+            </div>
+
+            <div class="form-body">
+                <form asp-action="Create" id="createForm">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <!-- Disease Name -->
+                    <div class="form-group-custom">
+                        <label asp-for="Name" class="form-label-custom">
+                            <i class="fas fa-tag"></i> @Html.DisplayNameFor(model => model.Name)
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Name" class="form-control-custom" placeholder="ለምሳሌ፦ ወባ፣ ተቅማጥ፣ ኮሌራ..." />
+                        <span asp-validation-for="Name" class="validation-message"></span>
+                        <div class="info-hint">
+                            <i class="fas fa-info-circle"></i> የበሽታውን ሙሉ ስም ያስገቡ (ቢያንስ 2 ቁምፊዎች)
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group-custom">
+                        <label asp-for="Description" class="form-label-custom">
+                            <i class="fas fa-align-left"></i> @Html.DisplayNameFor(model => model.Description)
+                        </label>
+                        <textarea asp-for="Description" class="form-control-custom"
+                                  placeholder="የበሽታውን ምልክቶች፣ መንስኤዎች እና ሌሎች ጠቃሚ መረጃዎች ያስገቡ..."></textarea>
+                        <span asp-validation-for="Description" class="validation-message"></span>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="form-group-custom">
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input asp-for="IsActive" type="checkbox" id="isActiveCheckbox" checked="checked" />
+                                <span>
+                                    <i class="fas fa-power-off"></i> @Html.DisplayNameFor(model => model.IsActive)
+                                </span>
+                            </label>
+                            <span id="statusBadge" class="badge-status">
+                                <i class="fas fa-check-circle"></i> ንቁ ነው
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <a asp-action="Index" class="btn-custom btn-back">
+                            <i class="fas fa-arrow-left"></i> ወደ ዝርዝር ተመለስ
+                        </a>
+                        <button type="submit" class="btn-custom btn-submit" id="submitBtn">
+                            <i class="fas fa-save"></i> መዝግብ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            // Update status badge based on checkbox
+            function updateStatusBadge() {
+                var isChecked = $('#isActiveCheckbox').is(':checked');
+                var badge = $('#statusBadge');
+
+                if (isChecked) {
+                    badge.removeClass('inactive');
+                    badge.html('<i class="fas fa-check-circle"></i> ንቁ ነው');
+                } else {
+                    badge.addClass('inactive');
+                    badge.html('<i class="fas fa-times-circle"></i> እንቅስቃሴ ላይ አይደለም');
+                }
+            }
+
+            // Initial badge update
+            updateStatusBadge();
+
+            // Update badge on checkbox change
+            $('#isActiveCheckbox').on('change', function() {
+                updateStatusBadge();
+            });
+
+            // Form validation before submit
+            $('#createForm').on('submit', function(e) {
+                var diseaseName = $('#Name').val().trim();
+
+                if (!diseaseName) {
+                    e.preventDefault();
+                    alert('እባክዎ የበሽታ ስም ያስገቡ');
+                    $('#Name').focus();
+                    return false;
+                }
+
+                if (diseaseName.length < 2) {
+                    e.preventDefault();
+                    alert('የበሽታ ስም ቢያንስ 2 ቁምፊዎች መሆን አለበት');
+                    $('#Name').focus();
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Auto capitalize first letter of disease name
+            $('#Name').on('blur', function() {
+                var value = $(this).val();
+                if (value) {
+                    $(this).val(value.charAt(0).toUpperCase() + value.slice(1).toLowerCase());
+                }
+            });
+
+            // Character counter for description
+            $('#Description').on('input', function() {
+                var length = $(this).val().length;
+                var maxLength = 500;
+
+                if (length > maxLength) {
+                    $(this).val($(this).val().substring(0, maxLength));
+                    alert('መግለጫ ከ500 ቁምፊዎች መብለጥ አይችልም');
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    /* Additional styles for better appearance */
+    .alert-danger ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    .form-control-custom:invalid {
+        border-color: #dc3545;
+    }
+
+    /* Loading state for submit button */
+    .btn-submit.loading {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+        .btn-submit.loading i {
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Focus visible styles */
+    .form-control-custom:focus-visible {
+        outline: none;
+    }
+
+    /* Hover effects */
+    .form-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .form-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+</style>

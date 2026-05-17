@@ -1,0 +1,614 @@
+﻿@using EarlyWarning.Enums
+@model EarlyWarning.Models.WeeklyAccidents.WeeklyAccidents
+
+@{
+    ViewData["Title"] = "ሳምንታዊ አደጋ ሪፖርት ዝርዝር መረጃ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+    .detail-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .detail-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 12px 20px;
+        font-weight: 600;
+    }
+
+        .card-header-custom i {
+            margin-right: 8px;
+        }
+
+    .card-header-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .card-header-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .card-header-info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    .info-row {
+        display: flex;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.3s ease;
+    }
+
+        .info-row:hover {
+            background-color: #f8f9fa;
+            padding-left: 8px;
+        }
+
+    .info-label {
+        width: 35%;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .info-value {
+        width: 65%;
+        color: #212529;
+    }
+
+    .badge-status {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .badge-accident {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .badge-no-accident {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .badge-draft {
+        background: #6c757d;
+        color: white;
+    }
+
+    .badge-submitted {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .badge-approved {
+        background: #28a745;
+        color: white;
+    }
+
+    .badge-rejected {
+        background: #dc3545;
+        color: white;
+    }
+
+    .accident-item-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #f5576c;
+        transition: all 0.3s ease;
+    }
+
+        .accident-item-card:hover {
+            background: #fef3f2;
+            transform: translateX(5px);
+        }
+
+    .accident-type-title {
+        font-weight: 600;
+        color: #f5576c;
+        margin-bottom: 10px;
+    }
+
+    .stats-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 10px;
+    }
+
+    .stat-cell {
+        flex: 1;
+        min-width: 80px;
+        text-align: center;
+        padding: 8px;
+        background: white;
+        border-radius: 8px;
+    }
+
+        .stat-cell .stat-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-cell .stat-label {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+    .summary-card {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .summary-stats {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .summary-item {
+        text-align: center;
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .summary-number {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .summary-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .btn-custom {
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+
+    .btn-print {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    hr {
+        margin: 15px 0;
+    }
+
+    @@media (max-width: 768px) {
+        .info-row {
+            flex-direction: column;
+            padding: 8px 0;
+        }
+
+        .info-label, .info-value {
+            width: 100%;
+        }
+
+        .info-label {
+            margin-bottom: 5px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-custom {
+            width: 100%;
+            text-align: center;
+        }
+
+        .stats-grid {
+            flex-direction: column;
+        }
+
+        .summary-number {
+            font-size: 1.3rem;
+        }
+    }
+
+    @@media print {
+        .action-buttons, .page-header, .btn-print {
+            display: none;
+        }
+
+        .detail-card {
+            break-inside: avoid;
+            box-shadow: none;
+        }
+
+        .summary-card {
+            break-inside: avoid;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-car-crash"></i> @ViewData["Title"]
+        </h1>
+        <p>ሳምንታዊ አደጋ ሪፖርት ዝርዝር መረጃ ከዚህ በታች ይመልከቱ</p>
+    </div>
+
+    @{
+        var totalAccidentDetails = Model.AccidentDetails?.Count ?? 0;
+        var totalHouseholds = Model.AccidentDetails?.Sum(d => d.TotalAffectedHouseholds) ?? 0;
+        var totalChildren = Model.AccidentDetails?.Sum(d => d.TotalAffectedChildren) ?? 0;
+        var totalYouth = Model.AccidentDetails?.Sum(d => d.TotalAffectedYouth) ?? 0;
+        var totalElderly = Model.AccidentDetails?.Sum(d => d.TotalAffectedElderly) ?? 0;
+        var totalDisabled = Model.AccidentDetails?.Sum(d => d.TotalAffectedDisabled) ?? 0;
+        var totalAffected = totalHouseholds + totalChildren + totalYouth + totalElderly + totalDisabled;
+    }
+
+    <!-- Basic Information Card -->
+    <div class="detail-card">
+        <div class="card-header-custom">
+            <i class="fas fa-info-circle"></i> መሰረታዊ መረጃ
+        </div>
+        <div class="card-body-custom">
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-calendar-alt text-primary"></i> @Html.DisplayNameFor(m => m.StartDate)
+                </div>
+                <div class="info-value">
+                    <strong>@Model.StartDate.ToString("dddd, MMMM dd, yyyy")</strong>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-calendar-check text-success"></i> @Html.DisplayNameFor(m => m.EndDate)
+                </div>
+                <div class="info-value">
+                    <strong>@Model.EndDate.ToString("dddd, MMMM dd, yyyy")</strong>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-map-marker-alt text-danger"></i> @Html.DisplayNameFor(m => m.Woreda)
+                </div>
+                <div class="info-value">
+                    <strong>@(Model.Woreda?.LocationAmharicName ?? "አልተመረጠም")</strong>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-exclamation-triangle text-warning"></i> @Html.DisplayNameFor(m => m.HasAccident)
+                </div>
+                <div class="info-value">
+                    @if (Model.HasAccident)
+                    {
+                        <span class="badge-status badge-accident">
+                            <i class="fas fa-exclamation-circle"></i> አደጋ ተከስቷል
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge-status badge-no-accident">
+                            <i class="fas fa-check-circle"></i> አደጋ አልተከሰተም
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accident Details Card -->
+    @if (Model.HasAccident && Model.AccidentDetails != null && Model.AccidentDetails.Any())
+    {
+        <div class="detail-card">
+            <div class="card-header-custom card-header-danger">
+                <i class="fas fa-car-crash"></i> የአደጋ ዝርዝሮች (@totalAccidentDetails አደጋዎች)
+            </div>
+            <div class="card-body-custom">
+                @foreach (var detail in Model.AccidentDetails)
+                {
+                    <div class="accident-item-card">
+                        <div class="accident-type-title">
+                            <i class="fas fa-car-crash"></i> @(detail.AccidentType?.AccidentName ?? "አልተገለጸም")
+                        </div>
+
+                        @if (detail.DamagedLandInHectares.HasValue || detail.DamageRateInPercent.HasValue)
+                        {
+                            <div class="row mb-2">
+                                @if (detail.DamagedLandInHectares.HasValue)
+                                {
+                                    <div class="col-md-6">
+                                        <small class="text-muted">የተጎዳ መሬት:</small>
+                                        <strong>@detail.DamagedLandInHectares.Value.ToString("N2") ሄክታር</strong>
+                                    </div>
+                                }
+                                @if (detail.DamageRateInPercent.HasValue)
+                                {
+                                    <div class="col-md-6">
+                                        <small class="text-muted">የጉዳት መጠን:</small>
+                                        <strong>@detail.DamageRateInPercent.Value.ToString("F2")%</strong>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="stats-grid">
+                            <div class="stat-cell">
+                                <div class="stat-number">@detail.TotalAffectedHouseholds.ToString("N0")</div>
+                                <div class="stat-label"><i class="fas fa-home"></i> ቤተሰቦች</div>
+                            </div>
+                            <div class="stat-cell">
+                                <div class="stat-number">@detail.TotalAffectedChildren.ToString("N0")</div>
+                                <div class="stat-label"><i class="fas fa-child"></i> ህጻናት</div>
+                            </div>
+                            <div class="stat-cell">
+                                <div class="stat-number">@detail.TotalAffectedYouth.ToString("N0")</div>
+                                <div class="stat-label"><i class="fas fa-user-graduate"></i> ወጣቶች</div>
+                            </div>
+                            <div class="stat-cell">
+                                <div class="stat-number">@detail.TotalAffectedElderly.ToString("N0")</div>
+                                <div class="stat-label"><i class="fas fa-user-astronaut"></i> አረጋውያን</div>
+                            </div>
+                            <div class="stat-cell">
+                                <div class="stat-number">@detail.TotalAffectedDisabled.ToString("N0")</div>
+                                <div class="stat-label"><i class="fas fa-wheelchair"></i> አካል ጉዳተኞች</div>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(detail.Notes))
+                        {
+                            <div class="mt-2">
+                                <small class="text-muted">ማስታወሻ:</small>
+                                <p class="mb-0 small">@detail.Notes</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- General Information Card -->
+    @if (!string.IsNullOrEmpty(Model.Notes))
+    {
+        <div class="detail-card">
+            <div class="card-header-custom card-header-success">
+                <i class="fas fa-file-alt"></i> አጠቃላይ መረጃ
+            </div>
+            <div class="card-body-custom">
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-sticky-note"></i> @Html.DisplayNameFor(m => m.Notes)
+                    </div>
+                    <div class="info-value">
+                        <div class="alert alert-light mb-0 p-2">@Model.Notes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Report Information Card -->
+    <div class="detail-card">
+        <div class="card-header-custom card-header-info">
+            <i class="fas fa-file-signature"></i> የሪፖርት መረጃ
+        </div>
+        <div class="card-body-custom">
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-calendar-day"></i> @Html.DisplayNameFor(m => m.ReportDate)
+                </div>
+                <div class="info-value">
+                    @Model.ReportDate.ToString("dddd, MMMM dd, yyyy hh:mm tt")
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-user-edit"></i> @Html.DisplayNameFor(m => m.ReportedBy)
+                </div>
+                <div class="info-value">
+                    @if (!string.IsNullOrEmpty(Model.ReportedBy))
+                    {
+                        <strong><i class="fas fa-user-circle"></i> @Model.ReportedBy</strong>
+                    }
+                    else
+                    {
+                        <span class="text-muted">አልተገለጸም</span>
+                    }
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-check-circle"></i> @Html.DisplayNameFor(m => m.ApprovalStatus)
+                </div>
+                <div class="info-value">
+                    @if (Model.ApprovalStatus == ApprovalStatus.በሂደት_ላይ)
+                    {
+                        <span class="badge-status badge-draft">በሂደት ላይ</span>
+                    }
+                    else if (Model.ApprovalStatus == ApprovalStatus.የተፈቀደ)
+                    {
+                        <span class="badge-status badge-submitted">የተፈቀደ</span>
+                    }
+                    else if (Model.ApprovalStatus == ApprovalStatus.የተከለከለ)
+                    {
+                        <span class="badge-status badge-approved">የተከለከለ</span>
+                    }
+                    else
+                    {
+                        <span class="badge-status badge-rejected">ውድቅ ተደርጓል</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Card -->
+    @if (Model.HasAccident && totalAffected > 0)
+    {
+        <div class="summary-card">
+            <div class="summary-stats">
+                <div class="summary-item">
+                    <div class="summary-number">@totalAccidentDetails.ToString("N0")</div>
+                    <div class="summary-label"><i class="fas fa-car-crash"></i> ጠቅላላ አደጋዎች</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number">@totalHouseholds.ToString("N0")</div>
+                    <div class="summary-label"><i class="fas fa-home"></i> ጠቅላላ ቤተሰቦች</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number">@totalChildren.ToString("N0")</div>
+                    <div class="summary-label"><i class="fas fa-child"></i> ጠቅላላ ህጻናት</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number">@totalYouth.ToString("N0")</div>
+                    <div class="summary-label"><i class="fas fa-user-graduate"></i> ጠቅላላ ወጣቶች</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number">@totalElderly.ToString("N0")</div>
+                    <div class="summary-label"><i class="fas fa-user-astronaut"></i> ጠቅላላ አረጋውያን</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number">@totalDisabled.ToString("N0")</div>
+                    <div class="summary-label"><i class="fas fa-wheelchair"></i> ጠቅላላ አካል ጉዳተኞች</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number">@totalAffected.ToString("N0")</div>
+                    <div class="summary-label"><i class="fas fa-users"></i> ጠቅላላ ተጎጆች</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <a asp-action="Index" class="btn-custom btn-back">
+            <i class="fas fa-arrow-left"></i> ወደ ዝርዝር ተመለስ
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.WeeklyAccidentsId" class="btn-custom btn-edit">
+            <i class="fas fa-edit"></i> አርትዕ
+        </a>
+        <button onclick="window.print()" class="btn-custom btn-print">
+            <i class="fas fa-print"></i> አትም
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add print styles dynamically
+        var style = document.createElement('style');
+        style.innerHTML = `
+            @@media print {
+                .action-buttons, .page-header, .btn-print {
+                    display: none !important;
+                }
+                .detail-card {
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                    box-shadow: none;
+                }
+                .summary-card {
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                }
+                body {
+                    padding: 10px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

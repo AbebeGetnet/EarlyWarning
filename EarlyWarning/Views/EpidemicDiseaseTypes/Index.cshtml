@@ -1,0 +1,872 @@
+﻿@model IEnumerable<EarlyWarning.Models.EpidemicDisease.EpidemicDiseaseType>
+
+@{
+    ViewData["Title"] = "የወረርሽኝ በሽታ ዓይነቶች";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+    .btn-create {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+    .stat-header {
+        padding: 15px 20px;
+        text-align: center;
+        color: white;
+    }
+
+        .stat-header.purple {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-header.orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-header.green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+    .stat-body {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table thead th {
+            background: #f8f9fa;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            padding: 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+            .table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        .table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+    .badge-active {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        padding: 5px 12px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.8rem;
+    }
+
+    .badge-inactive {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        padding: 5px 12px;
+        border-radius: 20px;
+        color: #721c24;
+        font-size: 0.8rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .btn-action {
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+    .search-box {
+        margin-bottom: 20px;
+    }
+
+        .search-box input {
+            border-radius: 25px;
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            width: 300px;
+            transition: all 0.3s ease;
+        }
+
+            .search-box input:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+                outline: none;
+            }
+
+    /* Modal Styles */
+    .modal-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px 10px 0 0;
+    }
+
+        .modal-header-custom .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+    .form-group-custom {
+        margin-bottom: 20px;
+    }
+
+    .form-label-custom {
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        color: #333;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+        .form-control-custom:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+
+    textarea.form-control-custom {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .checkbox-group {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .checkbox-label {
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .checkbox-label input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+    .badge-status-modal {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+        .badge-status-modal.inactive {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #721c24;
+        }
+
+    .validation-message {
+        color: #dc3545;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    @@media (max-width: 768px) {
+        .stat-number {
+            font-size: 1.5rem;
+        }
+
+        .action-buttons {
+            flex-wrap: wrap;
+        }
+
+        .search-box input {
+            width: 100%;
+        }
+
+        .table thead th {
+            font-size: 0.75rem;
+            padding: 10px;
+        }
+
+        .table tbody td {
+            padding: 8px 10px;
+            font-size: 0.85rem;
+        }
+
+        .checkbox-group {
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+    }
+
+    /* Animation */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .table-container {
+        animation: fadeIn 0.5s ease-out;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1>
+                    <i class="fas fa-virus"></i> @ViewData["Title"]
+                </h1>
+                <p>የወረርሽኝ በሽታ ዓይነቶችን ይመልከቱ፣ ያስተዳድሩ እና አዲስ በሽታዎችን ይጨምሩ</p>
+            </div>
+            <div>
+                <button type="button" class="btn btn-create" id="openModalBtn">
+                    <i class="fas fa-plus-circle"></i> አዲስ በሽታ ጨምር
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @{
+        var totalDiseases = Model.Count();
+        var activeDiseases = Model.Count(x => x.IsActive);
+        var inactiveDiseases = totalDiseases - activeDiseases;
+    }
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-header purple">
+                    <i class="fas fa-disease fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@totalDiseases</div>
+                    <div class="stat-label">ጠቅላላ በሽታዎች</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-header green">
+                    <i class="fas fa-check-circle fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@activeDiseases</div>
+                    <div class="stat-label">ንቁ በሽታዎች</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-header orange">
+                    <i class="fas fa-ban fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@inactiveDiseases</div>
+                    <div class="stat-label">እንቅስቃሴ ላይ ያልሆኑ</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Box -->
+    <div class="search-box">
+        <div class="input-group">
+            <input type="text" id="searchInput" class="form-control" placeholder="🔍 በሽታ ፈልግ..." />
+            <span class="input-group-text">
+                <i class="fas fa-search"></i>
+            </span>
+        </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table table-hover" id="diseaseTable">
+                <thead>
+                    <tr>
+                        <th>
+                            <i class="fas fa-tag"></i> የበሽታ ስም
+                        </th>
+                        <th>
+                            <i class="fas fa-align-left"></i> መግለጫ
+                        </th>
+                        <th>
+                            <i class="fas fa-power-off"></i> ሁኔታ
+                        </th>
+                        <th>
+                            <i class="fas fa-cogs"></i> ድርጊቶች
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.Name</strong>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    <span class="text-muted">@item.Description</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge-active">
+                                        <i class="fas fa-check-circle"></i> ንቁ ነው
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge-inactive">
+                                        <i class="fas fa-times-circle"></i> እንቅስቃሴ ላይ አይደለም
+                                    </span>
+                                }
+                            </td>
+                            <td class="action-buttons">
+                                <button type="button" class="btn btn-sm btn-warning btn-action edit-btn"
+                                        data-id="@item.EpidemicDiseaseTypeId"
+                                        data-name="@item.Name"
+                                        data-description="@item.Description"
+                                        data-isactive="@item.IsActive.ToString().ToLower()"
+                                        title="አስተካክል">
+                                    <i class="fas fa-edit"></i> አስተካክል
+                                </button>
+                                
+                                <a asp-action="Details" asp-route-id="@item.EpidemicDiseaseTypeId" class="btn btn-sm btn-info btn-action" title="ዝርዝር">
+                                    <i class="fas fa-eye"></i> ዝርዝር
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.EpidemicDiseaseTypeId" class="btn btn-sm btn-danger btn-action" title="ሰርዝ" onclick="return confirm('እርግጠኛ ነዎት? ይህን በሽታ መሰረዝ ይፈልጋሉ?')">
+                                    <i class="fas fa-trash"></i> ሰርዝ
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-virus-slash fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">ምንም በሽታ አልተገኘም</h4>
+                <p>እባክዎ አዲስ በሽታ ለመጨመር ከላይ ያለውን ቁልፍ ይጫኑ</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title" id="createModalLabel">
+                    <i class="fas fa-plus-circle"></i> አዲስ የወረርሽኝ በሽታ ይመዝግቡ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createDiseaseForm" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div id="modalValidationSummary" class="alert alert-danger" style="display: none;" role="alert"></div>
+                    <div id="modalSuccessSummary" class="alert alert-success" style="display: none;" role="alert"></div>
+
+                    <!-- Disease Name -->
+                    <div class="form-group-custom">
+                        <label for="Name" class="form-label-custom">
+                            <i class="fas fa-tag"></i> የበሽታ ስም
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="createName" name="Name" class="form-control-custom" placeholder="ለምሳሌ፦ ወባ፣ ተቅማጥ፣ ኮሌራ..." />
+                        <div class="validation-message" id="nameError"></div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group-custom">
+                        <label for="Description" class="form-label-custom">
+                            <i class="fas fa-align-left"></i> መግለጫ
+                        </label>
+                        <textarea id="createDescription" name="Description" class="form-control-custom"
+                                  placeholder="የበሽታውን ምልክቶች፣ መንስኤዎች እና ሌሎች ጠቃሚ መረጃዎች ያስገቡ..."></textarea>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="form-group-custom">
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="createIsActive" name="IsActive" checked="checked" value="true" />
+                                <input type="hidden" name="IsActive" value="false" />
+                                <span>
+                                    <i class="fas fa-power-off"></i> ንቁ ነው
+                                </span>
+                            </label>
+                            <span id="createStatusBadge" class="badge-status-modal">
+                                <i class="fas fa-check-circle"></i> ንቁ ነው
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> ይዝጉ
+                </button>
+                <button type="button" class="btn btn-primary" id="saveDiseaseBtn">
+                    <i class="fas fa-save"></i> መዝግብ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="fas fa-edit"></i> የወረርሽኝ በሽታ ያስተካክሉ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editDiseaseForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="editId" name="EpidemicDiseaseId" />
+
+                    <div id="editValidationSummary" class="alert alert-danger" style="display: none;" role="alert"></div>
+                    <div id="editSuccessSummary" class="alert alert-success" style="display: none;" role="alert"></div>
+
+                    <!-- Disease Name -->
+                    <div class="form-group-custom">
+                        <label for="editName" class="form-label-custom">
+                            <i class="fas fa-tag"></i> የበሽታ ስም
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="editName" name="Name" class="form-control-custom" placeholder="ለምሳሌ፦ ወባ፣ ተቅማጥ፣ ኮሌራ..." />
+                        <div class="validation-message" id="editNameError"></div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group-custom">
+                        <label for="editDescription" class="form-label-custom">
+                            <i class="fas fa-align-left"></i> መግለጫ
+                        </label>
+                        <textarea id="editDescription" name="Description" class="form-control-custom"
+                                  placeholder="የበሽታውን ምልክቶች፣ መንስኤዎች እና ሌሎች ጠቃሚ መረጃዎች ያስገቡ..."></textarea>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="form-group-custom">
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="editIsActive" name="IsActive" value="true" />
+                                <input type="hidden" name="IsActive" value="false" />
+                                <span>
+                                    <i class="fas fa-power-off"></i> ንቁ ነው
+                                </span>
+                            </label>
+                            <span id="editStatusBadge" class="badge-status-modal">
+                                <i class="fas fa-check-circle"></i> ንቁ ነው
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> ይዝጉ
+                </button>
+                <button type="button" class="btn btn-primary" id="updateDiseaseBtn">
+                    <i class="fas fa-save"></i> አስተካክል
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize modals
+            var createModal = new bootstrap.Modal(document.getElementById('createModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+
+            var editModal = new bootstrap.Modal(document.getElementById('editModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+
+            // ========== CREATE MODAL ==========
+            // Open create modal
+            $('#openModalBtn').on('click', function() {
+                $('#createName').val('');
+                $('#createDescription').val('');
+                $('#createIsActive').prop('checked', true);
+                $('#createValidationSummary').hide();
+                $('#createSuccessSummary').hide();
+                $('#createNameError').text('');
+                updateCreateStatusBadge();
+                createModal.show();
+            });
+
+            function updateCreateStatusBadge() {
+                var isChecked = $('#createIsActive').is(':checked');
+                var badge = $('#createStatusBadge');
+                if (isChecked) {
+                    badge.removeClass('inactive');
+                    badge.html('<i class="fas fa-check-circle"></i> ንቁ ነው');
+                } else {
+                    badge.addClass('inactive');
+                    badge.html('<i class="fas fa-times-circle"></i> እንቅስቃሴ ላይ አይደለም');
+                }
+            }
+
+            $('#createIsActive').on('change', function() {
+                updateCreateStatusBadge();
+            });
+
+            // Save disease via AJAX
+            $('#saveDiseaseBtn').on('click', function() {
+                var diseaseName = $('#createName').val().trim();
+
+                if (!diseaseName) {
+                    $('#createNameError').text('እባክዎ የበሽታ ስም ያስገቡ');
+                    $('#createName').focus();
+                    return;
+                }
+
+                if (diseaseName.length < 2) {
+                    $('#createNameError').text('የበሽታ ስም ቢያንስ 2 ቁምፊዎች መሆን አለበት');
+                    $('#createName').focus();
+                    return;
+                }
+
+                $('#createNameError').text('');
+
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                var formData = new FormData();
+                formData.append('Name', diseaseName);
+                formData.append('Description', $('#createDescription').val());
+                formData.append('IsActive', $('#createIsActive').is(':checked'));
+                formData.append('__RequestVerificationToken', token);
+
+                var $btn = $('#saveDiseaseBtn');
+                $btn.prop('disabled', true).html('<span class="loading-spinner"></span> በማስቀመጥ ላይ...');
+
+                $.ajax({
+                    url: '@Url.Action("Create", "EpidemicDiseaseTypes")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            $('#createSuccessSummary').show().html('<i class="fas fa-check-circle"></i> ' + response.message);
+                            $('#createValidationSummary').hide();
+                            setTimeout(function() {
+                                createModal.hide();
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            $('#createValidationSummary').show().html('<i class="fas fa-exclamation-triangle"></i> ' + response.message);
+                            $btn.prop('disabled', false).html('<i class="fas fa-save"></i> መዝግብ');
+                        }
+                    },
+                    error: function(xhr) {
+                        var errorMessage = 'ውሂቡን ለማስቀመጥ አልተቻለም';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        $('#createValidationSummary').show().html('<i class="fas fa-exclamation-triangle"></i> ' + errorMessage);
+                        $btn.prop('disabled', false).html('<i class="fas fa-save"></i> መዝግብ');
+                    }
+                });
+            });
+
+            // ========== EDIT MODAL ==========
+            // Open edit modal with data
+            $(document).on('click', '.edit-btn', function() {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+                var description = $(this).data('description');
+                var isActive = $(this).data('isactive') === true || $(this).data('isactive') === 'true';
+
+                $('#editId').val(id);
+                $('#editName').val(name);
+                $('#editDescription').val(description || '');
+                $('#editIsActive').prop('checked', isActive);
+
+                $('#editValidationSummary').hide();
+                $('#editSuccessSummary').hide();
+                $('#editNameError').text('');
+                updateEditStatusBadge();
+
+                editModal.show();
+            });
+
+            function updateEditStatusBadge() {
+                var isChecked = $('#editIsActive').is(':checked');
+                var badge = $('#editStatusBadge');
+                if (isChecked) {
+                    badge.removeClass('inactive');
+                    badge.html('<i class="fas fa-check-circle"></i> ንቁ ነው');
+                } else {
+                    badge.addClass('inactive');
+                    badge.html('<i class="fas fa-times-circle"></i> እንቅስቃሴ ላይ አይደለም');
+                }
+            }
+
+            $('#editIsActive').on('change', function() {
+                updateEditStatusBadge();
+            });
+
+            // Update disease via AJAX
+            $('#updateDiseaseBtn').on('click', function() {
+                var diseaseName = $('#editName').val().trim();
+                var diseaseId = $('#editId').val();
+
+                if (!diseaseName) {
+                    $('#editNameError').text('እባክዎ የበሽታ ስም ያስገቡ');
+                    $('#editName').focus();
+                    return;
+                }
+
+                if (diseaseName.length < 2) {
+                    $('#editNameError').text('የበሽታ ስም ቢያንስ 2 ቁምፊዎች መሆን አለበት');
+                    $('#editName').focus();
+                    return;
+                }
+
+                $('#editNameError').text('');
+
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                var formData = new FormData();
+                formData.append('EpidemicDiseaseId', diseaseId);
+                formData.append('Name', diseaseName);
+                formData.append('Description', $('#editDescription').val());
+                formData.append('IsActive', $('#editIsActive').is(':checked'));
+                formData.append('__RequestVerificationToken', token);
+
+                var $btn = $('#updateDiseaseBtn');
+                $btn.prop('disabled', true).html('<span class="loading-spinner"></span> በማስተካከል ላይ...');
+
+                $.ajax({
+                    url: '@Url.Action("Edit", "EpidemicDiseaseTypes")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            $('#editSuccessSummary').show().html('<i class="fas fa-check-circle"></i> ' + response.message);
+                            $('#editValidationSummary').hide();
+                            setTimeout(function() {
+                                editModal.hide();
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            $('#editValidationSummary').show().html('<i class="fas fa-exclamation-triangle"></i> ' + response.message);
+                            $btn.prop('disabled', false).html('<i class="fas fa-save"></i> አስተካክል');
+                        }
+                    },
+                    error: function(xhr) {
+                        var errorMessage = 'ውሂቡን ለማስተካከል አልተቻለም';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        $('#editValidationSummary').show().html('<i class="fas fa-exclamation-triangle"></i> ' + errorMessage);
+                        $btn.prop('disabled', false).html('<i class="fas fa-save"></i> አስተካክል');
+                    }
+                });
+            });
+
+            // Auto capitalize first letter
+            $('#createName, #editName').on('blur', function() {
+                var value = $(this).val();
+                if (value) {
+                    $(this).val(value.charAt(0).toUpperCase() + value.slice(1).toLowerCase());
+                }
+            });
+
+            // Search functionality
+            $("#searchInput").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $("#diseaseTable tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+        });
+    </script>
+}
+<style>
+    /* Tooltip Styles */
+    .btn-action {
+        position: relative;
+    }
+
+        .btn-action:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+
+    /* Scrollbar Styles */
+    .table-responsive::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 10px;
+    }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+</style>

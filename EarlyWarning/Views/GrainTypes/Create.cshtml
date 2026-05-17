@@ -1,0 +1,358 @@
+﻿@model EarlyWarning.Models.PriceofGrain.GrainType
+
+@{
+    ViewData["Title"] = "አዲስ የእህል አይነት";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+    .form-container {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .form-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 20px;
+        font-weight: 600;
+    }
+
+        .card-header-custom i {
+            margin-right: 8px;
+        }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 0.9rem;
+    }
+
+        .form-label i {
+            margin-right: 5px;
+            color: #11998e;
+        }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 10px 12px;
+        width: 100%;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #11998e;
+            box-shadow: 0 0 0 0.2rem rgba(17, 153, 142, 0.25);
+            outline: none;
+        }
+
+    .checkbox-group {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .checkbox-label {
+        font-weight: 600;
+        margin: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .checkbox-label input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+    .badge-status {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+
+        .badge-status.inactive {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 25px;
+    }
+
+    .btn-custom {
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    .text-danger {
+        color: #dc3545;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    .info-hint {
+        background: #e8f4f8;
+        border-left: 3px solid #11998e;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    @@media (max-width: 768px) {
+        .form-container {
+            max-width: 100%;
+        }
+
+        .card-body-custom {
+            padding: 20px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-custom {
+            width: 100%;
+            text-align: center;
+        }
+
+        .checkbox-group {
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="form-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-plus-circle"></i> @ViewData["Title"]
+            </h1>
+            <p>እባክዎ አዲስ የእህል አይነት ይመዝግቡ</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            <div class="card-header-custom">
+                <i class="fas fa-wheat-alt"></i> የእህል መረጃ
+            </div>
+            <div class="card-body-custom">
+                <form asp-action="Create" method="post" id="grainTypeForm">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <!-- Grain Name -->
+                    <div class="form-group">
+                        <label asp-for="GrainName" class="form-label">
+                            <i class="fas fa-tag"></i> @Html.DisplayNameFor(m => m.GrainName)
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="GrainName" class="form-control" placeholder="ለምሳሌ፦ ማሽላ፣ በቆሎ፣ ስንዴ፣ ገብስ..." />
+                        <span asp-validation-for="GrainName" class="text-danger"></span>
+                        <div class="info-hint">
+                            <i class="fas fa-info-circle"></i> የእህሉን ሙሉ ስም ያስገቡ (ከ2 እስከ 100 ቁምፊዎች)
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input asp-for="IsActive" type="checkbox" id="isActiveCheckbox" checked="checked" />
+                                <span>
+                                    <i class="fas fa-power-off"></i> @Html.DisplayNameFor(m => m.IsActive)
+                                </span>
+                            </label>
+                            <span id="statusBadge" class="badge-status">
+                                <i class="fas fa-check-circle"></i> ንቁ ነው
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <a asp-action="Index" class="btn-custom btn-back">
+                            <i class="fas fa-arrow-left"></i> ወደ ዝርዝር ተመለስ
+                        </a>
+                        <button type="submit" class="btn-custom btn-submit" id="submitBtn">
+                            <i class="fas fa-save"></i> መዝግብ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            // Update status badge based on checkbox
+            function updateStatusBadge() {
+                var isChecked = $('#isActiveCheckbox').is(':checked');
+                var badge = $('#statusBadge');
+
+                if (isChecked) {
+                    badge.removeClass('inactive');
+                    badge.html('<i class="fas fa-check-circle"></i> ንቁ ነው');
+                } else {
+                    badge.addClass('inactive');
+                    badge.html('<i class="fas fa-times-circle"></i> እንቅስቃሴ ላይ አይደለም');
+                }
+            }
+
+            // Initial badge update
+            updateStatusBadge();
+
+            // Update badge on checkbox change
+            $('#isActiveCheckbox').on('change', function() {
+                updateStatusBadge();
+            });
+
+            // Auto capitalize first letter of grain name
+            $('#GrainName').on('blur', function() {
+                var value = $(this).val();
+                if (value) {
+                    $(this).val(value.charAt(0).toUpperCase() + value.slice(1).toLowerCase());
+                }
+            });
+
+            // Character limit for grain name
+            $('#GrainName').on('input', function() {
+                var length = $(this).val().length;
+                var maxLength = 100;
+
+                if (length > maxLength) {
+                    $(this).val($(this).val().substring(0, maxLength));
+                    alert('የእህል ስም ከ100 ቁምፊዎች መብለጥ አይችልም');
+                }
+            });
+
+            // Form validation before submit
+            $('#grainTypeForm').on('submit', function(e) {
+                var grainName = $('#GrainName').val().trim();
+
+                if (!grainName) {
+                    e.preventDefault();
+                    alert('እባክዎ የእህል ስም ያስገቡ');
+                    $('#GrainName').focus();
+                    return false;
+                }
+
+                if (grainName.length < 2) {
+                    e.preventDefault();
+                    alert('የእህል ስም ቢያንስ 2 ቁምፊዎች መሆን አለበት');
+                    $('#GrainName').focus();
+                    return false;
+                }
+
+                return true;
+            });
+        });
+    </script>
+}

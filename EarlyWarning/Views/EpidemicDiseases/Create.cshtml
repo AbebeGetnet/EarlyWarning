@@ -1,0 +1,645 @@
+﻿@model EarlyWarning.Models.EpidemicDisease.EpidemicDisease
+
+@{
+    ViewData["Title"] = "የወረርሽኝ በሽታ ሪፖርት";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var diseaseTypes = ViewBag.EpidemicDiseaseTypes as IEnumerable<EarlyWarning.Models.EpidemicDisease.EpidemicDiseaseType> ?? new List<EarlyWarning.Models.EpidemicDisease.EpidemicDiseaseType>();
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .page-header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+        }
+
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .card-header-custom {
+        padding: 12px 20px;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+        .card-header-custom i {
+            margin-right: 8px;
+        }
+
+    .bg-primary-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .bg-danger-custom {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .bg-success-custom {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+
+    .bg-warning-custom {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        color: #333;
+    }
+
+    .card-body-custom {
+        padding: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 5px;
+        display: block;
+        font-size: 0.9rem;
+    }
+
+        .form-label i {
+            margin-right: 5px;
+            color: #667eea;
+        }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
+
+    select[multiple] {
+        min-height: 120px;
+    }
+
+    .disease-item-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        border-left: 3px solid #667eea;
+        position: relative;
+    }
+
+    .btn-remove-disease {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        background: none;
+        border: none;
+        color: #dc3545;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+        .btn-remove-disease:hover {
+            opacity: 0.7;
+        }
+
+    .selected-diseases-container {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 10px;
+    }
+
+    .summary-card {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+
+    .summary-stats {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .summary-item {
+        text-align: center;
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .summary-number {
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+
+    .summary-label {
+        font-size: 0.8rem;
+        opacity: 0.9;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-back:hover, .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+    .text-danger {
+        font-size: 0.8rem;
+        margin-top: 3px;
+    }
+
+    hr {
+        margin: 15px 0;
+    }
+
+    .info-hint {
+        background: #e8f4f8;
+        border-left: 3px solid #667eea;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    @@media (max-width: 768px) {
+        .summary-number {
+            font-size: 1.3rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-back, .btn-submit {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+@if (ViewBag.ShowContinuationMessage == true)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i>
+        <strong>ማስታወሻ!</strong> የሰው መጠጥ ውሃ ችግር ሪፖርት በሚገባ ተመዝግቧል።
+        እባክዎ የወረርሽኝ በሽታ ሪፖርት ይሙሉ።
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+<div class="container-fluid">
+    <div class="page-header">
+        <h1><i class="fas fa-plus-circle"></i> @ViewData["Title"]</h1>
+        <p>እባክዎ በሳምንቱ የተከሰተውን የወረርሽኝ በሽታ መረጃ ይሙሉ</p>
+    </div>
+
+    <form asp-action="Create" method="post" id="epidemicForm">
+        @Html.AntiForgeryToken()
+
+        <!-- Basic Information Card -->
+        <div class="form-card">
+            <div class="card-header-custom bg-primary-custom">
+                <i class="fas fa-calendar-alt"></i> መሰረታዊ መረጃ
+            </div>
+            <div class="card-body-custom">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="StartDate" class="form-label">
+                                <i class="fas fa-calendar-week"></i> @Html.DisplayNameFor(m => m.StartDate)
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="StartDate" class="form-control" type="date" />
+                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="EndDate" class="form-label">
+                                <i class="fas fa-calendar-check"></i> @Html.DisplayNameFor(m => m.EndDate)
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="EndDate" class="form-control" type="date" />
+                            <span asp-validation-for="EndDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    @* <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="WoredaId" class="form-label">
+                                <i class="fas fa-map-marker-alt"></i> @Html.DisplayNameFor(m => m.WoredaId)
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="WoredaId" class="form-control" asp-items="ViewBag.WoredaId">
+                                <option value="">-- ወረዳ ይምረጡ --</option>
+                            </select>
+                            <span asp-validation-for="WoredaId" class="text-danger"></span>
+                        </div>
+                    </div> *@
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="NumberOfAffectedKebeles" class="form-label">
+                                <i class="fas fa-map-marked-alt"></i> @Html.DisplayNameFor(m => m.NumberOfAffectedKebeles)
+                            </label>
+                            <input asp-for="NumberOfAffectedKebeles" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="NumberOfAffectedKebeles" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        <input asp-for="HasEpidemicDisease" class="form-check-input" id="hasEpidemicCheckbox" />
+                        <label asp-for="HasEpidemicDisease" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disease Selection Card -->
+        <div id="diseaseSelectionCard" class="form-card" style="display: none;">
+            <div class="card-header-custom bg-warning-custom">
+                <i class="fas fa-virus"></i> የበሽታ ዝርዝር
+            </div>
+            <div class="card-body-custom">
+
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle"></i>
+                    እባክዎ የተከሰቱትን የወረርሽኝ በሽታዎች ይምረጡ
+                </div>
+
+                <div class="row">
+                    @foreach (var disease in diseaseTypes)
+                    {
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="form-check disease-item-card">
+
+                                <input type="checkbox"
+                                       name="selectedDiseaseTypeIds"
+                                       value="@disease.EpidemicDiseaseTypeId"
+                                       class="form-check-input"
+                                       id="disease_@disease.EpidemicDiseaseTypeId" />
+
+                                <label class="form-check-label fw-bold"
+                                       for="disease_@disease.EpidemicDiseaseTypeId">
+                                    <i class="fas fa-virus text-danger"></i>
+                                    @disease.Name
+                                </label>
+
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="info-hint mt-2">
+                    <i class="fas fa-check-circle"></i>
+                    ከአንድ በላይ በሽታ መምረጥ ይችላሉ
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Affected Population Card -->
+        <div id="populationCard" class="form-card" style="display: none;">
+            <div class="card-header-custom bg-danger-custom">
+                <i class="fas fa-users"></i> በወረርሽኙ የተጎዳ ማህበረሰብ
+            </div>
+            <div class="card-body-custom">
+                <!-- Household Heads -->
+                <h6 class="text-primary"><i class="fas fa-user-friends"></i> አባወራ / እማወራ</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="MaleHouseholdHeads">ወንድ</label>
+                            <input asp-for="MaleHouseholdHeads" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="FemaleHouseholdHeads">ሴት</label>
+                            <input asp-for="FemaleHouseholdHeads" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                </div>
+                <hr />
+
+                <!-- Family Members -->
+                <h6 class="text-primary"><i class="fas fa-home"></i> ቤተሰብ</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="MaleFamilyMembers">ወንድ</label>
+                            <input asp-for="MaleFamilyMembers" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="FemaleFamilyMembers">ሴት</label>
+                            <input asp-for="FemaleFamilyMembers" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                </div>
+                <hr />
+
+                <!-- Children -->
+                <h6 class="text-primary"><i class="fas fa-child"></i> ህጻናት</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="MaleChildren">ወንድ</label>
+                            <input asp-for="MaleChildren" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="FemaleChildren">ሴት</label>
+                            <input asp-for="FemaleChildren" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                </div>
+                <hr />
+
+                <!-- Youth -->
+                <h6 class="text-primary"><i class="fas fa-user-graduate"></i> ወጣቶች</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="MaleYouth">ወንድ</label>
+                            <input asp-for="MaleYouth" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="FemaleYouth">ሴት</label>
+                            <input asp-for="FemaleYouth" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                </div>
+                <hr />
+
+                <!-- Elderly -->
+                <h6 class="text-primary"><i class="fas fa-user-astronaut"></i> አረጋውያን</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="MaleElderly">ወንድ</label>
+                            <input asp-for="MaleElderly" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="FemaleElderly">ሴት</label>
+                            <input asp-for="FemaleElderly" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                </div>
+                <hr />
+
+                <!-- Disabled -->
+                <h6 class="text-primary"><i class="fas fa-wheelchair"></i> አካል ጉዳተኞች</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="MaleDisabled">ወንድ</label>
+                            <input asp-for="MaleDisabled" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="FemaleDisabled">ሴት</label>
+                            <input asp-for="FemaleDisabled" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                </div>
+                <hr />
+
+                <!-- Mothers -->
+                <h6 class="text-primary"><i class="fas fa-female"></i> እናቶች</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="LactatingMothers">አጥቢ እናቶች</label>
+                            <input asp-for="LactatingMothers" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="PregnantWomen">ነፍሰጡር እናቶች</label>
+                            <input asp-for="PregnantWomen" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Information Card -->
+        <div class="form-card">
+            <div class="card-header-custom bg-success-custom">
+                <i class="fas fa-file-alt"></i> የሪፖርት መረጃ
+            </div>
+            <div class="card-body-custom">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="ReportDate" class="form-label">
+                                <i class="fas fa-calendar-day"></i> @Html.DisplayNameFor(m => m.ReportDate)
+                            </label>
+                            <input asp-for="ReportDate" class="form-control" type="datetime-local" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="ReportedBy" class="form-label">
+                                <i class="fas fa-user-edit"></i> @Html.DisplayNameFor(m => m.ReportedBy)
+                            </label>
+                            <input asp-for="ReportedBy" class="form-control" placeholder="ሙሉ ስም ያስገቡ" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Notes" class="form-label">
+                        <i class="fas fa-sticky-note"></i> @Html.DisplayNameFor(m => m.Notes)
+                    </label>
+                    <textarea asp-for="Notes" class="form-control" rows="2" placeholder="ተጨማሪ ማስታወሻ ካለ ያስገቡ..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Card -->
+        <div id="summaryCard" class="summary-card" style="display: none;">
+            <div class="summary-stats">
+                <div class="summary-item">
+                    <div class="summary-number" id="totalMales">0</div>
+                    <div class="summary-label"><i class="fas fa-male"></i> ጠቅላላ ወንዶች</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" id="totalFemales">0</div>
+                    <div class="summary-label"><i class="fas fa-female"></i> ጠቅላላ ሴቶች</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" id="totalPopulation">0</div>
+                    <div class="summary-label"><i class="fas fa-users"></i> ጠቅላላ ተጎጆች</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a asp-action="Index" class="btn-back">
+                <i class="fas fa-arrow-left"></i> ወደ ዝርዝር ተመለስ
+            </a>
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> መዝግብ
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+
+            // ===============================
+            // Show/Hide epidemic sections
+            // ===============================
+            $('#hasEpidemicCheckbox').on('change', function () {
+                let show = $(this).is(':checked');
+                $('#diseaseSelectionCard').toggle(show);
+                $('#populationCard').toggle(show);
+                $('#summaryCard').toggle(show);
+                calculateTotals();
+            });
+
+            // ===============================
+            // AUTO TOTAL CALCULATION
+            // ===============================
+            function calculateTotals() {
+
+                let maleFields = [
+                    'MaleHouseholdHeads','MaleFamilyMembers','MaleChildren',
+                    'MaleYouth','MaleElderly','MaleDisabled'
+                ];
+
+                let femaleFields = [
+                    'FemaleHouseholdHeads','FemaleFamilyMembers','FemaleChildren',
+                    'FemaleYouth','FemaleElderly','FemaleDisabled'
+                ];
+
+                let totalMales = 0;
+                let totalFemales = 0;
+
+                maleFields.forEach(f => totalMales += parseInt($('#' + f).val()) || 0);
+                femaleFields.forEach(f => totalFemales += parseInt($('#' + f).val()) || 0);
+
+                $('#totalMales').text(totalMales.toLocaleString());
+                $('#totalFemales').text(totalFemales.toLocaleString());
+                $('#totalPopulation').text((totalMales + totalFemales).toLocaleString());
+            }
+
+            $('input[type="number"]').on('input', calculateTotals);
+
+            // ===============================
+            // DEFAULT REPORT DATE
+            // ===============================
+            if (!$('#ReportDate').val()) {
+                let now = new Date();
+                let formatted =
+                    now.getFullYear() + '-' +
+                    String(now.getMonth()+1).padStart(2,'0') + '-' +
+                    String(now.getDate()).padStart(2,'0') + 'T' +
+                    String(now.getHours()).padStart(2,'0') + ':' +
+                    String(now.getMinutes()).padStart(2,'0');
+
+                $('#ReportDate').val(formatted);
+            }
+
+            // ===============================
+            // FORM VALIDATION BEFORE SUBMIT
+            // ===============================
+            $('#epidemicForm').on('submit', function (e) {
+
+                // If epidemic checkbox is OFF → allow submit normally
+                if (!$('#hasEpidemicCheckbox').is(':checked'))
+                    return true;
+
+                // 1️⃣ Ensure at least one disease checkbox selected
+                if ($('input[name="selectedDiseaseTypeIds"]:checked').length === 0) {
+                    alert('እባክዎ ቢያንስ አንድ በሽታ ይምረጡ');
+                    e.preventDefault();
+                    return false;
+                }
+
+                // 2️⃣ Ensure population > 0
+                let totalPopulation = parseInt($('#totalPopulation').text().replace(/,/g,'')) || 0;
+
+                if (totalPopulation === 0) {
+                    alert('እባክዎ ቢያንስ አንድ የተጎዳ ሰው ያስገቡ');
+                    e.preventDefault();
+                    return false;
+                }
+
+                return true;
+            });
+
+            // initial state on page load
+            if ($('#hasEpidemicCheckbox').is(':checked')) {
+                $('#diseaseSelectionCard, #populationCard, #summaryCard').show();
+                calculateTotals();
+            }
+        });
+    </script>
+}
