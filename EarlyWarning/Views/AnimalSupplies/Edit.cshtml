@@ -1,0 +1,647 @@
+﻿@using EarlyWarning.Enums
+@model EarlyWarning.Models.AnimalSupply.AnimalSupply
+
+@{
+    ViewData["Title"] = "የእንስሳት አቅርቦት ሪፖርት አስተካክል";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+    .form-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .form-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 20px;
+        font-weight: 600;
+    }
+
+        .card-header-custom i {
+            margin-right: 8px;
+        }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 0.9rem;
+    }
+
+        .form-label i {
+            margin-right: 5px;
+            color: #fa709a;
+        }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 10px 12px;
+        width: 100%;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #fa709a;
+            box-shadow: 0 0 0 0.2rem rgba(250, 112, 154, 0.25);
+            outline: none;
+        }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .radio-group {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 5px;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .radio-option:hover {
+            background: #e9ecef;
+        }
+
+        .radio-option input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .radio-option.selected {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #333;
+        }
+
+            .radio-option.selected i {
+                color: #333;
+            }
+
+    .reason-checkbox-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 10px;
+    }
+
+    .reason-checkbox-item {
+        flex: 0 0 calc(33.333% - 15px);
+        min-width: 200px;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+        .reason-checkbox-item:hover {
+            background: #e9ecef;
+        }
+
+        .reason-checkbox-item input {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .reason-checkbox-item label {
+            cursor: pointer;
+            margin: 0;
+        }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 25px;
+    }
+
+    .btn-custom {
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    .text-danger {
+        color: #dc3545;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    .info-hint {
+        background: #fff3e6;
+        border-left: 3px solid #fa709a;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -10px;
+    }
+
+    .col-md-6 {
+        flex: 0 0 50%;
+        padding: 10px;
+    }
+
+    .col-md-12 {
+        flex: 0 0 100%;
+        padding: 10px;
+    }
+
+    .selected-reasons-container {
+        background: #f0f7f0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+
+    .selected-reason-tag {
+        display: inline-block;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin: 3px;
+    }
+
+    .reasons-validation-error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+
+    @@media (max-width: 768px) {
+        .form-container {
+            max-width: 100%;
+        }
+
+        .card-body-custom {
+            padding: 20px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-custom {
+            width: 100%;
+            text-align: center;
+        }
+
+        .radio-group {
+            flex-direction: column;
+        }
+
+        .col-md-6 {
+            flex: 0 0 100%;
+        }
+
+        .reason-checkbox-item {
+            flex: 0 0 100%;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="form-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-edit"></i> @ViewData["Title"]
+            </h1>
+            <p>እባክዎ የእንስሳት አቅርቦት ሪፖርት መረጃ ያሻሽሉ</p>
+        </div>
+
+        <form asp-action="Edit" method="post" id="animalSupplyForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="GrainSupplyId" />
+
+            <!-- Basic Information Card -->
+            <div class="form-card">
+                <div class="card-header-custom">
+                    <i class="fas fa-calendar-alt"></i> መሰረታዊ መረጃ
+                </div>
+                <div class="card-body-custom">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="StartDate" class="form-label">
+                                    <i class="fas fa-calendar-week"></i> @Html.DisplayNameFor(m => m.StartDate)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="StartDate" class="form-control" type="date" />
+                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="EndDate" class="form-label">
+                                    <i class="fas fa-calendar-check"></i> @Html.DisplayNameFor(m => m.EndDate)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="EndDate" class="form-control" type="date" />
+                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="WoredaId" class="form-label">
+                                    <i class="fas fa-map-marker-alt"></i> @Html.DisplayNameFor(m => m.WoredaId)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="WoredaId" class="form-control" asp-items="ViewBag.WoredaId">
+                                    <option value="">-- ወረዳ ይምረጡ --</option>
+                                </select>
+                                <span asp-validation-for="WoredaId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="GrainSupplyStatus" class="form-label">
+                                    <i class="fas fa-chart-line"></i> @Html.DisplayNameFor(m => m.GrainSupplyStatus)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" asp-for="GrainSupplyStatus" value="1" />
+                                        <i class="fas fa-arrow-up"></i> ጨምሯል
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" asp-for="GrainSupplyStatus" value="2" />
+                                        <i class="fas fa-arrow-down"></i> ቀንሷል
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" asp-for="GrainSupplyStatus" value="3" />
+                                        <i class="fas fa-equals"></i> ተመሳሳይ ነው
+                                    </label>
+                                </div>
+                                <span asp-validation-for="GrainSupplyStatus" class="text-danger"></span>
+                                <div class="info-hint">
+                                    <i class="fas fa-info-circle"></i> ከባለፈው ሳምንት ጋር ሲነጻጸር ያለውን ለውጥ ይምረጡ
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reasons Card (will show based on selection) -->
+            <div class="form-card" id="reasonsCard" style="display: none;">
+                <div class="card-header-custom">
+                    <i class="fas fa-question-circle"></i> የለውጡ ምክንያቶች
+                </div>
+                <div class="card-body-custom">
+                    <!-- Increase Reasons -->
+                    <div id="increaseReasons">
+                        <label class="form-label">
+                            <i class="fas fa-arrow-up text-success"></i> ለጨመረው ምክንያቶች
+                        </label>
+                        <div class="reason-checkbox-group" id="increaseReasonsList">
+                            @if (ViewBag.IncreaseReasons != null)
+                            {
+                                var increaseReasons = ViewBag.IncreaseReasons as List<EarlyWarning.Models.AnimalSupply.AnimalIncreaseDecrease>;
+                                var selectedReasonIds = ViewBag.SelectedReasonIds as List<Guid> ?? new List<Guid>();
+                                @foreach (var reason in increaseReasons)
+                                {
+                                    var isChecked = selectedReasonIds.Contains(reason.AnimalIncreaseDecreaseId);
+                                    <div class="reason-checkbox-item">
+                                        <input type="checkbox" name="SelectedReasonIds" value="@reason.AnimalIncreaseDecreaseId" id="inc_@reason.AnimalIncreaseDecreaseId" @(isChecked ? "checked" : "") />
+                                        <label for="inc_@reason.AnimalIncreaseDecreaseId">@reason.ReasonName</label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Decrease Reasons -->
+                    <div id="decreaseReasons" style="display: none;">
+                        <label class="form-label">
+                            <i class="fas fa-arrow-down text-danger"></i> ለቀነሰው ምክንያቶች
+                        </label>
+                        <div class="reason-checkbox-group" id="decreaseReasonsList">
+                            @if (ViewBag.DecreaseReasons != null)
+                            {
+                                var decreaseReasons = ViewBag.DecreaseReasons as List<EarlyWarning.Models.AnimalSupply.AnimalIncreaseDecrease>;
+                                var selectedReasonIds = ViewBag.SelectedReasonIds as List<Guid> ?? new List<Guid>();
+                                @foreach (var reason in decreaseReasons)
+                                {
+                                    var isChecked = selectedReasonIds.Contains(reason.AnimalIncreaseDecreaseId);
+                                    <div class="reason-checkbox-item">
+                                        <input type="checkbox" name="SelectedReasonIds" value="@reason.AnimalIncreaseDecreaseId" id="dec_@reason.AnimalIncreaseDecreaseId" @(isChecked ? "checked" : "") />
+                                        <label for="dec_@reason.AnimalIncreaseDecreaseId">@reason.ReasonName</label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Selected Reasons Summary -->
+                    <div id="selectedReasonsSummary" class="selected-reasons-container" style="display: none;">
+                        <label class="form-label">
+                            <i class="fas fa-check-circle"></i> የተመረጡ ምክንያቶች
+                        </label>
+                        <div id="selectedReasonsList"></div>
+                    </div>
+
+                    <div class="info-hint">
+                        <i class="fas fa-info-circle"></i> በርካታ ምክንያቶችን መምረጥ ይችላሉ
+                    </div>
+
+                    <!-- Validation message for reasons -->
+                    <div id="reasonsValidationError" class="reasons-validation-error" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>ማስጠንቀቂያ:</strong> እባክዎ ቢያንስ አንድ ምክንያት ይምረጡ
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information Card -->
+            <div class="form-card">
+                <div class="card-header-custom">
+                    <i class="fas fa-file-alt"></i> ተጨማሪ መረጃ
+                </div>
+                <div class="card-body-custom">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label asp-for="AdditionalNotes" class="form-label">
+                                    <i class="fas fa-sticky-note"></i> @Html.DisplayNameFor(m => m.AdditionalNotes)
+                                </label>
+                                <textarea asp-for="AdditionalNotes" class="form-control" rows="3" placeholder="ተጨማሪ ማስታወሻ ካለ ያስገቡ..."></textarea>
+                                <span asp-validation-for="AdditionalNotes" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Information Card -->
+            <div class="form-card">
+                <div class="card-header-custom">
+                    <i class="fas fa-user-edit"></i> የሪፖርት መረጃ
+                </div>
+                <div class="card-body-custom">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="ReportDate" class="form-label">
+                                    <i class="fas fa-calendar-day"></i> @Html.DisplayNameFor(m => m.ReportDate)
+                                </label>
+                                <input asp-for="ReportDate" class="form-control" type="datetime-local" />
+                                <span asp-validation-for="ReportDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="ReportedBy" class="form-label">
+                                    <i class="fas fa-user"></i> @Html.DisplayNameFor(m => m.ReportedBy)
+                                </label>
+                                <input asp-for="ReportedBy" class="form-control" placeholder="ሙሉ ስም ያስገቡ" />
+                                <span asp-validation-for="ReportedBy" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label asp-for="ApprovalStatus" class="form-label">
+                                    <i class="fas fa-check-circle"></i> @Html.DisplayNameFor(m => m.ApprovalStatus)
+                                </label>
+                                <select asp-for="ApprovalStatus" class="form-control" asp-items="Html.GetEnumSelectList<ApprovalStatus>()">
+                                    <option value="">-- ሁኔታ ይምረጡ --</option>
+                                </select>
+                                <span asp-validation-for="ApprovalStatus" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a asp-action="Index" class="btn-custom btn-back">
+                    <i class="fas fa-arrow-left"></i> ወደ ዝርዝር ተመለስ
+                </a>
+                <button type="submit" class="btn-custom btn-submit">
+                    <i class="fas fa-save"></i> አስቀምጥ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            // Function to update selected reasons display
+            function updateSelectedReasonsDisplay() {
+                var selectedReasons = [];
+                $('input[name="SelectedReasonIds"]:checked').each(function() {
+                    var reasonName = $(this).next('label').text();
+                    selectedReasons.push(reasonName);
+                });
+
+                if (selectedReasons.length > 0) {
+                    $('#selectedReasonsSummary').slideDown(300);
+                    $('#reasonsValidationError').hide();
+                    var html = '';
+                    selectedReasons.forEach(function(reason) {
+                        html += '<span class="selected-reason-tag">' + reason + ' <i class="fas fa-check-circle"></i></span>';
+                    });
+                    $('#selectedReasonsList').html(html);
+                } else {
+                    $('#selectedReasonsSummary').slideUp(300);
+                }
+            }
+
+            // Show/hide reasons based on selected status
+            function toggleReasons() {
+                var selectedStatus = $('input[name="GrainSupplyStatus"]:checked').val();
+
+                if (selectedStatus == '1') { // Increased
+                    $('#reasonsCard').slideDown(300);
+                    $('#increaseReasons').show();
+                    $('#decreaseReasons').hide();
+                    $('#decreaseReasonsList input').prop('checked', false);
+                } else if (selectedStatus == '2') { // Decreased
+                    $('#reasonsCard').slideDown(300);
+                    $('#increaseReasons').hide();
+                    $('#decreaseReasons').show();
+                    $('#increaseReasonsList input').prop('checked', false);
+                } else {
+                    $('#reasonsCard').slideUp(300);
+                    $('input[name="SelectedReasonIds"]').prop('checked', false);
+                }
+                updateSelectedReasonsDisplay();
+            }
+
+            // Set default report date if not set
+            if (!$('#ReportDate').val()) {
+                var now = new Date();
+                var formattedDate = now.getFullYear() + '-' +
+                                   String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                                   String(now.getDate()).padStart(2, '0') + 'T' +
+                                   String(now.getHours()).padStart(2, '0') + ':' +
+                                   String(now.getMinutes()).padStart(2, '0');
+                $('#ReportDate').val(formattedDate);
+            }
+
+            // Radio button change event
+            $('input[name="GrainSupplyStatus"]').on('change', function() {
+                toggleReasons();
+            });
+
+            // Checkbox change event
+            $(document).on('change', 'input[name="SelectedReasonIds"]', function() {
+                updateSelectedReasonsDisplay();
+                if ($('input[name="SelectedReasonIds"]:checked').length > 0) {
+                    $('#reasonsValidationError').hide();
+                }
+            });
+
+            // Initial check
+            toggleReasons();
+
+            // Radio button styling
+            $('.radio-option').on('click', function() {
+                $(this).find('input').prop('checked', true);
+                $('.radio-option').removeClass('selected');
+                $(this).addClass('selected');
+                toggleReasons();
+            });
+
+            // Check if any radio is preselected
+            if ($('input[name="GrainSupplyStatus"]:checked').length > 0) {
+                var checkedValue = $('input[name="GrainSupplyStatus"]:checked').val();
+                $('.radio-option').removeClass('selected');
+                $('.radio-option input[value="' + checkedValue + '"]').closest('.radio-option').addClass('selected');
+            }
+
+            // Form validation before submit
+            $('#animalSupplyForm').on('submit', function(e) {
+                var selectedStatus = $('input[name="GrainSupplyStatus"]:checked').val();
+
+                if (selectedStatus == '1' || selectedStatus == '2') {
+                    var selectedReasons = $('input[name="SelectedReasonIds"]:checked').length;
+                    if (selectedReasons === 0) {
+                        e.preventDefault();
+                        $('#reasonsValidationError').slideDown(300);
+                        $('html, body').animate({
+                            scrollTop: $('#reasonsCard').offset().top - 100
+                        }, 500);
+                        return false;
+                    }
+                }
+                return true;
+            });
+        });
+    </script>
+}

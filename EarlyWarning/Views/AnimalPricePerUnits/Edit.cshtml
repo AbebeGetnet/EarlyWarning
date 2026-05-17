@@ -1,0 +1,495 @@
+﻿@using EarlyWarning.Enums
+@model EarlyWarning.Models.AnimalPrice.AnimalPricePerUnit
+
+@{
+    ViewData["Title"] = "የእንስሳት ዋጋ ሪፖርት አርትዕ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #333;
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .form-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        color: #333;
+        padding: 12px 20px;
+        font-weight: 600;
+    }
+
+        .card-header-custom i {
+            margin-right: 8px;
+        }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 0.9rem;
+    }
+
+        .form-label i {
+            margin-right: 5px;
+            color: #fa709a;
+        }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 10px 12px;
+        width: 100%;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #fa709a;
+            box-shadow: 0 0 0 0.2rem rgba(250, 112, 154, 0.25);
+            outline: none;
+        }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .radio-group {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 5px;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .radio-option:hover {
+            background: #e9ecef;
+        }
+
+        .radio-option input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .radio-option.selected {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #333;
+        }
+
+            .radio-option.selected i {
+                color: #333;
+            }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 25px;
+    }
+
+    .btn-custom {
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    .text-danger {
+        color: #dc3545;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    .info-hint {
+        background: #fff3e6;
+        border-left: 3px solid #fa709a;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -10px;
+    }
+
+    .col-md-6 {
+        flex: 0 0 50%;
+        padding: 10px;
+    }
+
+    .col-md-12 {
+        flex: 0 0 100%;
+        padding: 10px;
+    }
+
+    @@media (max-width: 768px) {
+        .form-container {
+            max-width: 100%;
+        }
+
+        .card-body-custom {
+            padding: 20px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-custom {
+            width: 100%;
+            text-align: center;
+        }
+
+        .radio-group {
+            flex-direction: column;
+        }
+
+        .col-md-6 {
+            flex: 0 0 100%;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="form-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-edit"></i> @ViewData["Title"]
+            </h1>
+            <p>እባክዎ የእንስሳት ዋጋ ሪፖርት መረጃ ያሻሽሉ</p>
+        </div>
+
+        <form asp-action="Edit" method="post" id="animalPriceForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="AnimalPricePerUnitId" />
+
+            <!-- Basic Information Card -->
+            <div class="form-card">
+                <div class="card-header-custom">
+                    <i class="fas fa-calendar-alt"></i> መሰረታዊ መረጃ
+                </div>
+                <div class="card-body-custom">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="StartDate" class="form-label">
+                                    <i class="fas fa-calendar-week"></i> @Html.DisplayNameFor(m => m.StartDate)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="StartDate" class="form-control" type="date" />
+                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="EndDate" class="form-label">
+                                    <i class="fas fa-calendar-check"></i> @Html.DisplayNameFor(m => m.EndDate)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="EndDate" class="form-control" type="date" />
+                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="WoredaId" class="form-label">
+                                    <i class="fas fa-map-marker-alt"></i> @Html.DisplayNameFor(m => m.WoredaId)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="WoredaId" class="form-control" asp-items="ViewBag.WoredaId">
+                                    <option value="">-- ወረዳ ይምረጡ --</option>
+                                </select>
+                                <span asp-validation-for="WoredaId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="AnimalTypeId" class="form-label">
+                                    <i class="fas fa-paw"></i> @Html.DisplayNameFor(m => m.AnimalTypeId)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="AnimalTypeId" class="form-control" asp-items="ViewBag.AnimalTypeId">
+                                    <option value="">-- የእንስሳት ዓይነት ይምረጡ --</option>
+                                </select>
+                                <span asp-validation-for="AnimalTypeId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="WeeklyPrice" class="form-label">
+                                    <i class="fas fa-money-bill-wave"></i> @Html.DisplayNameFor(m => m.WeeklyPrice)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input asp-for="WeeklyPrice" class="form-control" type="number" step="0.01" placeholder="0.00" />
+                                    <span class="input-group-text">ብር</span>
+                                </div>
+                                <span asp-validation-for="WeeklyPrice" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="WeeklyMarketStatus" class="form-label">
+                                    <i class="fas fa-chart-line"></i> @Html.DisplayNameFor(m => m.WeeklyMarketStatus)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" asp-for="WeeklyMarketStatus" value="1" />
+                                        <i class="fas fa-arrow-up text-success"></i> ጨምሯል
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" asp-for="WeeklyMarketStatus" value="2" />
+                                        <i class="fas fa-arrow-down text-danger"></i> ቀንሷል
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" asp-for="WeeklyMarketStatus" value="3" />
+                                        <i class="fas fa-equals"></i> ተመሳሳይ ነው
+                                    </label>
+                                </div>
+                                <span asp-validation-for="WeeklyMarketStatus" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label asp-for="Notes" class="form-label">
+                                    <i class="fas fa-sticky-note"></i> @Html.DisplayNameFor(m => m.Notes)
+                                </label>
+                                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="ተጨማሪ ማስታወሻ ካለ ያስገቡ..."></textarea>
+                                <span asp-validation-for="Notes" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Information Card -->
+            <div class="form-card">
+                <div class="card-header-custom">
+                    <i class="fas fa-user-edit"></i> የሪፖርት መረጃ
+                </div>
+                <div class="card-body-custom">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="ReportDate" class="form-label">
+                                    <i class="fas fa-calendar-day"></i> @Html.DisplayNameFor(m => m.ReportDate)
+                                </label>
+                                <input asp-for="ReportDate" class="form-control" type="datetime-local" />
+                                <span asp-validation-for="ReportDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="ReportedBy" class="form-label">
+                                    <i class="fas fa-user"></i> @Html.DisplayNameFor(m => m.ReportedBy)
+                                </label>
+                                <input asp-for="ReportedBy" class="form-control" placeholder="ሙሉ ስም ያስገቡ" />
+                                <span asp-validation-for="ReportedBy" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label asp-for="ApprovalStatus" class="form-label">
+                                    <i class="fas fa-check-circle"></i> @Html.DisplayNameFor(m => m.ApprovalStatus)
+                                </label>
+                                <select asp-for="ApprovalStatus" class="form-control" asp-items="Html.GetEnumSelectList<ApprovalStatus>()">
+                                    <option value="">-- ሁኔታ ይምረጡ --</option>
+                                </select>
+                                <span asp-validation-for="ApprovalStatus" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a asp-action="Index" class="btn-custom btn-back">
+                    <i class="fas fa-arrow-left"></i> ወደ ዝርዝር ተመለስ
+                </a>
+                <button type="submit" class="btn-custom btn-submit">
+                    <i class="fas fa-save"></i> አስቀምጥ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            // Set default report date if not set
+            if (!$('#ReportDate').val()) {
+                var now = new Date();
+                var formattedDate = now.getFullYear() + '-' +
+                                   String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                                   String(now.getDate()).padStart(2, '0') + 'T' +
+                                   String(now.getHours()).padStart(2, '0') + ':' +
+                                   String(now.getMinutes()).padStart(2, '0');
+                $('#ReportDate').val(formattedDate);
+            }
+
+            // Radio button styling
+            $('.radio-option').on('click', function() {
+                $(this).find('input').prop('checked', true);
+                $('.radio-option').removeClass('selected');
+                $(this).addClass('selected');
+            });
+
+            // Check if any radio is preselected
+            if ($('input[name="WeeklyMarketStatus"]:checked').length > 0) {
+                var checkedValue = $('input[name="WeeklyMarketStatus"]:checked').val();
+                $('.radio-option').removeClass('selected');
+                $('.radio-option input[value="' + checkedValue + '"]').closest('.radio-option').addClass('selected');
+            }
+
+            // Form validation before submit
+            $('#animalPriceForm').on('submit', function(e) {
+                var weeklyPrice = parseFloat($('#WeeklyPrice').val()) || 0;
+                var woredaId = $('#WoredaId').val();
+                var animalTypeId = $('#AnimalTypeId').val();
+                var weeklyMarketStatus = $('input[name="WeeklyMarketStatus"]:checked').val();
+
+                if (weeklyPrice <= 0) {
+                    e.preventDefault();
+                    alert('እባክዎ ትክክለኛ የሳምንቱ ዋጋ ያስገቡ');
+                    $('#WeeklyPrice').focus();
+                    return false;
+                }
+
+                if (!woredaId) {
+                    e.preventDefault();
+                    alert('እባክዎ ወረዳ ይምረጡ');
+                    $('#WoredaId').focus();
+                    return false;
+                }
+
+                if (!animalTypeId) {
+                    e.preventDefault();
+                    alert('እባክዎ የእንስሳት ዓይነት ይምረጡ');
+                    $('#AnimalTypeId').focus();
+                    return false;
+                }
+
+                if (!weeklyMarketStatus) {
+                    e.preventDefault();
+                    alert('እባክዎ የዋጋ ሁኔታ ይምረጡ');
+                    return false;
+                }
+
+                return true;
+            });
+        });
+    </script>
+}

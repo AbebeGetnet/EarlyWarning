@@ -1,0 +1,772 @@
+﻿@model EarlyWarning.Models.HumanDrinkWaterIssue.HumanDrinkWaterIssue
+
+@{
+    ViewData["Title"] = "የሰው መጠጥ ውሃ ችግር ሪፖርት";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 25px;
+        overflow: hidden;
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 15px 20px;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+        .section-header i {
+            margin-right: 10px;
+        }
+
+    .section-body {
+        padding: 25px;
+    }
+
+    .card-stats {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #1e3c72;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 10px 12px;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 0.2rem rgba(42, 82, 152, 0.25);
+        }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .alert-info-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+    }
+
+    hr {
+        margin: 20px 0;
+        border-top: 2px solid #e0e0e0;
+    }
+
+    .total-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+    }
+
+    .total-number {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .checkbox-group {
+        background: #e8f4f8;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 15px 0;
+    }
+
+    #AffectedKebeleIds {
+        height: 180px;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Title -->
+            <div class="alert alert-info-custom mb-4">
+                <h4 class="mb-2">
+                    <i class="fas fa-tint"></i> @ViewData["Title"]
+                </h4>
+                <p class="mb-0">እባክዎ የሰው መጠጥ ውሃ ችግርን በሚመለከት የሳምንታዊ ሪፖርት ይሙሉ</p>
+            </div>
+        </div>
+    </div>
+    <div class="alert alert-info mb-3">
+        <i class="fas fa-info-circle"></i>
+        <strong>ማስታወሻ:</strong> ሪፖርቱ ለሳምንቱ ከሰኞ እስከ እሑድ ነው።
+        <br />
+        ቀናት በራስ-ሰር ይሞላሉ።
+    </div>
+    <!-- Date Range Display Card -->
+    <div class="alert alert-primary mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+        <div class="row align-items-center">
+            <div class="col-md-5 text-center">
+                <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                <h5 class="mb-1">መነሻ ቀን (ሰኞ)</h5>
+                <h3 class="mb-0" id="displayStartDate">-</h3>
+                <small id="displayStartDateFormatted">-</small>
+            </div>
+            <div class="col-md-2 text-center">
+                <i class="fas fa-arrow-right fa-2x"></i>
+            </div>
+            <div class="col-md-5 text-center">
+                <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                <h5 class="mb-1">መጨረሻ ቀን (እሑድ)</h5>
+                <h3 class="mb-0" id="displayEndDate">-</h3>
+                <small id="displayEndDateFormatted">-</small>
+            </div>
+        </div>
+        <div class="text-center mt-3" style="border-top: 1px solid rgba(255,255,255,0.3); padding-top: 10px;">
+            <i class="fas fa-chart-line"></i>
+            <strong>ሪፖርት ለሳምንቱ:</strong>
+            <span id="displayDateRange">-</span>
+        </div>
+    </div>
+    <!-- Date Range Display Card -->
+    
+
+    <form asp-action="Create" method="post" id="waterIssueForm">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        
+        <!-- Section 1: Basic Information -->
+        <div class="form-section">
+            <div class="section-header">
+                <i class="fas fa-calendar-alt"></i> መሰረታዊ መረጃ
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="StartDate" class="form-label fw-bold">
+                                <i class="fas fa-calendar-week"></i> @Html.DisplayNameFor(m => m.StartDate)
+                            </label>
+                            <input asp-for="StartDate" class="form-control" type="date" />
+                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="EndDate" class="form-label fw-bold">
+                                <i class="fas fa-calendar-check"></i> @Html.DisplayNameFor(m => m.EndDate)
+                            </label>
+                            <input asp-for="EndDate" class="form-control" type="date" />
+                            <span asp-validation-for="EndDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    @* <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="WoredaId" class="form-label fw-bold">
+                                <i class="fas fa-map-marker-alt"></i> @Html.DisplayNameFor(m => m.WoredaId)
+                            </label>
+                            <select asp-for="WoredaId" class="form-select" asp-items="ViewBag.WoredaId">
+                                <option value="">-- ወረዳ ይምረጡ --</option>
+                            </select>
+                            <span asp-validation-for="WoredaId" class="text-danger"></span>
+                        </div>
+                    </div> *@
+                    <div class="col-md-6">
+                        <div class="form-group mb-3 checkbox-group">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" asp-for="HasWaterProblem" id="hasWaterProblemSwitch" style="width: 50px; height: 25px;">
+                                <label class="form-check-label fw-bold" asp-for="HasWaterProblem" id="waterProblemLabel">
+                                    <i class="fas fa-exclamation-triangle"></i> የሰው መጠጥ ውሃ ችግር አለ?
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="affectedKebelesNumberRow" style="display:none;">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="NumberOfAffectedKebeles" class="form-label fw-bold">
+                                <i class="fas fa-map-marked-alt"></i> የተጎዱ ቀበሌዎች ብዛት
+                            </label>
+                            <input asp-for="NumberOfAffectedKebeles"
+                                   class="form-control"
+                                   type="number"
+                                   min="0"
+                                   id="NumberOfAffectedKebeles" />
+                            <span asp-validation-for="NumberOfAffectedKebeles" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="kebeleSelectionRow" style="display:none;">
+                    <div class="col-md-12">
+                        <div class="form-group mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-map"></i> የተጎዱ ቀበሌዎች ይምረጡ
+                            </label>
+
+                            <select asp-for="AffectedKebeleIds"
+                                    asp-items="ViewBag.Kebeles"
+                                    class="form-select"
+                                    multiple
+                                    id="AffectedKebeleIds">
+                            </select>
+
+                            <small class="text-muted">
+                                እባክዎ ከላይ ያስገቡትን የቀበሌ ቁጥር ጋር እኩል ይምረጡ
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Affected Population by Category -->
+        <div class="form-section" id="populationSection" style="display: none;">
+            <div class="section-header">
+                <i class="fas fa-users"></i> በምድብ የተጎዳ ማህበረሰብ
+            </div>
+            <div class="section-body">
+                <!-- Household Heads -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-user-friends"></i> አባወራ / እማወራ
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="MaleHouseholdHeads" class="form-label">
+                                <i class="fas fa-male text-primary"></i> @Html.DisplayNameFor(m => m.MaleHouseholdHeads)
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-venus-mars"></i></span>
+                                <input asp-for="MaleHouseholdHeads" class="form-control" type="number" min="0" value="0" />
+                            </div>
+                            <span asp-validation-for="MaleHouseholdHeads" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="FemaleHouseholdHeads" class="form-label">
+                                <i class="fas fa-female text-danger"></i> @Html.DisplayNameFor(m => m.FemaleHouseholdHeads)
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas-venus"></i></span>
+                                <input asp-for="FemaleHouseholdHeads" class="form-control" type="number" min="0" value="0" />
+                            </div>
+                            <span asp-validation-for="FemaleHouseholdHeads" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Family Members -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-home"></i> ቤተሰብ
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="MaleFamilyMembers" class="form-label">
+                                <i class="fas fa-male text-primary"></i> @Html.DisplayNameFor(m => m.MaleFamilyMembers)
+                            </label>
+                            <input asp-for="MaleFamilyMembers" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="MaleFamilyMembers" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="FemaleFamilyMembers" class="form-label">
+                                <i class="fas fa-female text-danger"></i> @Html.DisplayNameFor(m => m.FemaleFamilyMembers)
+                            </label>
+                            <input asp-for="FemaleFamilyMembers" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="FemaleFamilyMembers" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Children -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-child"></i> ህጻናት
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="MaleChildren" class="form-label">
+                                <i class="fas fa-male text-primary"></i> @Html.DisplayNameFor(m => m.MaleChildren)
+                            </label>
+                            <input asp-for="MaleChildren" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="MaleChildren" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="FemaleChildren" class="form-label">
+                                <i class="fas fa-female text-danger"></i> @Html.DisplayNameFor(m => m.FemaleChildren)
+                            </label>
+                            <input asp-for="FemaleChildren" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="FemaleChildren" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Youth -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-user-graduate"></i> ወጣት
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="MaleYouth" class="form-label">
+                                <i class="fas fa-male text-primary"></i> @Html.DisplayNameFor(m => m.MaleYouth)
+                            </label>
+                            <input asp-for="MaleYouth" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="MaleYouth" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="FemaleYouth" class="form-label">
+                                <i class="fas fa-female text-danger"></i> @Html.DisplayNameFor(m => m.FemaleYouth)
+                            </label>
+                            <input asp-for="FemaleYouth" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="FemaleYouth" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Elderly -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-user-astronaut"></i> አረጋውያን
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="MaleElderly" class="form-label">
+                                <i class="fas fa-male text-primary"></i> @Html.DisplayNameFor(m => m.MaleElderly)
+                            </label>
+                            <input asp-for="MaleElderly" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="MaleElderly" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="FemaleElderly" class="form-label">
+                                <i class="fas fa-female text-danger"></i> @Html.DisplayNameFor(m => m.FemaleElderly)
+                            </label>
+                            <input asp-for="FemaleElderly" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="FemaleElderly" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Disabled -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-wheelchair"></i> አካል ጉዳተኛ
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="MaleDisabled" class="form-label">
+                                <i class="fas fa-male text-primary"></i> @Html.DisplayNameFor(m => m.MaleDisabled)
+                            </label>
+                            <input asp-for="MaleDisabled" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="MaleDisabled" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="FemaleDisabled" class="form-label">
+                                <i class="fas fa-female text-danger"></i> @Html.DisplayNameFor(m => m.FemaleDisabled)
+                            </label>
+                            <input asp-for="FemaleDisabled" class="form-control" type="number" min="0" value="0" />
+                            <span asp-validation-for="FemaleDisabled" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Report Information -->
+        <div class="form-section" id="reportSection" style="display: none;">
+            <div class="section-header">
+                <i class="fas fa-file-alt"></i> ተጨማሪ ማስታወሻ
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="AdditionalNotes" class="form-label fw-bold">
+                                <i class="fas fa-user-edit"></i> @Html.DisplayNameFor(m => m.AdditionalNotes)
+                            </label>
+                            <textarea asp-for="AdditionalNotes"
+          class="form-control"
+          rows="4"
+          placeholder="ተጨማሪ ማስታወሻ ያስገቡ"></textarea>
+                            <span asp-validation-for="AdditionalNotes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Summary Card -->
+        <div class="card-stats" id="summaryCard" style="display: none;">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <div class="stat-number" id="totalMales">0</div>
+                    <div class="stat-label">አጠቃላይ ወንዶች</div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="stat-number" id="totalFemales">0</div>
+                    <div class="stat-label">አጠቃላይ ሴቶች</div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="stat-number" id="totalPopulation">0</div>
+                    <div class="stat-label">አጠቃላይ ተጎጆች</div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="stat-number" id="affectedKebeles">0</div>
+                    <div class="stat-label">የተጎዱ ቀበሌዎች</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left"></i> ወደ ዝርዝር ተመለስ
+            </a>
+            <button type="submit" class="btn btn-submit btn-lg" id="submitBtn" style="display: none;">
+                <i class="fas fa-save"></i> አስቀምጥ
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Function to get Amharic day name
+        function getAmharicDayName(dayIndex) {
+            var days = ['እሑድ', 'ሰኞ', 'ማክሰኞ', 'ረቡዕ', 'ሐሙስ', 'አርብ', 'ቅዳሜ'];
+            return days[dayIndex];
+        }
+
+        // Function to get Monday of current week
+        function getCurrentMonday() {
+            var today = new Date();
+            var day = today.getDay();
+            var diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            var monday = new Date(today);
+            monday.setDate(diff);
+            return monday;
+        }
+
+        // Function to get Sunday of current week
+        function getCurrentSunday(monday) {
+            var sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            return sunday;
+        }
+
+        // Format date as YYYY-MM-DD
+        function formatDate(date) {
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        }
+
+        // Format date for display as DD/MM/YYYY
+        function formatDisplayDate(date) {
+            var day = String(date.getDate()).padStart(2, '0');
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var year = date.getFullYear();
+            return day + '/' + month + '/' + year;
+        }
+
+        // Function to update date display
+        function updateDateDisplay() {
+            var startDateValue = $('#StartDate').val();
+            var endDateValue = $('#EndDate').val();
+
+            if (startDateValue) {
+                var start = new Date(startDateValue);
+                var formattedStart = formatDisplayDate(start);
+                var startDayName = getAmharicDayName(start.getDay());
+
+                $('#displayStartDate').text(formattedStart);
+                $('#displayStartDateFormatted').text(startDayName);
+            }
+
+            if (endDateValue) {
+                var end = new Date(endDateValue);
+                var formattedEnd = formatDisplayDate(end);
+                var endDayName = getAmharicDayName(end.getDay());
+
+                $('#displayEndDate').text(formattedEnd);
+                $('#displayEndDateFormatted').text(endDayName);
+
+                if (startDateValue) {
+                    var start = new Date(startDateValue);
+                    var formattedStart = formatDisplayDate(start);
+                    $('#displayDateRange').text(formattedStart + ' - ' + formattedEnd);
+                }
+            }
+        }
+
+        $(document).ready(function() {
+            // Set default dates if not already set
+            var startDateInput = $('#StartDate');
+            var endDateInput = $('#EndDate');
+
+            if (!startDateInput.val()) {
+                var monday = getCurrentMonday();
+                startDateInput.val(formatDate(monday));
+            }
+
+            if (!endDateInput.val()) {
+                var monday = getCurrentMonday();
+                var sunday = getCurrentSunday(monday);
+                endDateInput.val(formatDate(sunday));
+            }
+
+            // Update the display card
+            updateDateDisplay();
+
+            // Auto-calculate end date when start date changes
+            startDateInput.on('change', function() {
+                if ($(this).val()) {
+                    var startDate = new Date($(this).val());
+                    var sunday = new Date(startDate);
+                    sunday.setDate(startDate.getDate() + 6);
+                    endDateInput.val(formatDate(sunday));
+                    updateDateDisplay();
+                }
+            });
+
+            // Update display when end date changes (if manually edited)
+            endDateInput.on('change', function() {
+                updateDateDisplay();
+            });
+
+            // Toggle sections based on HasWaterProblem
+            function toggleSections() {
+                var hasProblem = $('#hasWaterProblemSwitch').is(':checked');
+
+                if (hasProblem) {
+                    $('#affectedKebelesNumberRow').slideDown(300);
+                    $('#populationSection').slideDown(300);
+                    $('#reportSection').slideDown(300);
+                    $('#summaryCard').slideDown(300);
+                    $('#submitBtn').fadeIn(300);
+                    $('#waterProblemLabel').html('<i class="fas fa-exclamation-triangle"></i> የሰው መጠጥ ውሃ ችግር አለ? (አዎ)');
+                    $('#waterProblemLabel').css('color', '#dc3545');
+                } else {
+                    $('#affectedKebelesNumberRow').slideUp(300);
+                    $('#kebeleSelectionRow').slideUp(300);
+                    $('#populationSection').slideUp(300);
+                    $('#reportSection').slideDown(300);
+                    $('#summaryCard').slideUp(300);
+                    $('#submitBtn').fadeIn(300);
+                    $('#waterProblemLabel').html('<i class="fas fa-check-circle"></i> የሰው መጠጥ ውሃ ችግር አለ? (አይ)');
+                    $('#waterProblemLabel').css('color', '#28a745');
+
+                    // Reset all numbers to 0 when no problem
+                    $('input[type="number"]').not('#NumberOfAffectedKebeles').val(0);
+                    $('#NumberOfAffectedKebeles').val(0);
+                }
+            }
+
+            // Calculate totals
+            function calculateTotals() {
+                var maleHouseholdHeads = parseInt($('#MaleHouseholdHeads').val()) || 0;
+                var maleFamilyMembers = parseInt($('#MaleFamilyMembers').val()) || 0;
+                var maleChildren = parseInt($('#MaleChildren').val()) || 0;
+                var maleYouth = parseInt($('#MaleYouth').val()) || 0;
+                var maleElderly = parseInt($('#MaleElderly').val()) || 0;
+                var maleDisabled = parseInt($('#MaleDisabled').val()) || 0;
+
+                var femaleHouseholdHeads = parseInt($('#FemaleHouseholdHeads').val()) || 0;
+                var femaleFamilyMembers = parseInt($('#FemaleFamilyMembers').val()) || 0;
+                var femaleChildren = parseInt($('#FemaleChildren').val()) || 0;
+                var femaleYouth = parseInt($('#FemaleYouth').val()) || 0;
+                var femaleElderly = parseInt($('#FemaleElderly').val()) || 0;
+                var femaleDisabled = parseInt($('#FemaleDisabled').val()) || 0;
+
+                var totalMales = maleHouseholdHeads + maleFamilyMembers + maleChildren + maleYouth + maleElderly + maleDisabled;
+                var totalFemales = femaleHouseholdHeads + femaleFamilyMembers + femaleChildren + femaleYouth + femaleElderly + femaleDisabled;
+                var totalPopulation = totalMales + totalFemales;
+                var affectedKebeles = parseInt($('#NumberOfAffectedKebeles').val()) || 0;
+
+                $('#totalMales').text(totalMales.toLocaleString());
+                $('#totalFemales').text(totalFemales.toLocaleString());
+                $('#totalPopulation').text(totalPopulation.toLocaleString());
+                $('#affectedKebeles').text(affectedKebeles.toLocaleString());
+            }
+
+            // Auto-fill number of affected kebeles if needed
+            $('#NumberOfAffectedKebeles').on('input', function() {
+                calculateTotals();
+            });
+
+            // Trigger calculation on any number input change
+            $('input[type="number"]').on('input', function() {
+                calculateTotals();
+            });
+
+            // Initial setup
+            $('#hasWaterProblemSwitch').on('change', function() {
+                toggleSections();
+                calculateTotals();
+            });
+
+            // Set default report date
+            if (!$('#ReportDate').val()) {
+                var now = new Date();
+                var formattedDate = now.getFullYear() + '-' +
+                                   String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                                   String(now.getDate()).padStart(2, '0') + 'T' +
+                                   String(now.getHours()).padStart(2, '0') + ':' +
+                                   String(now.getMinutes()).padStart(2, '0');
+                $('#ReportDate').val(formattedDate);
+            }
+
+            // Initial toggle (default: no problem)
+            toggleSections();
+            calculateTotals();
+        });
+
+        // Form validation before submit
+        $('#waterIssueForm').on('submit', function(e) {
+            var hasProblem = $('#hasWaterProblemSwitch').is(':checked');
+            var kebeleCount = parseInt($('#NumberOfAffectedKebeles').val()) || 0;
+            var selectedKebeles = $('#AffectedKebeleIds option:selected').length;
+
+            if (hasProblem) {
+                var totalPopulation = parseInt($('#totalPopulation').text().replace(/,/g, '')) || 0;
+                var affectedKebeles = parseInt($('#NumberOfAffectedKebeles').val()) || 0;
+
+                if (totalPopulation === 0) {
+                    e.preventDefault();
+                    alert('እባክዎ ቢያንስ አንድ የተጎዳ ሰው ያስገቡ');
+                    return false;
+                }
+
+                if (affectedKebeles === 0) {
+                    e.preventDefault();
+                    alert('እባክዎ የተጎዱ ቀበሌዎችን ቁጥር ያስገቡ');
+                    return false;
+                }
+            }
+            if (hasProblem && kebeleCount > 0 && selectedKebeles !== kebeleCount) {
+                e.preventDefault();
+                alert('የተመረጡ ቀበሌዎች ቁጥር ከተጎዱ ቀበሌዎች ቁጥር ጋር መመሳሰል አለበት');
+                return false;
+            }
+
+            return true;
+        });
+
+        $('#NumberOfAffectedKebeles').on('input', function () {
+            var kebeleCount = parseInt($(this).val()) || 0;
+
+            if (kebeleCount > 0) {
+                $('#kebeleSelectionRow').slideDown();
+            } else {
+                $('#kebeleSelectionRow').slideUp();
+                $('#AffectedKebeleIds').val([]);
+            }
+        });
+    </script>
+}
+
+<style>
+    /* Additional styles for better appearance */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        opacity: 0.5;
+    }
+
+    .form-section {
+        transition: all 0.3s ease;
+    }
+
+        .form-section:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+    .btn-submit {
+        transition: all 0.3s ease;
+    }
+
+    .form-check-input:checked {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .form-check-input:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+</style>

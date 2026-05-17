@@ -1,5 +1,6 @@
 using EarlyWarning.Data;
 using EarlyWarning.Models;
+using EarlyWarning.Service;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,6 +38,16 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllersWithViews();
 
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Session expires after 30 minutes of inactivity
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IReportFlowService, ReportFlowService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -54,7 +65,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthentication();   // <-- Added
 app.UseAuthorization();
 

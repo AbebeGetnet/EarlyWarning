@@ -1,5 +1,14 @@
 ﻿using EarlyWarning.Enums;
 using EarlyWarning.Models;
+using EarlyWarning.Models.Aid;
+using EarlyWarning.Models.AnimalPrice;
+using EarlyWarning.Models.AnimalSupply;
+using EarlyWarning.Models.EpidemicDisease;
+using EarlyWarning.Models.HumanDrinkWaterIssue;
+using EarlyWarning.Models.Migration;
+using EarlyWarning.Models.PriceofGrain;
+using EarlyWarning.Models.SupplyofGrain;
+using EarlyWarning.Models.WeeklyAccidents;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.CodeAnalysis;
@@ -18,6 +27,44 @@ namespace EarlyWarning.Data
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }        
         public DbSet<Locations> Locations {  get; set; } 
         public DbSet<PasswordResetKey> PasswordResetKeys {  get; set; }
+        public DbSet<AssistanceRecipient> AssistanceRecipients { get; set; }        
+        public DbSet<OtherProblem> OtherProblems {  get; set; } 
+        public DbSet<SupplyType> SupplyTypes {  get; set; }
+        public DbSet<WeeklyProvided> WeeklyProvideds { get; set; }        
+        public DbSet<AnimalPrice> AnimalPrice {  get; set; } 
+        public DbSet<AnimalPriceDetail> AnimalPriceDetails {  get; set; }
+        public DbSet<AnimalPriceIncreaseDecrease> AnimalPriceIncreaseDecreases { get; set; }        
+        public DbSet<AnimalPricePerUnit> AnimalPricePerUnits {  get; set; } 
+        public DbSet<AnimalType> AnimalTypes {  get; set; }
+        public DbSet<AnimalSupply> AnimalSupplys { get; set; }        
+        public DbSet<AnimalSupplyDetail> AnimalSupplyDetails {  get; set; } 
+        public DbSet<AnimalIncreaseDecrease> AnimalIncreaseDecreases {  get; set; }
+        public DbSet<EpidemicDisease> EpidemicDiseases { get; set; }        
+        public DbSet<EpidemicDiseaseKebele> EpidemicDiseaseKebeles {  get; set; } 
+        public DbSet<EpidemicDiseaseType> EpidemicDiseaseTypes {  get; set; }
+        public DbSet<EpidemicDiseaseSelection> EpidemicDiseaseSelections {  get; set; }
+
+        public DbSet<HumanDrinkWaterIssue> HumanDrinkWaterIssues { get; set; }        
+        public DbSet<HumanDrinkWaterKebele> HumanDrinkWaterKebeles {  get; set; } 
+        public DbSet<Death> Deaths {  get; set; }
+        public DbSet<DeathDetail> DeathDetails {  get; set; }
+        public DbSet<Migration> Migrations { get; set; }        
+        public DbSet<MigrationDetail> MigrationDetails {  get; set; } 
+        public DbSet<GrainPrice> GrainPrices {  get; set; }
+        public DbSet<GrainPriceDetail> GrainPriceDetails {  get; set; }
+        public DbSet<GrainPriceIncreaseDecrease> GrainPriceIncreaseDecreases {  get; set; }
+        public DbSet<GrainPricePerQuintal> GrainPricePerQuintals {  get; set; }
+        public DbSet<GrainType> GrainTypes {  get; set; }
+        public DbSet<GrainIncreaseDecrease> GrainIncreaseDecreases {  get; set; }
+        public DbSet<GrainSupply> GrainSupplys {  get; set; }
+        public DbSet<GrainSupplyDetail> GrainSupplyDetails {  get; set; }
+        public DbSet<AccidentDetail> AccidentDetails {  get; set; }
+        public DbSet<AccidentType> AccidentTypes {  get; set; }
+        public DbSet<WeeklyAccidents> WeeklyAccidents {  get; set; }
+        public DbSet<WeeklyProvidedDetail> WeeklyProvidedDetails {  get; set; }
+        
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -69,6 +116,16 @@ namespace EarlyWarning.Data
                     ParentId = Guid.Parse("22222222-2222-2222-2222-222222222222")
                 }
             );
+
+            modelBuilder.Entity<EpidemicDiseaseSelection>()
+        .HasOne(e => e.EpidemicDisease)
+        .WithMany(e => e.EpidemicDiseaseSelections)
+        .HasForeignKey(e => e.EpidemicDiseaseId);
+
+            modelBuilder.Entity<EpidemicDiseaseSelection>()
+                .HasOne(e => e.EpidemicDiseaseType)
+                .WithMany()
+                .HasForeignKey(e => e.EpidemicDiseaseTypeId);
         }
     }
 

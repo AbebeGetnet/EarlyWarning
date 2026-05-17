@@ -1,0 +1,814 @@
+﻿@using EarlyWarning.Enums
+@model EarlyWarning.Models.Migration.Migration
+
+@{
+    ViewData["Title"] = "አዲስ የስደት ሪፖርት - ደረጃ በደረጃ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    var locations = ViewBag.Locations as IEnumerable<EarlyWarning.Models.Locations> ?? new List<EarlyWarning.Models.Locations>();
+    var woredas = ViewBag.Woredas as IEnumerable<EarlyWarning.Models.Locations> ?? new List<EarlyWarning.Models.Locations>();
+}
+
+<style>
+    /* Wizard Styles */
+    .wizard-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+
+    .wizard-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 20px 30px;
+    }
+
+        .wizard-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .wizard-header p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+        }
+
+    .progress-steps {
+        background: #f8f9fa;
+        padding: 15px 30px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e0e0e0;
+            z-index: 1;
+        }
+
+    .step {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        flex: 1;
+    }
+
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        background: white;
+        border: 3px solid #e0e0e0;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #999;
+        transition: all 0.3s ease;
+    }
+
+    .step.active .step-circle {
+        border-color: #1e3c72;
+        background: #1e3c72;
+        color: white;
+    }
+
+    .step.completed .step-circle {
+        border-color: #28a745;
+        background: #28a745;
+        color: white;
+    }
+
+    .step-label {
+        display: block;
+        font-size: 0.7rem;
+        margin-top: 8px;
+        color: #666;
+    }
+
+    .step.active .step-label {
+        color: #1e3c72;
+        font-weight: bold;
+    }
+
+    .wizard-content {
+        padding: 30px;
+        min-height: 500px;
+    }
+
+    .step-content {
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+
+        .step-content.active-step {
+            display: block;
+        }
+
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    }
+
+    .wizard-buttons {
+        padding: 20px 30px;
+        background: #f8f9fa;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .btn-wizard {
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-next {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+    }
+
+    .btn-prev {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-submit-wizard {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .form-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+        .form-section h4 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1e3c72;
+        }
+
+    .demographics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .demographics-item {
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+
+        .demographics-item label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: block;
+            color: #495057;
+        }
+
+        .demographics-item input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+    .migration-detail-card {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #1e3c72;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .btn-add-detail {
+        background: #1e3c72;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    @@media (max-width: 768px) {
+        .step-label {
+            display: none;
+        }
+
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            font-size: 12px;
+        }
+
+        .wizard-content {
+            padding: 15px;
+        }
+
+        .demographics-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="wizard-container">
+        <div class="wizard-header">
+            <h2><i class="fas fa-people-arrows"></i> አዲስ የስደት ሪፖርት ምዝገባ</h2>
+            <p>እባክዎ መረጃውን በደረጃ በደረጃ ይሙሉ</p>
+        </div>
+
+        <div class="progress-steps">
+            <div class="step-indicator">
+                <div class="step" data-step="1">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">መሰረታዊ መረጃ</span>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">ወረዳ</span>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">ስደት ሁኔታ</span>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-circle">4</div>
+                    <span class="step-label">አባወራ</span>
+                </div>
+                <div class="step" data-step="5">
+                    <div class="step-circle">5</div>
+                    <span class="step-label">ቤተሰብ</span>
+                </div>
+                <div class="step" data-step="6">
+                    <div class="step-circle">6</div>
+                    <span class="step-label">ህጻናት</span>
+                </div>
+                <div class="step" data-step="7">
+                    <div class="step-circle">7</div>
+                    <span class="step-label">ወጣቶች</span>
+                </div>
+                <div class="step" data-step="8">
+                    <div class="step-circle">8</div>
+                    <span class="step-label">አረጋውያን</span>
+                </div>
+                <div class="step" data-step="9">
+                    <div class="step-circle">9</div>
+                    <span class="step-label">አካል ጉዳተኞች</span>
+                </div>
+                <div class="step" data-step="10">
+                    <div class="step-circle">10</div>
+                    <span class="step-label">እናቶች</span>
+                </div>
+                <div class="step" data-step="11">
+                    <div class="step-circle">11</div>
+                    <span class="step-label">ማስታወሻ</span>
+                </div>
+                <div class="step" data-step="12">
+                    <div class="step-circle">12</div>
+                    <span class="step-label">ሪፖርት መረጃ</span>
+                </div>
+                <div class="step" data-step="13">
+                    <div class="step-circle">13</div>
+                    <span class="step-label">ማጠቃለያ</span>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="Create" method="post" id="wizardForm">
+            @Html.AntiForgeryToken()
+
+            <div class="wizard-content">
+                <!-- Step 1: Basic Information -->
+                <div class="step-content" data-step="1">
+                    <div class="form-section">
+                        <h4><i class="fas fa-calendar-alt"></i> መሰረታዊ መረጃ</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="StartDate">የሪፖርት መነሻ ቀን <span class="text-danger">*</span></label>
+                                    <input asp-for="StartDate" class="form-control" type="date" required />
+                                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="EndDate">የሪፖርት መጨረሻ ቀን <span class="text-danger">*</span></label>
+                                    <input asp-for="EndDate" class="form-control" type="date" required />
+                                    <span asp-validation-for="EndDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Woreda Selection -->
+                <div class="step-content" data-step="2">
+                    <div class="form-section">
+                        <h4><i class="fas fa-map-marker-alt"></i> ወረዳ መረጃ</h4>
+                        <div class="form-group">
+                            <label asp-for="WoredaId">ወረዳ <span class="text-danger">*</span></label>
+                            <select asp-for="WoredaId" class="form-control" asp-items="ViewBag.WoredaId" required>
+                                <option value="">-- ወረዳ ይምረጡ --</option>
+                            </select>
+                            <span asp-validation-for="WoredaId" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Migration Status -->
+                <div class="step-content" data-step="3">
+                    <div class="form-section">
+                        <h4><i class="fas fa-people-arrows"></i> የስደት ሁኔታ</h4>
+                        <div class="form-group">
+                            <label class="d-block">ስደት አለ? <span class="text-danger">*</span></label>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" asp-for="HasMigration" value="true" class="form-check-input" id="hasMigrationYes" />
+                                <label class="form-check-label" for="hasMigrationYes">አዎ፣ ስደት አለ</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" asp-for="HasMigration" value="false" class="form-check-input" id="hasMigrationNo" />
+                                <label class="form-check-label" for="hasMigrationNo">አይ፣ ስደት የለም</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Steps 4-10: Demographics (will be shown only if HasMigration is true) -->
+                <div id="demographicsSteps">
+                    <!-- Step 4: Household Heads -->
+                    <div class="step-content" data-step="4">
+                        <div class="form-section">
+                            <h4><i class="fas fa-user-friends"></i> አባወራ / እማወራ</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ወንድ አባወራ</label>
+                                        <input type="number" id="MaleHouseholdHeads" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ሴት እማወራ</label>
+                                        <input type="number" id="FemaleHouseholdHeads" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Family Members -->
+                    <div class="step-content" data-step="5">
+                        <div class="form-section">
+                            <h4><i class="fas fa-home"></i> ቤተሰብ</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ወንድ ቤተሰብ</label>
+                                        <input type="number" id="MaleFamilyMembers" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ሴት ቤተሰብ</label>
+                                        <input type="number" id="FemaleFamilyMembers" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 6: Children -->
+                    <div class="step-content" data-step="6">
+                        <div class="form-section">
+                            <h4><i class="fas fa-child"></i> ህጻናት</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ወንድ ህጻናት</label>
+                                        <input type="number" id="MaleChildren" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ሴት ህጻናት</label>
+                                        <input type="number" id="FemaleChildren" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 7: Youth -->
+                    <div class="step-content" data-step="7">
+                        <div class="form-section">
+                            <h4><i class="fas fa-user-graduate"></i> ወጣቶች</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ወንድ ወጣቶች</label>
+                                        <input type="number" id="MaleYouth" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ሴት ወጣቶች</label>
+                                        <input type="number" id="FemaleYouth" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 8: Elderly -->
+                    <div class="step-content" data-step="8">
+                        <div class="form-section">
+                            <h4><i class="fas fa-user-astronaut"></i> አረጋውያን</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ወንድ አረጋውያን</label>
+                                        <input type="number" id="MaleElderly" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ሴት አረጋውያን</label>
+                                        <input type="number" id="FemaleElderly" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 9: Disabled -->
+                    <div class="step-content" data-step="9">
+                        <div class="form-section">
+                            <h4><i class="fas fa-wheelchair"></i> አካል ጉዳተኞች</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ወንድ አካል ጉዳተኞች</label>
+                                        <input type="number" id="MaleDisabled" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ሴት አካል ጉዳተኞች</label>
+                                        <input type="number" id="FemaleDisabled" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 10: Mothers -->
+                    <div class="step-content" data-step="10">
+                        <div class="form-section">
+                            <h4><i class="fas fa-female"></i> እናቶች</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>አጥቢ እናቶች</label>
+                                        <input type="number" id="LactatingMothers" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>ነፍሰጡር እናቶች</label>
+                                        <input type="number" id="PregnantWomen" class="form-control" min="0" value="0" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 11: Notes -->
+                <div class="step-content" data-step="11">
+                    <div class="form-section">
+                        <h4><i class="fas fa-sticky-note"></i> ተጨማሪ ማስታወሻ</h4>
+                        <div class="form-group">
+                            <label asp-for="GeneralNotes">አጠቃላይ ማስታወሻ</label>
+                            <textarea asp-for="GeneralNotes" class="form-control" rows="5" placeholder="ማስታወሻ ካለ ያስገቡ..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 12: Report Information -->
+                <div class="step-content" data-step="12">
+                    <div class="form-section">
+                        <h4><i class="fas fa-file-alt"></i> የሪፖርት መረጃ</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="ReportDate">የሪፖርት ቀን</label>
+                                    <input asp-for="ReportDate" class="form-control" type="datetime-local" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="ReportedBy">ሪፖርት ያዘጋጀ ሰው</label>
+                                    <input asp-for="ReportedBy" class="form-control" placeholder="ሙሉ ስም" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ApprovalStatus">የሪፖርት ሁኔታ</label>
+                            <select asp-for="ApprovalStatus" class="form-control" asp-items="Html.GetEnumSelectList<ApprovalStatus>()">
+                                <option value="">-- ሁኔታ ይምረጡ --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 13: Summary -->
+                <div class="step-content" data-step="13">
+                    <div class="form-section">
+                        <h4><i class="fas fa-chart-bar"></i> የገባዎት መረጃ ማጠቃለያ</h4>
+                        <div id="summaryContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wizard-buttons">
+                <button type="button" class="btn-wizard btn-prev" id="prevBtn" style="display: none;">
+                    <i class="fas fa-arrow-left"></i> ቀዳሚ
+                </button>
+                <button type="button" class="btn-wizard btn-next" id="nextBtn">
+                    ቀጣይ <i class="fas fa-arrow-right"></i>
+                </button>
+                <button type="submit" class="btn-wizard btn-submit-wizard" id="submitBtn" style="display: none;">
+                    <i class="fas fa-save"></i> መዝግብ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            let currentStep = 1;
+            const totalSteps = 13;
+            let migrationDetails = [];
+
+            // Initialize wizard
+            function updateWizard() {
+                // Update step indicators
+                $('.step').each(function(index) {
+                    const stepNum = parseInt($(this).data('step'));
+                    if (stepNum < currentStep) {
+                        $(this).addClass('completed').removeClass('active');
+                    } else if (stepNum === currentStep) {
+                        $(this).addClass('active').removeClass('completed');
+                    } else {
+                        $(this).removeClass('active completed');
+                    }
+                });
+
+                // Show/hide step content
+                $('.step-content').removeClass('active-step');
+                $(`.step-content[data-step="${currentStep}"]`).addClass('active-step');
+
+                // Show/hide navigation buttons
+                $('#prevBtn').toggle(currentStep > 1);
+                $('#nextBtn').toggle(currentStep < totalSteps);
+                $('#submitBtn').toggle(currentStep === totalSteps);
+
+                // Update demographics steps visibility based on HasMigration
+                const hasMigration = $('input[name="HasMigration"]:checked').val() === 'true';
+                if (!hasMigration && currentStep >= 4 && currentStep <= 10) {
+                    // Skip demographics steps if no migration
+                    if (currentStep <= 10) {
+                        currentStep = 11;
+                        updateWizard();
+                    }
+                }
+            }
+
+            // Validate current step
+            function validateStep() {
+                switch(currentStep) {
+                    case 1:
+                        const startDate = $('#StartDate').val();
+                        const endDate = $('#EndDate').val();
+                        if (!startDate) {
+                            alert('እባክዎ የሪፖርት መነሻ ቀን ይምረጡ');
+                            return false;
+                        }
+                        if (!endDate) {
+                            alert('እባክዎ የሪፖርት መጨረሻ ቀን ይምረጡ');
+                            return false;
+                        }
+                        if (new Date(startDate) > new Date(endDate)) {
+                            alert('መነሻ ቀን ከመጨረሻ ቀን በኋላ መሆን አይችልም');
+                            return false;
+                        }
+                        break;
+                    case 2:
+                        if (!$('#WoredaId').val()) {
+                            alert('እባክዎ ወረዳ ይምረጡ');
+                            return false;
+                        }
+                        break;
+                    case 3:
+                        if (!$('input[name="HasMigration"]:checked').val()) {
+                            alert('እባክዎ ስደት መኖሩን ይምረጡ');
+                            return false;
+                        }
+                        break;
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 9:
+                    case 10:
+                        // Demographics steps - validation happens at summary
+                        break;
+                    case 12:
+                        if (!$('#ReportedBy').val()) {
+                            if (confirm('ሪፖርት አዘጋጅ ስም አላስገቡም። መቀጠል ይፈልጋሉ?')) {
+                                return true;
+                            }
+                            return false;
+                        }
+                        break;
+                }
+                return true;
+            }
+
+            // Update summary
+            function updateSummary() {
+                const hasMigration = $('input[name="HasMigration"]:checked').val() === 'true';
+                let totalMigrants = 0;
+
+                if (hasMigration) {
+                    const maleHouseholdHeads = parseInt($('#MaleHouseholdHeads').val()) || 0;
+                    const femaleHouseholdHeads = parseInt($('#FemaleHouseholdHeads').val()) || 0;
+                    const maleFamilyMembers = parseInt($('#MaleFamilyMembers').val()) || 0;
+                    const femaleFamilyMembers = parseInt($('#FemaleFamilyMembers').val()) || 0;
+                    const maleChildren = parseInt($('#MaleChildren').val()) || 0;
+                    const femaleChildren = parseInt($('#FemaleChildren').val()) || 0;
+                    const maleYouth = parseInt($('#MaleYouth').val()) || 0;
+                    const femaleYouth = parseInt($('#FemaleYouth').val()) || 0;
+                    const maleElderly = parseInt($('#MaleElderly').val()) || 0;
+                    const femaleElderly = parseInt($('#FemaleElderly').val()) || 0;
+                    const maleDisabled = parseInt($('#MaleDisabled').val()) || 0;
+                    const femaleDisabled = parseInt($('#FemaleDisabled').val()) || 0;
+                    const lactatingMothers = parseInt($('#LactatingMothers').val()) || 0;
+                    const pregnantWomen = parseInt($('#PregnantWomen').val()) || 0;
+
+                    totalMigrants = maleHouseholdHeads + femaleHouseholdHeads +
+                                  maleFamilyMembers + femaleFamilyMembers +
+                                  maleChildren + femaleChildren +
+                                  maleYouth + femaleYouth +
+                                  maleElderly + femaleElderly +
+                                  maleDisabled + femaleDisabled +
+                                  lactatingMothers + pregnantWomen;
+
+                    const summaryHtml = `
+                        <div class="alert alert-info">
+                            <strong><i class="fas fa-info-circle"></i> አጠቃላይ መረጃ</strong>
+                        </div>
+                        <table class="table table-bordered">
+                            <tr><td><strong>ጠቅላላ የተሰደዱ ሰዎች:</strong></td><td class="text-end">${totalMigrants.toLocaleString()}</td></tr>
+                            <tr><td><strong>ጠቅላላ ወንዶች:</strong></td><td class="text-end">${(maleHouseholdHeads + maleFamilyMembers + maleChildren + maleYouth + maleElderly + maleDisabled).toLocaleString()}</td></tr>
+                            <tr><td><strong>ጠቅላላ ሴቶች:</strong></td><td class="text-end">${(femaleHouseholdHeads + femaleFamilyMembers + femaleChildren + femaleYouth + femaleElderly + femaleDisabled + lactatingMothers + pregnantWomen).toLocaleString()}</td></tr>
+                        </table>
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-check-circle"></i> እባክዎ መረጃውን በደንብ ይመልከቱ እና ትክክል ከሆነ መዝግብ የሚለውን ቁልፍ ይጫኑ
+                        </div>
+                    `;
+                    $('#summaryContent').html(summaryHtml);
+                } else {
+                    $('#summaryContent').html(`
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> በዚህ ሪፖርት ውስጥ ስደት የለም።
+                        </div>
+                    `);
+                }
+            }
+
+            // Next button click
+            $('#nextBtn').click(function() {
+                if (validateStep()) {
+                    if (currentStep === 3 && $('input[name="HasMigration"]:checked').val() === 'false') {
+                        currentStep = 11;
+                    } else {
+                        currentStep++;
+                    }
+                    updateWizard();
+                    if (currentStep === 13) {
+                        updateSummary();
+                    }
+                }
+            });
+
+            // Previous button click
+            $('#prevBtn').click(function() {
+                currentStep--;
+                updateWizard();
+            });
+
+            // Form submission
+            $('#wizardForm').on('submit', function(e) {
+                const hasMigration = $('input[name="HasMigration"]:checked').val() === 'true';
+
+                if (hasMigration) {
+                    const totalMigrants = parseInt($('#MaleHouseholdHeads').val()) || 0 +
+                                        parseInt($('#FemaleHouseholdHeads').val()) || 0 +
+                                        parseInt($('#MaleFamilyMembers').val()) || 0 +
+                                        parseInt($('#FemaleFamilyMembers').val()) || 0 +
+                                        parseInt($('#MaleChildren').val()) || 0 +
+                                        parseInt($('#FemaleChildren').val()) || 0 +
+                                        parseInt($('#MaleYouth').val()) || 0 +
+                                        parseInt($('#FemaleYouth').val()) || 0 +
+                                        parseInt($('#MaleElderly').val()) || 0 +
+                                        parseInt($('#FemaleElderly').val()) || 0 +
+                                        parseInt($('#MaleDisabled').val()) || 0 +
+                                        parseInt($('#FemaleDisabled').val()) || 0 +
+                                        parseInt($('#LactatingMothers').val()) || 0 +
+                                        parseInt($('#PregnantWomen').val()) || 0;
+
+                    if (totalMigrants === 0) {
+                        e.preventDefault();
+                        alert('እባክዎ ቢያንስ አንድ የተሰደደ ሰው ያስገቡ');
+                        return false;
+                    }
+                }
+
+                // Add hidden fields for demographics
+                $('<input>').attr({ type: 'hidden', name: 'MaleHouseholdHeads', value: $('#MaleHouseholdHeads').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'FemaleHouseholdHeads', value: $('#FemaleHouseholdHeads').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'MaleFamilyMembers', value: $('#MaleFamilyMembers').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'FemaleFamilyMembers', value: $('#FemaleFamilyMembers').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'MaleChildren', value: $('#MaleChildren').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'FemaleChildren', value: $('#FemaleChildren').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'MaleYouth', value: $('#MaleYouth').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'FemaleYouth', value: $('#FemaleYouth').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'MaleElderly', value: $('#MaleElderly').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'FemaleElderly', value: $('#FemaleElderly').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'MaleDisabled', value: $('#MaleDisabled').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'FemaleDisabled', value: $('#FemaleDisabled').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'LactatingMothers', value: $('#LactatingMothers').val() || 0 }).appendTo('#wizardForm');
+                $('<input>').attr({ type: 'hidden', name: 'PregnantWomen', value: $('#PregnantWomen').val() || 0 }).appendTo('#wizardForm');
+
+                return true;
+            });
+
+            // Set default report date
+            if (!$('#ReportDate').val()) {
+                const now = new Date();
+                const formattedDate = now.getFullYear() + '-' +
+                    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(now.getDate()).padStart(2, '0') + 'T' +
+                    String(now.getHours()).padStart(2, '0') + ':' +
+                    String(now.getMinutes()).padStart(2, '0');
+                $('#ReportDate').val(formattedDate);
+            }
+
+            // Initialize wizard
+            updateWizard();
+        });
+    </script>
+}

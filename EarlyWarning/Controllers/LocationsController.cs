@@ -42,7 +42,16 @@ namespace EarlyWarning.Controllers
             _emailSender = emailSender;
             _userStore = userStore;
         }
+        public async Task<JsonResult> GetKebelesByWoreda()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var kebeles = _context.Locations
+                .Where(x => x.ParentId == currentUser.LocationId && x.Level == LocationLevel.ቀበሌ)
+                .Select(x => new { id = x.Id, name = x.LocationName })
+                .ToList();
 
+            return Json(kebeles);
+        }
         // GET: Locations
         //[Authorize(Roles = "Supper Administrator, Administrator")]
         public async Task<IActionResult> Index()
@@ -60,6 +69,11 @@ namespace EarlyWarning.Controllers
                     var currentUserLocation = await _context.Locations.Include(l => l.Parent).Where(l => l.Id == currentUser.LocationId).FirstOrDefaultAsync();
                     var currentUserChildLocation = await _context.Locations.Include(l => l.Parent).Where(l => l.ParentId == currentUserLocation.Id).FirstOrDefaultAsync();
                     var locations = await _context.Locations.Include(l => l.Parent).Where(l => l.Id == currentUserLocation.Id || l.Id == currentUserLocation.ParentId || l.Id == currentUserChildLocation.Id).ToListAsync();
+                    return View(locations);
+                }
+                else
+                {
+                    var locations = _context.Locations.Include(l => l.Parent).Where(l => l.Level != LocationLevel.ሀገር);
                     return View(locations);
                 }
             }
@@ -179,6 +193,7 @@ namespace EarlyWarning.Controllers
 
         public async Task<IActionResult> Create()
         {
+            ViewBag.Levels = new SelectList(Enum.GetValues(typeof(LocationLevel)));
             ViewData["ParentId"] = new SelectList(await _context.Locations.ToListAsync(), "Id", "LocationName");
             return View();
         }

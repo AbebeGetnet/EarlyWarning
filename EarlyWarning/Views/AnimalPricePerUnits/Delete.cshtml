@@ -1,0 +1,275 @@
+﻿@using EarlyWarning.Enums
+@using EarlyWarning.Models.PriceofGrain
+@model EarlyWarning.Models.AnimalPrice.AnimalPricePerUnit
+
+@{
+    ViewData["Title"] = "የእንስሳት ዋጋ ሪፖርት ሰርዝ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+    .delete-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 12px 20px;
+        font-weight: 600;
+    }
+
+        .card-header-custom i {
+            margin-right: 8px;
+        }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    .info-row {
+        display: flex;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-label {
+        width: 35%;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .info-value {
+        width: 65%;
+        color: #212529;
+    }
+
+    .warning-box {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .warning-box i {
+            font-size: 1.5rem;
+        }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .btn-custom {
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    @@media (max-width: 768px) {
+        .info-row {
+            flex-direction: column;
+        }
+
+        .info-label, .info-value {
+            width: 100%;
+        }
+
+        .info-label {
+            margin-bottom: 5px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-custom {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="form-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-trash-alt"></i> @ViewData["Title"]
+            </h1>
+            <p>የእንስሳት ዋጋ ሪፖርት ለማስወገድ እባክዎ ያረጋግጡ</p>
+        </div>
+
+        <div class="delete-card">
+            <div class="card-header-custom">
+                <i class="fas fa-paw"></i> የሚሰረዘው ሪፖርት መረጃ
+            </div>
+            <div class="card-body-custom">
+                <div class="warning-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>ማስጠንቀቂያ!</strong> ይህን ሪፖርት መሰረዝ ካሰቡ እባክዎ ያረጋግጡ። ይህ ድርጊት ሊቀለበስ አይችልም።
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-calendar-alt"></i> @Html.DisplayNameFor(m => m.StartDate)
+                    </div>
+                    <div class="info-value">
+                        @Model.StartDate.ToString("yyyy-MM-dd")
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-calendar-check"></i> @Html.DisplayNameFor(m => m.EndDate)
+                    </div>
+                    <div class="info-value">
+                        @Model.EndDate.ToString("yyyy-MM-dd")
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-paw"></i> @Html.DisplayNameFor(m => m.AnimalType)
+                    </div>
+                    <div class="info-value">
+                        @(Model.AnimalType?.AnimalTypeName ?? "-")
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-map-marker-alt"></i> @Html.DisplayNameFor(m => m.Woreda)
+                    </div>
+                    <div class="info-value">
+                        @(Model.Woreda?.LocationAmharicName ?? "-")
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-coins"></i> @Html.DisplayNameFor(m => m.WeeklyPrice)
+                    </div>
+                    <div class="info-value">
+                        @Model.WeeklyPrice.ToString("N2") ብር
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-chart-line"></i> @Html.DisplayNameFor(m => m.WeeklyMarketStatus)
+                    </div>
+                    <div class="info-value">
+                        @if (Model.WeeklyMarketStatus == WeeklyStatus.Increased)
+                        {
+                            <span>ጨምሯል 📈</span>
+                        }
+                        else if (Model.WeeklyMarketStatus == WeeklyStatus.Decreased)
+                        {
+                            <span>ቀንሷል 📉</span>
+                        }
+                        else
+                        {
+                            <span>ተመሳሳይ ➡️</span>
+                        }
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-calendar-day"></i> @Html.DisplayNameFor(m => m.ReportDate)
+                    </div>
+                    <div class="info-value">
+                        @Model.ReportDate.ToString("yyyy-MM-dd")
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-user"></i> @Html.DisplayNameFor(m => m.ReportedBy)
+                    </div>
+                    <div class="info-value">
+                        @(Model.ReportedBy ?? "-")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a asp-action="Index" class="btn-custom btn-back">
+                <i class="fas fa-arrow-left"></i> ወደ ዝርዝር ተመለስ
+            </a>
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="AnimalPricePerUnitId" />
+                <button type="submit" class="btn-custom btn-delete" onclick="return confirm('እርግጠኛ ነዎት? ይህን ሪፖርት መሰረዝ ይፈልጋሉ?')">
+                    <i class="fas fa-trash"></i> ሰርዝ
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

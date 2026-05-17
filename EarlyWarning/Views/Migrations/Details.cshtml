@@ -1,0 +1,641 @@
+﻿@using EarlyWarning.Enums
+@model EarlyWarning.Models.Migration.Migration
+
+@{
+    ViewData["Title"] = "የስደት ሪፖርት ዝርዝር መረጃ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+    .detail-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .detail-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 12px 20px;
+        font-weight: 600;
+    }
+
+        .card-header-custom i {
+            margin-right: 8px;
+        }
+
+    .card-header-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .card-header-danger {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .card-header-info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    .info-row {
+        display: flex;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.3s ease;
+    }
+
+        .info-row:hover {
+            background-color: #f8f9fa;
+            padding-left: 8px;
+        }
+
+    .info-label {
+        width: 35%;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .info-value {
+        width: 65%;
+        color: #212529;
+    }
+
+    .badge-status {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .badge-migration {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .badge-no-migration {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+
+    .badge-draft {
+        background: #6c757d;
+        color: white;
+    }
+
+    .badge-submitted {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .badge-approved {
+        background: #28a745;
+        color: white;
+    }
+
+    .badge-rejected {
+        background: #dc3545;
+        color: white;
+    }
+
+    .origin-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 5px;
+    }
+
+    .origin-tag {
+        display: inline-block;
+        background: #e9ecef;
+        color: #495057;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+        .origin-tag i {
+            margin-right: 5px;
+            color: #1e3c72;
+        }
+
+    .demographics-table {
+        width: 100%;
+        margin: 15px 0;
+    }
+
+        .demographics-table td {
+            padding: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+            .demographics-table td:first-child {
+                font-weight: 600;
+                width: 40%;
+            }
+
+            .demographics-table td:last-child {
+                width: 60%;
+            }
+
+    .summary-card {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .summary-stats {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .summary-item {
+        text-align: center;
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .summary-number {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .summary-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .btn-custom {
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+
+    .btn-print {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    hr {
+        margin: 15px 0;
+    }
+
+    @@media (max-width: 768px) {
+        .info-row {
+            flex-direction: column;
+            padding: 8px 0;
+        }
+
+        .info-label, .info-value {
+            width: 100%;
+        }
+
+        .info-label {
+            margin-bottom: 5px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-custom {
+            width: 100%;
+            text-align: center;
+        }
+
+        .summary-number {
+            font-size: 1.3rem;
+        }
+    }
+
+    @@media print {
+        .action-buttons, .page-header, .btn-print {
+            display: none;
+        }
+
+        .detail-card {
+            break-inside: avoid;
+            box-shadow: none;
+        }
+
+        .summary-card {
+            break-inside: avoid;
+        }
+
+        body {
+            padding: 10px;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-people-arrows"></i> @ViewData["Title"]
+        </h1>
+        <p>የስደት ሪፖርት ዝርዝር መረጃ ከዚህ በታች ይመልከቱ</p>
+    </div>
+
+    @{
+        var totalMigrants = Model.MigrationDetails?.Sum(d => d.FemaleChildren + d.FemaleDisabled + d.FemaleElderly + d.FemaleDisabled + d.FemaleHouseholdHeads + d.FemaleFamilyMembers + d.FemaleYouth
+        + d.MaleChildren + d.FemaleYouth + d.MaleDisabled + d.MaleElderly + d.MaleFamilyMembers + d.MaleHouseholdHeads ) ?? 0;
+        var totalMales = Model.MigrationDetails?.Sum(d => d.MaleChildren + d.FemaleYouth + d.MaleDisabled + d.MaleElderly + d.MaleFamilyMembers + d.MaleHouseholdHeads) ?? 0;
+        var totalFemales = Model.MigrationDetails?.Sum(d => d.FemaleChildren + d.FemaleDisabled + d.FemaleElderly + d.FemaleDisabled + d.FemaleHouseholdHeads + d.FemaleFamilyMembers + d.FemaleYouth) ?? 0;
+        
+    }
+
+    <!-- Basic Information Card -->
+    <div class="detail-card">
+        <div class="card-header-custom">
+            <i class="fas fa-info-circle"></i> መሰረታዊ መረጃ
+        </div>
+        <div class="card-body-custom">
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-calendar-alt text-primary"></i> @Html.DisplayNameFor(m => m.StartDate)
+                </div>
+                <div class="info-value">
+                    <strong>@Model.StartDate.ToString("dddd, MMMM dd, yyyy")</strong>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-calendar-check text-success"></i> @Html.DisplayNameFor(m => m.EndDate)
+                </div>
+                <div class="info-value">
+                    <strong>@Model.EndDate.ToString("dddd, MMMM dd, yyyy")</strong>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-map-marker-alt text-danger"></i> @Html.DisplayNameFor(m => m.Woreda)
+                </div>
+                <div class="info-value">
+                    <strong>@(Model.Woreda?.LocationAmharicName ?? "አልተመረጠም")</strong>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-people-arrows text-warning"></i> @Html.DisplayNameFor(m => m.HasMigration)
+                </div>
+                <div class="info-value">
+                    @if (Model.HasMigration)
+                    {
+                        <span class="badge-status badge-migration">
+                            <i class="fas fa-exclamation-circle"></i> ስደት አለ
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge-status badge-no-migration">
+                            <i class="fas fa-check-circle"></i> ስደት የለም
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Migration Details Card -->
+    @if (Model.HasMigration && Model.MigrationDetails != null && Model.MigrationDetails.Any())
+    {
+        <div class="detail-card">
+            <div class="card-header-custom card-header-danger">
+                <i class="fas fa-people-arrows"></i> የስደት ዝርዝሮች
+            </div>
+            <div class="card-body-custom">
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-map-marked-alt"></i> የተሰደዱባቸው ቦታዎች
+                    </div>
+                    <div class="info-value">
+                        <div class="origin-tags">
+                            @foreach (var detail in Model.MigrationDetails)
+                            {
+                                if (detail.OriginLocation != null)
+                                {
+                                    <span class="origin-tag">
+                                        <i class="fas fa-map-marker-alt"></i> @detail.OriginLocation.LocationAmharicName
+                                    </span>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.MigrationDetails.Any(d => !string.IsNullOrEmpty(d.MigrationReason)))
+                {
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fas fa-question-circle"></i> የስደት ምክንያቶች
+                        </div>
+                        <div class="info-value">
+                            <ul class="mb-0">
+                                @foreach (var detail in Model.MigrationDetails.Where(d => !string.IsNullOrEmpty(d.MigrationReason)))
+                                {
+                                    <li>@detail.MigrationReason</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Demographics Card -->
+        <div class="detail-card">
+            <div class="card-header-custom card-header-info">
+                <i class="fas fa-users"></i> የተሰደዱ ሰዎች በምድብ
+            </div>
+            <div class="card-body-custom">
+                <div class="table-responsive">
+                    <table class="demographics-table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">ምድብ</th>
+                                <th>ወንድ</th>
+                                <th>ሴት</th>
+                                <th>አጠቃላይ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var totalMaleHousehold = Model.MigrationDetails.Sum(d => d.MaleHouseholdHeads);
+                                var totalFemaleHousehold = Model.MigrationDetails.Sum(d => d.FemaleHouseholdHeads);
+                                var totalMaleFamily = Model.MigrationDetails.Sum(d => d.MaleFamilyMembers);
+                                var totalFemaleFamily = Model.MigrationDetails.Sum(d => d.FemaleFamilyMembers);
+                                var totalMaleChildren = Model.MigrationDetails.Sum(d => d.MaleChildren);
+                                var totalFemaleChildren = Model.MigrationDetails.Sum(d => d.FemaleChildren);
+                                var totalMaleYouth = Model.MigrationDetails.Sum(d => d.MaleYouth);
+                                var totalFemaleYouth = Model.MigrationDetails.Sum(d => d.FemaleYouth);
+                                var totalMaleElderly = Model.MigrationDetails.Sum(d => d.MaleElderly);
+                                var totalFemaleElderly = Model.MigrationDetails.Sum(d => d.FemaleElderly);
+                                var totalMaleDisabled = Model.MigrationDetails.Sum(d => d.MaleDisabled);
+                                var totalFemaleDisabled = Model.MigrationDetails.Sum(d => d.FemaleDisabled);
+                            }
+                            <tr>
+                                <td colspan="2"><strong>አባወራ / እማወራ</strong></td>
+                                <td class="text-end">@totalMaleHousehold.ToString("N0")</td>
+                                <td class="text-end">@totalFemaleHousehold.ToString("N0")</td>
+                                <td class="text-end fw-bold">@((totalMaleHousehold + totalFemaleHousehold).ToString("N0"))</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><strong>ቤተሰብ</strong></td>
+                                <td class="text-end">@totalMaleFamily.ToString("N0")</td>
+                                <td class="text-end">@totalFemaleFamily.ToString("N0")</td>
+                                <td class="text-end fw-bold">@((totalMaleFamily + totalFemaleFamily).ToString("N0"))</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><strong>ህጻናት</strong></td>
+                                <td class="text-end">@totalMaleChildren.ToString("N0")</td>
+                                <td class="text-end">@totalFemaleChildren.ToString("N0")</td>
+                                <td class="text-end fw-bold">@((totalMaleChildren + totalFemaleChildren).ToString("N0"))</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><strong>ወጣቶች</strong></td>
+                                <td class="text-end">@totalMaleYouth.ToString("N0")</td>
+                                <td class="text-end">@totalFemaleYouth.ToString("N0")</td>
+                                <td class="text-end fw-bold">@((totalMaleYouth + totalFemaleYouth).ToString("N0"))</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><strong>አረጋውያን</strong></td>
+                                <td class="text-end">@totalMaleElderly.ToString("N0")</td>
+                                <td class="text-end">@totalFemaleElderly.ToString("N0")</td>
+                                <td class="text-end fw-bold">@((totalMaleElderly + totalFemaleElderly).ToString("N0"))</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><strong>አካል ጉዳተኞች</strong></td>
+                                <td class="text-end">@totalMaleDisabled.ToString("N0")</td>
+                                <td class="text-end">@totalFemaleDisabled.ToString("N0")</td>
+                                <td class="text-end fw-bold">@((totalMaleDisabled + totalFemaleDisabled).ToString("N0"))</td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- General Notes Card -->
+    @if (!string.IsNullOrEmpty(Model.GeneralNotes))
+    {
+        <div class="detail-card">
+            <div class="card-header-custom card-header-success">
+                <i class="fas fa-file-alt"></i> አጠቃላይ ማስታወሻ
+            </div>
+            <div class="card-body-custom">
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-sticky-note"></i> @Html.DisplayNameFor(m => m.GeneralNotes)
+                    </div>
+                    <div class="info-value">
+                        <div class="alert alert-light mb-0 p-2">@Model.GeneralNotes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Report Information Card -->
+    <div class="detail-card">
+        <div class="card-header-custom">
+            <i class="fas fa-file-signature"></i> የሪፖርት መረጃ
+        </div>
+        <div class="card-body-custom">
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-calendar-day"></i> @Html.DisplayNameFor(m => m.ReportDate)
+                </div>
+                <div class="info-value">
+                    @Model.ReportDate.ToString("dddd, MMMM dd, yyyy hh:mm tt")
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-user-edit"></i> @Html.DisplayNameFor(m => m.ReportedBy)
+                </div>
+                <div class="info-value">
+                    @if (!string.IsNullOrEmpty(Model.ReportedBy))
+                    {
+                        <strong><i class="fas fa-user-circle"></i> @Model.ReportedBy</strong>
+                    }
+                    else
+                    {
+                        <span class="text-muted">አልተገለጸም</span>
+                    }
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-check-circle"></i> @Html.DisplayNameFor(m => m.ApprovalStatus)
+                </div>
+                <div class="info-value">
+                    @if (Model.ApprovalStatus == ApprovalStatus.በሂደት_ላይ)
+                    {
+                        <span class="badge-status badge-draft">በሂደት ላይ</span>
+                    }
+                    else if (Model.ApprovalStatus == ApprovalStatus.የተፈቀደ)
+                    {
+                        <span class="badge-status badge-submitted">የተፈቀደ</span>
+                    }
+                    else if (Model.ApprovalStatus == ApprovalStatus.የተከለከለ)
+                    {
+                        <span class="badge-status badge-approved">የተከለከለ</span>
+                    }
+                    else
+                    {
+                        <span class="badge-status badge-rejected">ውድቅ ተደርጓል</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Card -->
+    @if (Model.HasMigration)
+    {
+        <div class="summary-card">
+            <div class="summary-stats">
+                <div class="summary-item">
+                    <div class="summary-number">@totalMales.ToString("N0")</div>
+                    <div class="summary-label"><i class="fas fa-male"></i> ጠቅላላ ወንዶች</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number">@totalFemales.ToString("N0")</div>
+                    <div class="summary-label"><i class="fas fa-female"></i> ጠቅላላ ሴቶች</div>
+                </div>
+                
+                <div class="summary-item">
+                    <div class="summary-number">@totalMigrants.ToString("N0")</div>
+                    <div class="summary-label"><i class="fas fa-users"></i> ጠቅላላ ተሰዳጆች</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <a asp-action="Index" class="btn-custom btn-back">
+            <i class="fas fa-arrow-left"></i> ወደ ዝርዝር ተመለስ
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.MigrationId" class="btn-custom btn-edit">
+            <i class="fas fa-edit"></i> አርትዕ
+        </a>
+        <button onclick="window.print()" class="btn-custom btn-print">
+            <i class="fas fa-print"></i> አትም
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add print styles dynamically
+        var style = document.createElement('style');
+        style.innerHTML = `
+            @@media print {
+                .action-buttons, .page-header, .btn-print {
+                    display: none !important;
+                }
+                .detail-card {
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                    box-shadow: none;
+                }
+                .summary-card {
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                }
+                body {
+                    padding: 10px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

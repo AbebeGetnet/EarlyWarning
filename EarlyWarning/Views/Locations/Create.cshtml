@@ -40,6 +40,13 @@
                             <span asp-validation-for="CardHeaderTitle" class="text-danger"></span>
                         </div>
                         <div class="col-md-4">
+                            <label asp-for="Level" class="control-label"></label>
+                            <select asp-for="Level" class="form-control" asp-items="ViewBag.Levels">
+                                <option value="">-- ደረጃ ይምረጡ --</option>
+                            </select>
+                            <span asp-validation-for="Level" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4">
                             <label asp-for="ParentId" class="control-label"></label>
                             <select asp-for="ParentId" class ="form-control" asp-items="ViewBag.ParentId"></select>
                         </div>
