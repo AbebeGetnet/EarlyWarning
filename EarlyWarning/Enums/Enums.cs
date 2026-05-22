@@ -4,6 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EarlyWarning.Enums
 {
+    public enum CropGrowthType
+    {
+        SeedLevel,          
+        GerminationLevel,      
+        GrowthLevel,
+        SeedFillingLevel,
+        HarvestingLevel
+    }
     public enum ReportStatus
     {
         Draft,          

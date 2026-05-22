@@ -4,6 +4,7 @@ using EarlyWarning.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EarlyWarning.Migrations
 {
     [DbContext(typeof(EarlyWarningDbContext))]
-    partial class EarlyWarningDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260517180625_NoOfKebeliesWithWaterSupplyError")]
+    partial class NoOfKebeliesWithWaterSupplyError
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

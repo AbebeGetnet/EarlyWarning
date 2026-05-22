@@ -3,6 +3,7 @@ using EarlyWarning.Enums;
 using EarlyWarning.Models;
 using EarlyWarning.Repositories;
 using EarlyWarning.Services;
+using EarlyWarning.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -58,24 +59,31 @@ namespace EarlyWarning.Controllers
                 .Where(l => l.ParentId == woreda.Id && l.Level == LocationLevel.ቀበሌ && l.IsActive)
                 .OrderBy(l => l.LocationName)
                 .ToListAsync();
+                      
 
             var model = new RainfallReport
             {
                 WoredaId = woreda.Id,
                 SelectedKebeleIds = new List<Guid>()
             };
+            var addRainFallVM = new RegistrationWithardViewModel()
+            {
+                RainfallReport = model,
+            };
 
             ViewBag.WoredaName = woreda.LocationName;
             ViewBag.TotalKebeles = totalKebeles;
             ViewBag.Kebeles = kebeles;
             ViewBag.DroughtAffectedKebeles = droughtAffectedKebeles;
-            return View(model);
+            return View(addRainFallVM);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(RainfallReport model, List<Guid> SelectedKebeleIds,List<Guid> SelectedDroughtAffectedKebeleIds)
+        public async Task<IActionResult> Create(RegistrationWithardViewModel model, List<Guid> SelectedKebeleIds,List<Guid> SelectedDroughtAffectedKebeleIds)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             // 1. Get the current user's woreda
             var woreda = await GetCurrentUserWoredaAsync();
             if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
@@ -85,7 +93,7 @@ namespace EarlyWarning.Controllers
             }
 
             // Ensure the submitted woreda ID matches the user's woreda (tamper prevention)
-            if (model.WoredaId != woreda.Id)
+            if (model.RainfallReport.WoredaId != woreda.Id)
             {
                 ModelState.AddModelError("", "Invalid woreda selection.");
             }
@@ -104,7 +112,7 @@ namespace EarlyWarning.Controllers
             if (!ModelState.IsValid && model.StartDate.HasValue && model.EndDate.HasValue)
             {
                 var overlappingExists = await _reportRepository.ExistsOverlappingReportAsync(
-                    model.WoredaId,
+                    model.RainfallReport.WoredaId,
                     model.StartDate.Value,
                     model.EndDate.Value
                 );
@@ -113,25 +121,27 @@ namespace EarlyWarning.Controllers
                     ModelState.AddModelError("", "ለዚህ ወረዳ እና የተመረጠ የዝናብ ቀን ክልል ሪፖርት ቀድሞ ተመዝግቧል። እባክዎ የተለየ ቀን ይምረጡ።");
                 }
             }
-
+            model.UserId = currentUser.Id;
+            model.WoredaId = woreda.Id;
             // 4. If model is valid, save the report
             if (!ModelState.IsValid)
             {
                 // Assign the woreda ID (already set from the model)
-                model.WoredaId = woreda.Id;
-
+                model.RainfallReport.WoredaId = woreda.Id;
+                model.RainfallReport.UserId = currentUser.Id;        
+                      
                 // Save the selected kebele IDs as JSON
-                model.SelectedKebeleIds = SelectedKebeleIds ?? new List<Guid>();
-                model.SerializeKebeles();
+                model.RainfallReport.SelectedKebeleIds = SelectedKebeleIds ?? new List<Guid>();
+                model.RainfallReport.SerializeKebeles();
 
-                model.SelectedDroughtKebeleIds = SelectedDroughtAffectedKebeleIds ?? new List<Guid>();
-                model.SerializeDroughtKebeles();
+                model.RainfallReport.SelectedDroughtKebeleIds = SelectedDroughtAffectedKebeleIds ?? new List<Guid>();
+                model.RainfallReport.SerializeDroughtKebeles();
                 // Set initial status (CommonAttribute already has Status = Draft as default)
-                model.Status = ReportStatus.Draft;
+                model.RainfallReport.Status = ReportStatus.Draft;
 
-                await _reportService.CreateReportAsync(model);
-                TempData["Success"] = "Rainfall report created successfully.";
-                return RedirectToAction(nameof(Index));
+                await _reportService.CreateReportAsync(model.RainfallReport);
+                //TempData["Success"] = "Rainfall report created successfully.";
+                return RedirectToAction("Create", "FarmingActivities", new {model, model.StartDate, model.EndDate});
             }
 
             // 5. If we get here, ModelState has errors – reload the view data
@@ -142,11 +152,6 @@ namespace EarlyWarning.Controllers
                 .Where(l => l.ParentId == woreda.Id && l.Level == LocationLevel.ቀበሌ && l.IsActive)
                 .OrderBy(l => l.LocationName)
                 .ToListAsync();
-
-            ViewBag.WoredaName = woreda.LocationName;
-            ViewBag.TotalKebeles = totalKebeles;
-            ViewBag.Kebeles = kebeles;
-
             return View(model);
         }
 
@@ -259,9 +264,6 @@ namespace EarlyWarning.Controllers
                 if (existingReport == null)
                     return NotFound();
 
-                // Update scalar properties
-                existingReport.StartDate = model.StartDate;
-                existingReport.EndDate = model.EndDate;
                 existingReport.FullCoverageKebeles = model.FullCoverageKebeles;
                 existingReport.PartialCoverageKebeles = model.PartialCoverageKebeles;
                 existingReport.NoRainKebeles = model.NoRainKebeles;

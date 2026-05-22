@@ -1,237 +1,475 @@
 ﻿using EarlyWarning.Data;
 using EarlyWarning.Enums;
+using EarlyWarning.Extensions;
 using EarlyWarning.Models;
 using EarlyWarning.ViewModels;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
-public class RegistrationWizardController : Controller
+namespace EarlyWarning.Controllers
 {
-    private readonly EarlyWarningDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public RegistrationWizardController(EarlyWarningDbContext context, UserManager<ApplicationUser> userManager)
+    public class RegisterationWizardController : Controller
     {
-        _context = context;
-        _userManager = userManager;
-    }
-    // GET: RegistrationWizard/Index
-    public async Task<IActionResult> Index()
-    {
-        var user = await _userManager.GetUserAsync(User);
-        var userWoreda = await _context.Locations.FindAsync(user.LocationId);
-
-        // Get all distinct (WoredaId, StartDate, EndDate) groups
-        var groups = await _context.RainfallReports
-            .Where(r => userWoreda == null || r.WoredaId == userWoreda.Id) // filter if normal user
-            .Select(r => new { r.WoredaId, r.StartDate, r.EndDate })
-            .Distinct()
-            .OrderByDescending(g => g.StartDate)
-            .ToListAsync();
-
-        var result = new List<RegistrationWizardIndexViewModel>();
-
-        foreach (var group in groups)
+        private readonly EarlyWarningDbContext _context; // Consider changing to your exact ApplicationDbContext type later
+        private readonly UserManager<ApplicationUser> _userManager;
+        public RegisterationWizardController(EarlyWarningDbContext context, UserManager<ApplicationUser> userManager)
         {
-            var woreda = await _context.Locations.FindAsync(group.WoredaId);
-            var rainfall = await _context.RainfallReports
-                .FirstOrDefaultAsync(r => r.WoredaId == group.WoredaId && r.StartDate == group.StartDate && r.EndDate == group.EndDate);
-            var farming = await _context.FarmingActivities
-                .FirstOrDefaultAsync(f => f.WoredaId == group.WoredaId && f.StartDate == group.StartDate && f.EndDate == group.EndDate);
-            var cropReport = await _context.CropPestAndDeseaseReports
-                .FirstOrDefaultAsync(c => c.WoredaId == group.WoredaId && c.StartDate == group.StartDate && c.EndDate == group.EndDate);
-            var pasture = await _context.PastureStatuses
-                .FirstOrDefaultAsync(p => p.WoredaId == group.WoredaId && p.StartDate == group.StartDate && p.EndDate == group.EndDate);
-            var water = await _context.AnimalWaterSupplyStatuses
-                .FirstOrDefaultAsync(w => w.WoredaId == group.WoredaId && w.StartDate == group.StartDate && w.EndDate == group.EndDate);
-            var health = await _context.AnimalHealthStatuses
-                .FirstOrDefaultAsync(h => h.WoredaId == group.WoredaId && h.StartDate == group.StartDate && h.EndDate == group.EndDate);
+            _context = context;
+            _userManager = userManager;
+        }
 
-            // Deserialize disease names & kebele names
-            List<string> cropDiseaseNames = new();
-            if (cropReport != null && cropReport.HasPestAndDeseasOccured)
+        // Display the Multi-Step Data Entry Form
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            var model = new RegistrationWithardViewModel
             {
-                cropReport.DeserializeCropDiseases();
-                var allCropDiseases = await _context.CropPestAndDesease.ToListAsync();
-                cropDiseaseNames = allCropDiseases
-                    .Where(d => cropReport.SelectedDiseaseIds.Contains(d.Id))
-                    .Select(d => d.Name)
-                    .ToList();
+                StartDate = DateTime.Today.AddDays(-7),
+                EndDate = DateTime.Today,
+                RainfallReport = new RainfallReport(),
+                FarmingActivity = new FarmingActivity(),
+                CropPestAndDeseaseReport = new CropPestAndDeseaseReport(),
+                AnimalWaterSupplyStatus = new AnimalWaterSupplyStatus(),
+                AnimalHealthStatus = new AnimalHealthStatus()
+            };
+
+            var woredaQuery = _context.Locations.Where(l => l.ParentId == currentUser.LocationId && l.Level == LocationLevel.ቀበሌ).AsNoTracking();
+            ViewBag.TotalKebeles = woredaQuery.Count();
+            return View(model);        
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetExistingWizardData(Guid woredaId, DateTime startDate, DateTime endDate)
+        {
+            var sDate = startDate.Date;
+            var eDate = endDate.Date;
+
+            // 1. Query all 6 independent domain tables concurrently
+            var rainfallTask = _context.RainfallReports
+                .FirstOrDefaultAsync(r => r.WoredaId == woredaId && r.StartDate == sDate && r.EndDate == eDate);
+
+            var farmingTask = _context.FarmingActivities
+                .FirstOrDefaultAsync(f => f.WoredaId == woredaId && f.StartDate == sDate && f.EndDate == eDate);
+
+            var pestTask = _context.CropPestAndDeseaseReports
+                .FirstOrDefaultAsync(p => p.WoredaId == woredaId && p.StartDate == sDate && p.EndDate == eDate);
+
+            var pastureTask = _context.PastureStatuses
+                .FirstOrDefaultAsync(p => p.WoredaId == woredaId && p.StartDate == sDate && p.EndDate == eDate);
+
+            var waterTask = _context.AnimalWaterSupplyStatuses
+                .FirstOrDefaultAsync(w => w.WoredaId == woredaId && w.StartDate == sDate && w.EndDate == eDate);
+
+            var healthTask = _context.AnimalHealthStatuses
+                .FirstOrDefaultAsync(h => h.WoredaId == woredaId && h.StartDate == sDate && h.EndDate == eDate);
+
+            // Wait for all database operations to complete
+            await Task.WhenAll(rainfallTask, farmingTask, pestTask, pastureTask, waterTask, healthTask);
+
+            var rainfall = await rainfallTask;
+            var farming = await farmingTask;
+            var pest = await pestTask;
+            var pasture = await pastureTask;
+            var water = await waterTask;
+            var health = await healthTask;
+
+            // 2. Check if data exists in ANY of the domains
+            bool dataExists = (rainfall != null || farming != null || pest != null ||
+                               pasture != null || water != null || health != null);
+
+            if (!dataExists)
+            {
+                return Json(new { exists = false });
             }
 
-            List<string> animalDiseaseNames = new();
-            if (health != null && health.Enough) // "አለ"
-            {
-                health.DeserializeCropDiseases();
-                var allAnimalDiseases = await _context.AnimalDisease.ToListAsync();
-                animalDiseaseNames = allAnimalDiseases
-                    .Where(d => health.SelectedDiseaseIds.Contains(d.Id))
-                    .Select(d => d.Name)
-                    .ToList();
-            }
+            //// 3. Fetch relational many-to-many join lists if parent entities exist
+            //var kebeleIds = rainfall != null
+            //    ? await _context.ReportKebelies.Where(k => k.RainfallReportId == rainfall.Id).Select(k => k.KebeleId).ToListAsync()
+            //    : new List<Guid>();
 
-            List<string> kebeleNames = new();
-            if (rainfall != null)
-            {
-                rainfall.DeserializeKebeles();
-                var kebeles = await _context.Locations
-                    .Where(k => rainfall.SelectedKebeleIds.Contains(k.Id))
-                    .Select(k => k.LocationName)
-                    .ToListAsync();
-                kebeleNames = kebeles;
-            }
+            //var pestIds = pest != null
+            //    ? await _context.ReportPests.Where(p => p.CropPestReportId == pest.Id).Select(p => p.PestId).ToListAsync()
+            //    : new List<int>();
 
-            result.Add(new RegistrationWizardIndexViewModel
+            //var diseaseIds = health != null
+            //    ? await _context.AnimalDisease.Where(d => d.Id == health.Id).Select(d => d.Id).ToListAsync()
+            //    : new List<int>();
+
+            // 4. Map the independent layers into a unified payload for the Wizard script
+            return Json(new
             {
-                WoredaId = group.WoredaId,
-                WoredaName = woreda?.LocationName ?? "",
-                StartDate = group.StartDate,
-                EndDate = group.EndDate,
-                RainfallReport = rainfall,
-                FarmingActivity = farming,
-                CropPestAndDeseaseReport = cropReport,
-                PastureStatus = pasture,
-                AnimalWaterSupplyStatus = water,
-                AnimalHealthStatus = health,
-                CropDiseaseNames = cropDiseaseNames,
-                AnimalDiseaseNames = animalDiseaseNames,
-                KebeleNames = kebeleNames
+                exists = true,
+                // Since there's no single parent ID, we pass a truthy state flag to JavaScript
+                id = 1,
+                remarks = pest?.Remarks ?? pasture?.Remarks ?? health?.Remarks ?? "", // Fallback remark locator
+
+                // Table 1: Rainfall
+                rainfall = rainfall == null ? null : new
+                {
+                    full = rainfall.FullCoverageKebeles,
+                    partial = rainfall.PartialCoverageKebeles,
+                    none = rainfall.NoRainKebeles,
+                    high = rainfall.HighAmountKebeles,
+                    //kebeleIds = kebeleIds
+                },
+
+                // Table 2: Farming Activity
+                farming = farming == null ? null : new
+                {
+                    meherPlan = farming.MeherFarmPlan,
+                    meherPloughed = farming.MeherPloughed,
+                    meherSown = farming.MeherSown,
+                    meherHarvesting = farming.MeherHarvestingHHarvesting,
+                    meherResidual = farming.MeherSownWithResidualMoisture,
+                    autumnPlan = farming.AutumnFarmPlan,
+                    autumnPloughed = farming.AutumnPloughed,
+                    autumnSown = farming.AutumnSown,
+                    autumnHarvesting = farming.AutumnHarvestingHHarvesting,
+                    autumnResidual = farming.AutumnSownWithResidualMoisture
+                },
+
+                // Table 3: Crop Pest & Disease
+                pest = pest == null ? null : new
+                {
+                    hasOccured = pest.HasPestAndDeseasOccured,
+                    hectars = pest.AffectedLandInHectar,
+                    cropType = pest.TypeOfCropAffected,
+                    //pestIds = pestIds,
+                    mHH = pest.MaleHouseHold,
+                    fHH = pest.FemaleHouseHold,
+                    mFam = pest.MaleFamily,
+                    fFam = pest.FemaleFamily,
+                    mChild = pest.ChildhMale,
+                    fChild = pest.ChildFemale,
+                    mYouth = pest.YouthMale,
+                    fYouth = pest.YouthFemale,
+                    mEld = pest.ElderlyMale,
+                    fEld = pest.ElderlyFemale,
+                    mDis = pest.DisabledMale,
+                    fDis = pest.DisabledFemale
+                },
+
+                // Table 4: Pasture Status
+                pasture = pasture == null ? null : new
+                {
+                    enough = pasture.Enough,
+                    animalsAffected = pasture.NumberOfAnimalsAffected,
+                    mHH = pasture.MaleHouseHold,
+                    fHH = pasture.FemaleHouseHold,
+                    mFam = pasture.MaleFamily,
+                    fFam = pasture.FemaleFamily,
+                    mChild = pasture.ChildhMale,
+                    fChild = pasture.ChildFemale,
+                    mYouth = pasture.YouthMale,
+                    fYouth = pasture.YouthFemale,
+                    mEld = pasture.ElderlyMale,
+                    fEld = pasture.ElderlyFemale,
+                    mDis = pasture.DisabledMale,
+                    fDis = pasture.DisabledFemale
+                },
+
+                // Table 5: Animal Water Supply
+                water = water == null ? null : new
+                {
+                    enough = water.Enough,
+                    kebelesCount = water.NoOfKebeliesWithWaterSupply,
+                    mHH = water.MaleHouseHold,
+                    fHH = water.FemaleHouseHold,
+                    mFam = water.MaleFamily,
+                    fFam = water.FemaleFamily,
+                    mChild = water.ChildhMale,
+                    fChild = water.ChildFemale,
+                    mYouth = water.YouthMale,
+                    fYouth = water.YouthFemale,
+                    mEld = water.ElderlyMale,
+                    fEld = water.ElderlyFemale,
+                    mDis = water.DisabledMale,
+                    fDis = water.DisabledFemale
+                },
+
+                // Table 6: Animal Health
+                health = health == null ? null : new
+                {
+                    enough = health.Enough,
+                    infectedMale = health.NoOfKebeliesWithWaterSupply,
+                   // diseaseIds = diseaseIds,
+                    mHH = health.MaleHouseHold,
+                    fHH = health.FemaleHouseHold,
+                    mFam = health.MaleFamily,
+                    fFam = health.FemaleFamily,
+                    mChild = health.ChildhMale,
+                    fChild = health.ChildFemale,
+                    mYouth = health.YouthMale,
+                    fYouth = health.YouthFemale,
+                    mEld = health.ElderlyMale,
+                    fEld = health.ElderlyFemale,
+                    mDis = health.DisabledMale,
+                    fDis = health.DisabledFemale
+                }
             });
         }
-
-        return View(result);
-    }
-
-    //[Authorize(Roles = "Data Encoder")]
-    // GET: Show the wizard
-    public async Task<IActionResult> Create()
-    {
-        var user = await _userManager.GetUserAsync(User);
-        var woreda = await _context.Locations.FindAsync(user.LocationId);
-        //if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
-        //{
-        //    TempData["Error"] = "Your account is not linked to a valid woreda.";
-        //    return RedirectToAction("Index", "Home");
-        //}
-
-        // Load kebeles under this woreda
-        var kebeles = await _context.Locations
-            .Where(l => l.ParentId == woreda.Id && l.Level == LocationLevel.ቀበሌ && l.IsActive)
-            .OrderBy(l => l.LocationName).ToListAsync();
-
-        var model = new RegistrationWithardViewModel
+        // Process the Consolidated Multi-Step Submission
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitWizard(RegistrationWithardViewModel model, List<Guid> SelectedKebeliesIds, List<Guid> SelectedCropDiseaseIds, List<Guid> SelectedAnimalDiseaseIds)
         {
-            WoredaId = woreda.Id,
-            StartDate = DateTime.Now.Date,
-            EndDate = DateTime.Now.Date.AddDays(7),
-            Kebelies = kebeles,
-            AnimalDiseases = await _context.AnimalDisease.ToListAsync(),
-            CropPestAndDeseases = await _context.CropPestAndDesease.ToListAsync(),
-            // Initialize each report
-            RainfallReport = new RainfallReport { WoredaId = woreda.Id },
-            FarmingActivity = new FarmingActivity { WoredaId = woreda.Id },
-            CropPestAndDeseaseReport = new CropPestAndDeseaseReport { WoredaId = woreda.Id },
-            PastureStatus = new PastureStatus { WoredaId = woreda.Id },
-            AnimalWaterSupplyStatus = new AnimalWaterSupplyStatus { WoredaId = woreda.Id },
-            AnimalHealthStatus = new AnimalHealthStatus { WoredaId = woreda.Id }
-        };
+            //if (!ModelState.IsValid)
+            //{
+            //    // Repopulate ViewBags/SelectLists if validation fails to safely redisplay the form
+            //    ViewBag.WoredaSelectList = new SelectList(_context.Locations, "Id", "LocationName", model.WoredaId);
+            //    return View("Index", model);
+            //}
 
-        ViewBag.WoredaName = woreda.LocationName;
-        return View(model);
-    }
+            var woredaId = model.WoredaId;
+            var sDate = model.StartDate;
+            var eDate = model.EndDate;
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(RegistrationWithardViewModel model)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        var woreda = await _context.Locations.FindAsync(user.LocationId);
-        //if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
-        //{
-        //    TempData["Error"] = "Invalid woreda.";
-        //    return RedirectToAction("Index", "Home");
-        //}
+            // ----------------------------------------------------
+            // 1. DOMAIN LAYER: RAINFALL REPORT (UPSERT)
+            // ----------------------------------------------------
+            var existingRain = await _context.RainfallReports
+                .FirstOrDefaultAsync(r => r.WoredaId == woredaId && r.StartDate == sDate && r.EndDate == eDate);
 
-        // Ensure all child reports have the correct WoredaId
-        model.RainfallReport.WoredaId = woreda.Id;
-        model.FarmingActivity.WoredaId = woreda.Id;
-        model.CropPestAndDeseaseReport.WoredaId = woreda.Id;
-        model.PastureStatus.WoredaId = woreda.Id;
-        model.AnimalWaterSupplyStatus.WoredaId = woreda.Id;
-        model.AnimalHealthStatus.WoredaId = woreda.Id;
+            if (existingRain != null)
+            {
+                existingRain.FullCoverageKebeles = model.RainfallReport.FullCoverageKebeles;
+                existingRain.PartialCoverageKebeles = model.RainfallReport.PartialCoverageKebeles;
+                existingRain.NoRainKebeles = model.RainfallReport.NoRainKebeles;
+                existingRain.HighAmountKebeles = model.RainfallReport.HighAmountKebeles;
+                _context.RainfallReports.Update(existingRain);
 
-        // Set shared dates and status
-        foreach (var report in new dynamic[] {
-            model.RainfallReport,
-            model.FarmingActivity,
-            model.CropPestAndDeseaseReport,
-            model.PastureStatus,
-            model.AnimalWaterSupplyStatus,
-            model.AnimalHealthStatus })
-        {
-            report.StartDate = model.StartDate;
-            report.EndDate = model.EndDate;
-            report.Status = ReportStatus.Draft;
-        }
+                // Sync Kebele Checkboxes (Remove old mapping, insert new ones)
+                var oldKebeles = _context.Locations.Where(k => k.Id == existingRain.Id);
+                _context.Locations.RemoveRange(oldKebeles);
 
-        // Handle kebele selection for RainfallReport
-        model.RainfallReport.SelectedKebeleIds = model.SelectedKebeliesIds ?? new List<Guid>();
-        model.RainfallReport.SelectedDroughtKebeleIds = model.SelectedKebeliesIds ?? new List<Guid>();
-        model.RainfallReport.SerializeKebeles();          // for flood‑affected kebeles
-        model.RainfallReport.SerializeDroughtKebeles();   // for drought‑affected kebeles
+                if (SelectedKebeliesIds != null)
+                {
+                    foreach (var kebeleId in SelectedKebeliesIds)
+                    {
+                        _context.Locations.Add(new Locations { Id = existingRain.Id, ParentId = kebeleId });
+                    }
+                }
+            }
+            else
+            {
+                model.RainfallReport.WoredaId = woredaId;
+                model.RainfallReport.StartDate = sDate;
+                model.RainfallReport.EndDate = eDate;
+                _context.RainfallReports.Add(model.RainfallReport);
+                await _context.SaveChangesAsync(); // Generates ID for newly added Rainfall Report tracking dependencies
 
-        // Handle crop disease selection
-        model.CropPestAndDeseaseReport.SelectedDiseaseIds = model.SelectedCropDiseaseIds ?? new List<Guid>();
-        model.CropPestAndDeseaseReport.SerializeCropDiseases();
+                if (SelectedKebeliesIds != null)
+                {
+                    foreach (var kebeleId in SelectedKebeliesIds)
+                    {
+                        _context.Locations.Add(new Locations { Id = model.RainfallReport.WoredaId, ParentId = kebeleId });
+                    }
+                }
+            }
 
-        // Handle animal disease selection
-        model.AnimalHealthStatus.SelectedDiseaseIds = model.SelectedAnimalDiseaseIds ?? new List<Guid>();
-        model.AnimalHealthStatus.SerializeCropDiseases(); // reuses same method
+            // ----------------------------------------------------
+            // 2. DOMAIN LAYER: FARMING ACTIVITY (UPSERT)
+            // ----------------------------------------------------
+            var existingFarm = await _context.FarmingActivities
+                .FirstOrDefaultAsync(f => f.WoredaId == woredaId && f.StartDate == sDate && f.EndDate == eDate);
 
-        // Validate each report (you can add more validation as needed)
-        if (!ModelState.IsValid)
-        {
-            // Reload lists for redisplay
-            model.Kebelies = await _context.Locations
-                .Where(l => l.ParentId == woreda.Id && l.Level == LocationLevel.ቀበሌ && l.IsActive)
-                .OrderBy(l => l.LocationName)
-                .ToListAsync();
-            model.AnimalDiseases = await _context.AnimalDisease.ToListAsync();
-            model.CropPestAndDeseases = await _context.CropPestAndDesease.ToListAsync();
-            ViewBag.WoredaName = woreda.LocationName;
-            return View(model);
-        }
+            if (existingFarm != null)
+            {
+                existingFarm.MeherFarmPlan = model.FarmingActivity.MeherFarmPlan;
+                existingFarm.MeherPloughed = model.FarmingActivity.MeherPloughed;
+                existingFarm.MeherSown = model.FarmingActivity.MeherSown;
+                existingFarm.MeherHarvestingHHarvesting = model.FarmingActivity.MeherHarvestingHHarvesting;
+                existingFarm.MeherSownWithResidualMoisture = model.FarmingActivity.MeherSownWithResidualMoisture;
 
-        // Save all reports in a transaction
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            await _context.RainfallReports.AddAsync(model.RainfallReport);
-            await _context.FarmingActivities.AddAsync(model.FarmingActivity);
-            await _context.CropPestAndDeseaseReports.AddAsync(model.CropPestAndDeseaseReport);
-            await _context.PastureStatuses.AddAsync(model.PastureStatus);
-            await _context.AnimalWaterSupplyStatuses.AddAsync(model.AnimalWaterSupplyStatus);
-            await _context.AnimalHealthStatuses.AddAsync(model.AnimalHealthStatus);
+                existingFarm.AutumnFarmPlan = model.FarmingActivity.AutumnFarmPlan;
+                existingFarm.AutumnPloughed = model.FarmingActivity.AutumnPloughed;
+                existingFarm.AutumnSown = model.FarmingActivity.AutumnSown;
+                existingFarm.AutumnHarvestingHHarvesting = model.FarmingActivity.AutumnHarvestingHHarvesting;
+                existingFarm.AutumnSownWithResidualMoisture = model.FarmingActivity.AutumnSownWithResidualMoisture;
+
+                _context.FarmingActivities.Update(existingFarm);
+            }
+            else
+            {
+                model.FarmingActivity.WoredaId = woredaId;
+                model.FarmingActivity.StartDate = sDate;
+                model.FarmingActivity.EndDate = eDate;
+                _context.FarmingActivities.Add(model.FarmingActivity);
+            }
+
+            // ----------------------------------------------------
+            // 3. DOMAIN LAYER: CROP PEST AND DISEASE REPORT (UPSERT)
+            // ----------------------------------------------------
+            var existingPest = await _context.CropPestAndDeseaseReports
+                .FirstOrDefaultAsync(p => p.WoredaId == woredaId && p.StartDate == sDate && p.EndDate == eDate);
+
+            if (existingPest != null)
+            {
+                existingPest.HasPestAndDeseasOccured = model.CropPestAndDeseaseReport.HasPestAndDeseasOccured;
+                existingPest.AffectedLandInHectar = model.CropPestAndDeseaseReport.AffectedLandInHectar;
+                existingPest.TypeOfCropAffected = model.CropPestAndDeseaseReport.TypeOfCropAffected;
+                existingPest.Remarks = model.Remarks; // Aggregate overall remarks value directly down to segments
+
+                // Demographic Columns Map Injection Updates
+                MapDemographicProperties(existingPest, model.CropPestAndDeseaseReport);
+
+                _context.CropPestAndDeseaseReports.Update(existingPest);
+
+                var oldPests = _context.CropPestAndDeseaseReports.Where(p => p.CropDiseasesJson == existingPest.Id.ToString());
+                _context.CropPestAndDeseaseReports.RemoveRange(oldPests);
+
+                if (SelectedCropDiseaseIds != null && model.CropPestAndDeseaseReport.HasPestAndDeseasOccured)
+                {
+                    foreach (var pestId in SelectedCropDiseaseIds)
+                    {
+                        _context.CropPestAndDeseaseReports.Add(new CropPestAndDeseaseReport { Id = existingPest.Id, CropDiseasesJson = pestId.ToString() });
+                    }
+                }
+            }
+            else
+            {
+                model.CropPestAndDeseaseReport.WoredaId = woredaId;
+                model.CropPestAndDeseaseReport.StartDate = sDate;
+                model.CropPestAndDeseaseReport.EndDate = eDate;
+                model.CropPestAndDeseaseReport.Remarks = model.Remarks;
+                _context.CropPestAndDeseaseReports.Add(model.CropPestAndDeseaseReport);
+                await _context.SaveChangesAsync();
+
+                if (SelectedCropDiseaseIds != null && model.CropPestAndDeseaseReport.HasPestAndDeseasOccured)
+                {
+                    foreach (var pestId in SelectedCropDiseaseIds)
+                    {
+                        _context.CropPestAndDeseaseReports.Add(new CropPestAndDeseaseReport { Id = model.CropPestAndDeseaseReport.Id, CropDiseasesJson = pestId.ToString() });
+                    }
+                }
+            }
+
+            // ----------------------------------------------------
+            // 4. DOMAIN LAYER: PASTURE STATUS REPORT (UPSERT)
+            // ----------------------------------------------------
+            var existingPasture = await _context.PastureStatuses
+                .FirstOrDefaultAsync(p => p.WoredaId == woredaId && p.StartDate == sDate && p.EndDate == eDate);
+
+            if (existingPasture != null)
+            {
+                existingPasture.Enough = model.PastureStatus.Enough;
+                existingPasture.NumberOfAnimalsAffected = model.PastureStatus.NumberOfAnimalsAffected;
+                existingPasture.Remarks = model.Remarks;
+
+                MapDemographicProperties(existingPasture, model.PastureStatus);
+                _context.PastureStatuses.Update(existingPasture);
+            }
+            else
+            {
+                model.PastureStatus.WoredaId = woredaId;
+                model.PastureStatus.StartDate = sDate;
+                model.PastureStatus.EndDate = eDate;
+                model.PastureStatus.Remarks = model.Remarks;
+                _context.PastureStatuses.Add(model.PastureStatus);
+            }
+
+            // ----------------------------------------------------
+            // 5. DOMAIN LAYER: ANIMAL WATER SUPPLY STATUS (UPSERT)
+            // ----------------------------------------------------
+            var existingWater = await _context.AnimalWaterSupplyStatuses
+                .FirstOrDefaultAsync(w => w.WoredaId == woredaId && w.StartDate == sDate && w.EndDate == eDate);
+
+            if (existingWater != null)
+            {
+                existingWater.Enough = model.AnimalWaterSupplyStatus.Enough;
+                existingWater.NoOfKebeliesWithWaterSupply = model.AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply;
+
+                MapDemographicProperties(existingWater, model.AnimalWaterSupplyStatus);
+                _context.AnimalWaterSupplyStatuses.Update(existingWater);
+            }
+            else
+            {
+                model.AnimalWaterSupplyStatus.WoredaId = woredaId;
+                model.AnimalWaterSupplyStatus.StartDate = sDate;
+                model.AnimalWaterSupplyStatus.EndDate = eDate;
+                _context.AnimalWaterSupplyStatuses.Add(model.AnimalWaterSupplyStatus);
+            }
+
+            // ----------------------------------------------------
+            // 6. DOMAIN LAYER: ANIMAL HEALTH STATUS REPORT (UPSERT)
+            // ----------------------------------------------------
+            var existingHealth = await _context.AnimalHealthStatuses
+                .FirstOrDefaultAsync(h => h.WoredaId == woredaId && h.StartDate == sDate && h.EndDate == eDate);
+
+            if (existingHealth != null)
+            {
+                existingHealth.Enough = model.AnimalHealthStatus.Enough;
+                existingHealth.NoOfKebeliesWithWaterSupply = model.AnimalHealthStatus.NoOfKebeliesWithWaterSupply;
+
+                MapDemographicProperties(existingHealth, model.AnimalHealthStatus);
+                _context.AnimalHealthStatuses.Update(existingHealth);
+
+                var oldDiseases = _context.AnimalHealthStatuses.Where(d => d.Id == existingHealth.Id);
+                _context.AnimalHealthStatuses.RemoveRange(oldDiseases);
+
+                if (SelectedAnimalDiseaseIds != null && !model.AnimalHealthStatus.Enough)
+                {
+                    foreach (var diseaseId in SelectedAnimalDiseaseIds)
+                    {
+                        _context.AnimalHealthStatuses.Add(new AnimalHealthStatus { Id = existingHealth.Id, AnimalDiseaseJson = diseaseId.ToString() });
+                    }
+                }
+            }
+            else
+            {
+                model.AnimalHealthStatus.WoredaId = woredaId;
+                model.AnimalHealthStatus.StartDate = sDate;
+                model.AnimalHealthStatus.EndDate = eDate;
+                _context.AnimalHealthStatuses.Add(model.AnimalHealthStatus);
+                await _context.SaveChangesAsync();
+
+                if (SelectedAnimalDiseaseIds != null && !model.AnimalHealthStatus.Enough)
+                {
+                    foreach (var diseaseId in SelectedAnimalDiseaseIds)
+                    {
+                        _context.AnimalHealthStatuses.Add(new AnimalHealthStatus { Id = model.AnimalHealthStatus.Id, AnimalDiseaseJson = diseaseId.ToString() });
+                    }
+                }
+            }
+
+            // Final Single Unit-of-Work Database Commit Transaction
             await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            TempData["Success"] = "All reports have been saved successfully.";
-            return RedirectToAction("Index", "Home");
+
+            TempData["SuccessMessage"] = "የሳምንቱ መረጃ በተሳካ ሁኔታ ተቀምጧል/ተስተካክሏል!";
+            return RedirectToAction("Index");
         }
-        catch (Exception ex)
+
+        // Reflection-free Demographic Mapping Helper to reduce boilerplate code duplicate footprint
+        private void MapDemographicProperties(dynamic target, dynamic source)
         {
-            await transaction.RollbackAsync();
-            ModelState.AddModelError("", $"An error occurred: {ex.Message}");
-            // Reload lists again
-            model.Kebelies = await _context.Locations
-                .Where(l => l.ParentId == woreda.Id && l.Level == LocationLevel.ቀበሌ && l.IsActive)
-                .OrderBy(l => l.LocationName)
-                .ToListAsync();
-            model.AnimalDiseases = await _context.AnimalDisease.ToListAsync();
-            model.CropPestAndDeseases = await _context.CropPestAndDesease.ToListAsync();
-            ViewBag.WoredaName = woreda.LocationName;
-            return View(model);
+            target.MaleHouseHold = source.MaleHouseHold;
+            target.FemaleHouseHold = source.FemaleHouseHold;
+            target.MaleFamily = source.MaleFamily;
+            target.FemaleFamily = source.FemaleFamily;
+            target.ChildhMale = source.ChildhMale;
+            target.ChildFemale = source.ChildFemale;
+            target.YouthMale = source.YouthMale;
+            target.YouthFemale = source.YouthFemale;
+            target.ElderlyMale = source.ElderlyMale;
+            target.ElderlyFemale = source.ElderlyFemale;
+            target.DisabledMale = source.DisabledMale;
+            target.DisabledFemale = source.DisabledFemale;
+        }
+        private async Task PopulateLookupListsAsync(RegistrationWithardViewModel model)
+        {
+            ViewBag.WoredaSelectList = new SelectList(
+                await _context.Set<Locations>().Where(l => l.Level == LocationLevel.ወረዳ && l.IsActive).ToListAsync(),
+                "Id", "LocationAmharicName", model.WoredaId
+            );
+
+            model.Kebelies = await _context.Set<Locations>().Where(l => l.Level == LocationLevel.ቀበሌ && l.IsActive).ToListAsync();
+            model.AnimalDiseases = await _context.Set<AnimalDisease>().ToListAsync();
+            model.CropPestAndDeseases = await _context.Set<CropPestAndDesease>().ToListAsync();
         }
     }
 }

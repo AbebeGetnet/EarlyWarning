@@ -14,47 +14,72 @@ namespace EarlyWarning.Models
         [DisplayName("የተጎዱ እንስሣት ብዛት")]
         public int NumberOfAnimalsAffected { get; set; }
 
-        [DisplayName("ወንድ አባወራ")]
+        [DisplayName("አባወራ")]
         public int MaleHouseHold { get; set; }
 
-        [DisplayName("ሴት እማወራ")]
+        [DisplayName("እማወራ")]
         public int FemaleHouseHold { get; set; }
 
-        [DisplayName("ወንድ ቤተሰብ")]
+        [DisplayName("ወንድ")]
         public int MaleFamily { get; set; }
 
-        [DisplayName("ሴት ቤተሰብ")]
+        [DisplayName("ሴት ")]
         public int FemaleFamily { get; set; }
-        [DisplayName("ከ5 አመት በታች ህጻናት (ወንድ)")]
+        [DisplayName("ወንድ")]
         public int ChildhMale { get; set; }
 
-        [DisplayName("ህጻናት (ሴት)")]
+        [DisplayName("ሴት")]
         public int ChildFemale { get; set; }
 
-        [DisplayName("ወጣቶች (ወንድ)")]
+        [DisplayName("ወንድ")]
         public int YouthMale { get; set; }
 
-        [DisplayName("ወጣቶች (ሴት)")]
+        [DisplayName("ሴት")]
         public int YouthFemale { get; set; }
 
-        [DisplayName("አረጋውያን (ወንድ)")]
+        [DisplayName("ወንድ")]
         public int ElderlyMale { get; set; }
 
-        [DisplayName("አረጋውያን (ሴት)")]
+        [DisplayName("ሴት")]
         public int ElderlyFemale { get; set; }
 
-        [DisplayName("አካል ጉዳተኞች (ወንድ)")]
+        [DisplayName("ወንድ")]
         public int DisabledMale { get; set; }
-        [NotMapped]
-        public int TotalMale => MaleHouseHold + MaleFamily + ChildhMale + YouthMale + ElderlyMale + DisabledMale;
-
-        [DisplayName("አካል ጉዳተኞች (ሴት)")]
+        
+        [DisplayName("ሴት")]
         public int DisabledFemale { get; set; }
+        [DisplayName("ድምር")]
         [NotMapped]
-        public int TotalFemale => FemaleHouseHold + MaleFamily +ChildFemale +YouthFemale +ElderlyFemale + DisabledFemale;
+        public int TotalHouseHold => MaleHouseHold + FemaleFamily;
+        [DisplayName("ድምር")]
         [NotMapped]
-        public int TotalAffected => TotalFemale+TotalMale;
-                
+        public int TotalFamily => MaleFamily + FemaleFamily;
+        [DisplayName("ድምር")]
+        [NotMapped]
+        public int TotalChild => ChildhMale + ChildFemale;
+        [DisplayName("ድምር")]
+        [NotMapped]
+        public int TotalYouth => YouthMale + YouthFemale;
+        [DisplayName("ድምር")]
+        [NotMapped]
+        public int TotalElderly => ElderlyMale + ElderlyFemale;
+        [DisplayName("ድምር")]
+        [NotMapped]
+        public int TotalDisabled => DisabledMale + DisabledFemale;
+        [NotMapped]
+        [DisplayName("ወንድ")]
+        public int TotalMale => MaleHouseHold + MaleFamily + ChildFemale + YouthMale + ElderlyMale + DisabledMale;
+
+        [NotMapped]
+        [DisplayName("ሴት")]
+
+        public int TotalFemale => FemaleHouseHold + FemaleFamily + ChildFemale + YouthFemale + ElderlyFemale + DisabledFemale;
+        [NotMapped]
+        [DisplayName("ጠቅላላ ድምር")]
+
+        public int TotalAffected => TotalFemale + TotalMale;
+
+
         [Required]
         [DisplayName("ወረዳ")]
         public Guid WoredaId { get; set; }

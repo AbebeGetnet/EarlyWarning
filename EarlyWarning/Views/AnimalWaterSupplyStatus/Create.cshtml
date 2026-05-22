@@ -1,4 +1,4 @@
-﻿@model AnimalWaterSupplyStatus
+﻿@model RegistrationWithardViewModel
 @{
     ViewData["Title"] = "አዲስ የእንስሣት ውሃ አቅርቦት ሁኔታ ሪፖርት";
 }
@@ -18,34 +18,18 @@
                     </div>
                 </div>
                 <hr />
-                <!-- Date range row -->
-                <div class="section-card mb-1 p-3 bg-light rounded">
-                    <h5 class="text-primary-custom"><i class="bi bi-calendar-week"></i> የሪፖርት ጊዜ/ሳምንት</h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label asp-for="StartDate" class="form-label fw-bold"></label>
-                            <input asp-for="StartDate" type="date" required class="form-control" />
-                            <span asp-validation-for="StartDate" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label asp-for="EndDate" class="form-label fw-bold"></label>
-                            <input asp-for="EndDate" type="date" required class="form-control" />
-                            <span asp-validation-for="EndDate" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div id="dateRangeError" class="validation-summary-error" style="display:none;"></div>
-                </div>
+
                 <!-- Radio buttons for Enough / Not Enough -->
                 <div class="row">
                     <div class="col">
                         <label>የውሃ አቅርቦት ሁኔታ</label>
                         <div class="d-flex gap-3 mt-2">
                             <div class="form-check">
-                                <input type="radio" asp-for="Enough" value="true" class="form-check-input" id="enoughTrue" />
+                                <input type="radio" asp-for="AnimalWaterSupplyStatus.Enough" value="true" class="form-check-input" id="enoughTrue" />
                                 <label class="form-check-label" for="enoughTrue">በቂ ነው</label>
                             </div>
                             <div class="form-check">
-                                <input type="radio" asp-for="Enough" value="false" class="form-check-input" id="enoughFalse" />
+                                <input type="radio" asp-for="AnimalWaterSupplyStatus.Enough" value="false" class="form-check-input" id="enoughFalse" />
                                 <label class="form-check-label" for="enoughFalse">በቂ አይደለም</label>
                             </div>
                         </div>
@@ -56,44 +40,69 @@
                 <div id="detailsSection" style="display: none;">
                     <div class="row mt-3">
                         <div class="col">
-                            <label asp-for="NoOfKebeliesWithPastureShortage"></label>
-                            <input asp-for="NoOfKebeliesWithPastureShortage" class="form-control" />
-                        </div>
-                        <div class="col">
-                            <label asp-for="NoOfKebeliesWithWaterSupply"></label>
-                            <input asp-for="NoOfKebeliesWithWaterSupply" class="form-control" />
+                            <label asp-for="AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply"></label>
+                            <input asp-for="AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply" class="form-control" />
                         </div>
                     </div>
-
-                    <h4 class="mt-3">በችግሩ የተጎዳ ማህበረሰብ</h4>
-                    <h5 class="mt-3">የቤተሰብ ብዛት</h5>
+                    <!-- Household demographics -->
                     <div class="row">
-                        <div class="col"><label asp-for="MaleHouseHold"></label><input asp-for="MaleHouseHold" class="form-control" /></div>
-                        <div class="col"><label asp-for="FemaleHouseHold"></label><input asp-for="FemaleHouseHold" class="form-control" /></div>
-                        <div class="col"><label asp-for="MaleFamily"></label><input asp-for="MaleFamily" class="form-control" /></div>
-                        <div class="col"><label asp-for="FemaleFamily"></label><input asp-for="FemaleFamily" class="form-control" /></div>
+                        <div class="col-md-3"><br /><h5>የተጎዳ አባወራና እማወራ</h5></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.MaleHouseHold"></label><input asp-for="AnimalWaterSupplyStatus.MaleHouseHold" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.FemaleHouseHold"></label><input asp-for="AnimalWaterSupplyStatus.FemaleHouseHold" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.TotalHouseHold"></label><input asp-for="AnimalWaterSupplyStatus.TotalHouseHold" class="form-control" disabled /></div>
                     </div>
                     <div class="row">
-                        <div class="col"><label asp-for="ChildhMale"></label><input asp-for="ChildhMale" class="form-control" /></div>
-                        <div class="col"><label asp-for="ChildFemale"></label><input asp-for="ChildFemale" class="form-control" /></div>
-                        <div class="col"><label asp-for="YouthMale"></label><input asp-for="YouthMale" class="form-control" /></div>
-                        <div class="col"><label asp-for="YouthFemale"></label><input asp-for="YouthFemale" class="form-control" /></div>
+                        <div class="col-md-3"><br /><h5>ቤተሰብ </h5></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.MaleFamily"></label><input asp-for="AnimalWaterSupplyStatus.MaleFamily" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.FemaleFamily"></label><input asp-for="AnimalWaterSupplyStatus.FemaleFamily" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.TotalFamily"></label><input asp-for="AnimalWaterSupplyStatus.TotalFamily" class="form-control" disabled /></div>
                     </div>
                     <div class="row">
-                        <div class="col"><label asp-for="ElderlyMale"></label><input asp-for="ElderlyMale" class="form-control" /></div>
-                        <div class="col"><label asp-for="ElderlyFemale"></label><input asp-for="ElderlyFemale" class="form-control" /></div>
-                        <div class="col"><label asp-for="DisabledMale"></label><input asp-for="DisabledMale" class="form-control" /></div>
-                        <div class="col"><label asp-for="DisabledFemale"></label><input asp-for="DisabledFemale" class="form-control" /></div>
+                        <div class="col-md-3"><br /><h5>ህጻናት ከ5 ዓመት በታች </h5></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.ChildhMale"></label><input asp-for="AnimalWaterSupplyStatus.ChildhMale" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.ChildFemale"></label><input asp-for="AnimalWaterSupplyStatus.ChildFemale" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.TotalChild"></label><input asp-for="AnimalWaterSupplyStatus.TotalChild" class="form-control" disabled /></div>
                     </div>
-
-                    <div class="mt-3">
-                        <label asp-for="Remarks"></label>
-                        <textarea asp-for="Remarks" class="form-control"></textarea>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-3"><h5>ወጣት</h5></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.YouthMale"></label><input asp-for="AnimalWaterSupplyStatus.YouthMale" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.YouthFemale"></label><input asp-for="AnimalWaterSupplyStatus.YouthFemale" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.TotalYouth"></label><input asp-for="AnimalWaterSupplyStatus.TotalYouth" class="form-control" disabled /></div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-3"><h5>አረጋዊያን</h5></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.ElderlyMale"></label><input asp-for="AnimalWaterSupplyStatus.ElderlyMale" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.ElderlyFemale"></label><input asp-for="AnimalWaterSupplyStatus.ElderlyFemale" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.TotalElderly"></label><input asp-for="AnimalWaterSupplyStatus.TotalElderly" class="form-control" disabled /></div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-3"><h5>አካል ጉዳተኛ</h5></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.DisabledMale"></label><input asp-for="AnimalWaterSupplyStatus.DisabledMale" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.DisabledFemale"></label><input asp-for="AnimalWaterSupplyStatus.DisabledFemale" class="form-control demographic-input" /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.TotalDisabled"></label><input asp-for="AnimalWaterSupplyStatus.TotalDisabled" class="form-control" disabled /></div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-3"> <br /><h5>በሰብል ተባይ የተጎዳ ጠቅላል ማህበረሰብ </h5></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.TotalMale"></label><input asp-for="AnimalWaterSupplyStatus.TotalMale" class="form-control" disabled /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.TotalFemale"></label><input asp-for="AnimalWaterSupplyStatus.TotalFemale" class="form-control" disabled /></div>
+                        <div class="col-md-3"><label asp-for="AnimalWaterSupplyStatus.TotalAffected"></label><input asp-for="AnimalWaterSupplyStatus.TotalAffected" class="form-control" disabled /></div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-9">
+                            <label asp-for="AnimalWaterSupplyStatus.Remarks"></label>
+                            <textarea asp-for="AnimalWaterSupplyStatus.Remarks" class="form-control"></textarea>
+                        </div>
+                        <div class="card-body">
+                            <button type="submit" class="btn btn-primary mt-3">አስቀምጥ</button>
+                            <a asp-controller="AnimalHealthStatus" asp-action="Create" class="btn btn-secondary mt-3">ተመልሰው</a>
+                        </div>
                     </div>
                 </div>
-
-                <button type="submit" class="btn btn-primary mt-3">አስቀምጥ</button>
-                <a asp-action="Index" class="btn btn-secondary mt-3">ወደ ዝርዝር</a>
             </form>
         </div>
     </div>

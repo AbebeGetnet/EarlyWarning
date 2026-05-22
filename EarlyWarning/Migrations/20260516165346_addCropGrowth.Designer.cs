@@ -4,6 +4,7 @@ using EarlyWarning.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EarlyWarning.Migrations
 {
     [DbContext(typeof(EarlyWarningDbContext))]
-    partial class EarlyWarningDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260516165346_addCropGrowth")]
+    partial class addCropGrowth
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -86,9 +89,6 @@ namespace EarlyWarning.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("MaleHouseHold")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NoOfKebeliesWithWaterSupply")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("RegionApprovedAt")

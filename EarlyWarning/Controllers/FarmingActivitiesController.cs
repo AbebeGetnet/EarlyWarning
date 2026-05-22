@@ -3,6 +3,7 @@ using EarlyWarning.Enums;
 using EarlyWarning.Models;
 using EarlyWarning.Repositories;
 using EarlyWarning.Services;
+using EarlyWarning.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +38,7 @@ namespace EarlyWarning.Controllers
         }
 
         // GET: FarmingActivities/Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(RegistrationWithardViewModel model,DateTime SatrtDate, DateTime EndDate)
         {
             var woreda = await GetCurrentUserWoredaAsync();
             if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
@@ -45,21 +46,17 @@ namespace EarlyWarning.Controllers
                 TempData["Error"] = "Your user account is not linked to a valid woreda.";
                 return RedirectToAction(nameof(Index));
             }
-
-            var model = new FarmingActivity
-            {
-                WoredaId = woreda.Id
-            };
-
-            ViewBag.WoredaName = woreda.LocationName;
+            
             return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(FarmingActivity model)
+        public async Task<IActionResult> CreatePost(RegistrationWithardViewModel model, DateTime StartDate, DateTime EndDate)
         {
             var woreda = await GetCurrentUserWoredaAsync();
+            var currentUser = await _userManager.GetUserAsync(User);
+
             if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
             {
                 TempData["Error"] = "Your user account is not linked to a valid woreda.";
@@ -70,22 +67,26 @@ namespace EarlyWarning.Controllers
             {
                 ModelState.AddModelError("", "Invalid woreda selection.");
             }
-
+         
             // Validate planned fields equal sum of other three attributes
-            ValidateFarmingActivityPlanned(model);
+            ValidateFarmingActivityPlanned(model.FarmingActivity);
+             
 
             if (!ModelState.IsValid)
             {
-                model.WoredaId = woreda.Id;
-                model.Status = ReportStatus.Draft;
+                model.FarmingActivity.WoredaId = woreda.Id;
+                model.FarmingActivity.UserId = currentUser.Id;
+                model.FarmingActivity.StartDate = StartDate;
+                model.FarmingActivity.EndDate = EndDate;
+                model.FarmingActivity.Status = ReportStatus.Draft;
 
-                await _activityService.CreateActivityAsync(model);
-                TempData["Success"] = "Farming activity created successfully.";
-                return RedirectToAction(nameof(Index));
+                await _activityService.CreateActivityAsync(model.FarmingActivity);
+                //TempData["Success"] = "Farming activity created successfully.";
+                return RedirectToAction("Create", "CropPestAndDeseasReports", new { model,model.StartDate, model.EndDate });
             }
 
             ViewBag.WoredaName = woreda.LocationName;
-            return View(model);
+            return View(model.FarmingActivity);
         }
 
         // GET: FarmingActivities/Edit/5

@@ -25,6 +25,7 @@ namespace EarlyWarning.Models
         public float AutumnSown { get; set; }
         public float AutumnHarvestingHHarvesting { get; set; }
         public float AutumnSownWithResidualMoisture { get; set; }
+        public CropGrowthType CropGrowth { get; set; }
 
         // ሁኔታ እና ማጽደቂያዎች
 

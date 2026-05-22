@@ -13,6 +13,8 @@ namespace EarlyWarning.Models
 
         [DisplayName("ወንድ አባወራ")]
         public int MaleHouseHold { get; set; }
+        [DisplayName("የውሃ እጥረት የተከሰተባቸው ቀበሌዎች ብዛት")]
+        public int NoOfKebeliesWithWaterSupply { get; set; }
 
         [DisplayName("ሴት እማወራ")]
         public int FemaleHouseHold { get; set; }
@@ -40,7 +42,7 @@ namespace EarlyWarning.Models
         [DisplayName("ወጣቶች (ሴት)")]
         public int YouthFemale { get; set; }
         [NotMapped]
-        public int Totalyouth => YouthFemale + YouthMale;
+        public int TotalYouth => YouthFemale + YouthMale;
         [DisplayName("አረጋውያን (ወንድ)")]
         public int ElderlyMale { get; set; }
 

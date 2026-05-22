@@ -27,6 +27,8 @@ builder.Services.AddScoped<CropGrowthService>();
 builder.Services.AddScoped<IReportSaveService, ReportSaveService>();
 builder.Services.AddHttpContextAccessor();
 
+// DbContext ???? ApplicationDbContext ????? ????
+builder.Services.AddScoped<DbContext>(provider => provider.GetRequiredService<EarlyWarningDbContext>());
 
 builder.Services.AddDbContext<EarlyWarningDbContext>(options =>
     options.UseSqlServer(connectionString));

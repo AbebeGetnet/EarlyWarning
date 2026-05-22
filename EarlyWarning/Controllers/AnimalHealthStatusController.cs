@@ -2,6 +2,7 @@
 using EarlyWarning.Enums;
 using EarlyWarning.Models;
 using EarlyWarning.Services;
+using EarlyWarning.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +42,7 @@ namespace EarlyWarning.Controllers
         }
 
         // GET: Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(RegistrationWithardViewModel model, DateTime StartDate, DateTime EndDate)
         {
             var woreda = await GetCurrentUserWoredaAsync();
             if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
@@ -51,7 +52,6 @@ namespace EarlyWarning.Controllers
             }
             var animalDeseases = await _dbContext.AnimalDisease.ToListAsync();
 
-            var model = new AnimalHealthStatus { WoredaId = woreda.Id };
 
             ViewBag.AnimalDiseases = animalDeseases;
             ViewBag.WoredaName = woreda.LocationName;
@@ -79,8 +79,8 @@ namespace EarlyWarning.Controllers
                 model.SerializeCropDiseases();
                 model.Status = ReportStatus.Draft;
                 await _service.CreateReportAsync(model);
-                TempData["Success"] = "Animal health status report created successfully.";
-                return RedirectToAction(nameof(Index));
+                //TempData["Success"] = "Animal health status report created successfully.";
+                return RedirectToAction("Create","HumanDrinkWater",new {model,model.StartDate, model.EndDate});
             }
 
             ViewBag.WoredaName = woreda.LocationName;

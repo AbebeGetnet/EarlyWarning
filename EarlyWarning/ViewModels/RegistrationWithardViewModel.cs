@@ -6,8 +6,9 @@ namespace EarlyWarning.ViewModels
     {
         // Shared across all reports
         public Guid WoredaId { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string UserId { get; set; }
         public string? Remarks { get; set; }
 
         public RainfallReport RainfallReport { get; set; }

@@ -1,76 +1,56 @@
-@model FarmingActivity
+@using EarlyWarning.Enums
+@model RegistrationWithardViewModel
 @{
     ViewData["Title"] = "የእርሻ እንቅስቃሴ ሪፖርት";
 }
 <h2>@ViewData["Title"]</h2>
 <h5>ወረዳ: @ViewBag.WoredaName</h5>
 
-<form asp-action="Create" method="post">
+<form asp-action="CreatePost" method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <!-- Date range row -->
-    <div class="section-card mb-1 p-3 bg-light rounded">
-        <h5 class="text-primary-custom"><i class="bi bi-calendar-week"></i> የሪፖርት ጊዜ/ሳምንት</h5>
-        <div class="row">
-            <div class="col-md-6">
-                <label asp-for="StartDate" class="form-label fw-bold"></label>
-                <input asp-for="StartDate" type="date" required class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
-            </div>
-            <div class="col-md-6">
-                <label asp-for="EndDate" class="form-label fw-bold"></label>
-                <input asp-for="EndDate" type="date" required class="form-control" />
-                <span asp-validation-for="EndDate" class="text-danger"></span>
-            </div>
-        </div>
-        <div id="dateRangeError" class="validation-summary-error" style="display:none;"></div>
-    </div>
     <div class="card">
         <div class="card-header bg-primary text-white">
             <h5>መህር (Meher) ተግባር</h5>
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group mb-3">
-                        <label asp-for="MeherFarmPlan" class="form-label">የግብርና ዕቅድ</label>
-                        <input asp-for="MeherFarmPlan" class="form-control" type="number" step="0.01" />
-                        <span asp-validation-for="MeherFarmPlan" class="text-danger"></span>
+                        <label asp-for="FarmingActivity.MeherFarmPlan" class="form-label">የግብርና ዕቅድ</label>
+                        <input asp-for="FarmingActivity.MeherFarmPlan" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="FarmingActivity.MeherFarmPlan" class="text-danger"></span>
                         <div id="meher-validation-error" class="text-danger" style="display: none;">
                             የእርሻ እንቅስቃሴ ዕቅድ ከታረሰው + ከተዘራው + በአጨዳና ስብሰባ + በበቀሪ እርጥበት ከተዘራው ጋር እኩል አልሆነም።
                         </div>
                         <small class="form-text text-muted">የታረሰ + የተዘራ + በአጨዳና መሰብሰብላይ + በቀሪ እርጥበት የተዘራ = ዕቅድ</small>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group mb-3">
-                        <label asp-for="MeherPloughed" class="form-label">የታረሰ</label>
-                        <input asp-for="MeherPloughed" class="form-control" type="number" step="0.01" />
-                        <span asp-validation-for="MeherPloughed" class="text-danger"></span>
+                        <label asp-for="FarmingActivity.MeherPloughed" class="form-label">የታረሰ</label>
+                        <input asp-for="FarmingActivity.MeherPloughed" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="FarmingActivity.MeherPloughed" class="text-danger"></span>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group mb-3">
-                        <label asp-for="MeherSown" class="form-label">የተዘራ</label>
-                        <input asp-for="MeherSown" class="form-control" type="number" step="0.01" />
-                        <span asp-validation-for="MeherSown" class="text-danger"></span>
+                        <label asp-for="FarmingActivity.MeherSown" class="form-label">የተዘራ</label>
+                        <input asp-for="FarmingActivity.MeherSown" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="FarmingActivity.MeherSown" class="text-danger"></span>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group mb-3">
-                        <label asp-for="MeherHarvestingHHarvesting" class="form-label">በአጨዳና ስብሰባ</label>
-                        <input asp-for="MeherHarvestingHHarvesting" class="form-control" type="number" step="0.01" />
-                        <span asp-validation-for="MeherHarvestingHHarvesting" class="text-danger"></span>
+                        <label asp-for="FarmingActivity.MeherHarvestingHHarvesting" class="form-label">በአጨዳና ስብሰባ</label>
+                        <input asp-for="FarmingActivity.MeherHarvestingHHarvesting" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="FarmingActivity.MeherHarvestingHHarvesting" class="text-danger"></span>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group mb-3">
-                        <label asp-for="MeherSownWithResidualMoisture" class="form-label">በእርጥበት የዘነበ</label>
-                        <input asp-for="MeherSownWithResidualMoisture" class="form-control" type="number" step="0.01" />
-                        <span asp-validation-for="MeherSownWithResidualMoisture" class="text-danger"></span>
+                        <label asp-for="FarmingActivity.MeherSownWithResidualMoisture" class="form-label">በእርጥበት የዘነበ</label>
+                        <input asp-for="FarmingActivity.MeherSownWithResidualMoisture" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="FarmingActivity.MeherSownWithResidualMoisture" class="text-danger"></span>
                     </div>
                 </div>
             </div>
@@ -83,71 +63,66 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group mb-3">
-                        <label asp-for="AutumnFarmPlan" class="form-label">ዕቅድ</label>
-                        <input asp-for="AutumnFarmPlan" class="form-control" type="number" step="0.01" />
-                        <span asp-validation-for="AutumnFarmPlan" class="text-danger"></span>
-                        <div id="autumn-validation-error" class="text-danger" style="display: none;">
-                            የግብርና ዕቅድ የታረሰ + የተዘራ + አጨዳና ስብሰባ + በቀሪ እርጥበት የተዘራ ጋር እኩል አልሆነም።
-                        </div>
-                        <small class="form-text text-muted">የታረሰ + የተዘራ + አጨዳና ስብሰባ + በቀሪ እርጥበት የተዘራ = ዕቅድ</small>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label asp-for="AutumnPloughed" class="form-label">የታረሰ</label>
-                        <input asp-for="AutumnPloughed" class="form-control" type="number" step="0.01" />
-                        <span asp-validation-for="AutumnPloughed" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label asp-for="AutumnSown" class="form-label">የተዘራ</label>
-                        <input asp-for="AutumnSown" class="form-control" type="number" step="0.01" />
-                        <span asp-validation-for="AutumnSown" class="text-danger"></span>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label asp-for="AutumnHarvestingHHarvesting" class="form-label">አጨዳና ስብሰባ</label>
-                        <input asp-for="AutumnHarvestingHHarvesting" class="form-control" type="number" step="0.01" />
-                        <span asp-validation-for="AutumnHarvestingHHarvesting" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label asp-for="AutumnSownWithResidualMoisture" class="form-label">በቀሪ እርጥበት የተዘራ የዘነበ</label>
-                        <input asp-for="AutumnSownWithResidualMoisture" class="form-control" type="number" step="0.01" />
-                        <span asp-validation-for="AutumnSownWithResidualMoisture" class="text-danger"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                        <label asp-for="FarmingActivity.AutumnFarmPlan" class="form-label">ዕቅድ</label>
+                        <input asp-for="FarmingActivity.AutumnFarmPlan" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="FarmingActivity.AutumnFarmPlan" class="text-danger"></span>
 
-    <div class="card mt-3">
-        <div class="card-header bg-info text-white">
-            <h5>ተጨማሪ ዝርዝር</h5>
-        </div>
-        <div class="card-body">
-            <div class="form-group mb-3">
-                <label asp-for="Remarks" class="form-label">ማስታወሻ</label>
-                <textarea asp-for="Remarks" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Remarks" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="FarmingActivity.AutumnPloughed" class="form-label">የታረሰ</label>
+                        <input asp-for="FarmingActivity.AutumnPloughed" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="FarmingActivity.AutumnPloughed" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="FarmingActivity.AutumnSown" class="form-label">የተዘራ</label>
+                        <input asp-for="FarmingActivity.AutumnSown" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="FarmingActivity.AutumnSown" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="FarmingActivity.AutumnHarvestingHHarvesting" class="form-label">አጨዳና ስብሰባ</label>
+                        <input asp-for="FarmingActivity.AutumnHarvestingHHarvesting" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="FarmingActivity.AutumnHarvestingHHarvesting" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="FarmingActivity.AutumnSownWithResidualMoisture" class="form-label">በቀሪ እርጥበት የተዘራ የዘነበ</label>
+                        <input asp-for="FarmingActivity.AutumnSownWithResidualMoisture" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="FarmingActivity.AutumnSownWithResidualMoisture" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="FarmingActivity.Remarks" class="form-label">ማስታወሻ</label>
+                        <textarea asp-for="FarmingActivity.Remarks" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="FarmingActivity.Remarks" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="FarmingActivity.CropGrowth" class="form-label">ማስታወሻ</label>
+                        <select asp-for="FarmingActivity.CropGrowth" class="form-control" rows="3" asp-items="Html.GetEnumSelectList<CropGrowthType>()"></select>
+                        <span asp-validation-for="FarmingActivity.CropGrowth" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <br />
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">ፍጠር</button>
+                        <a asp-controller="RainfallReports" asp-action="Create" class="btn btn-secondary px-4">ተመልሰው</a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <input type="hidden" asp-for="WoredaId" />
-    <div class="mt-3">
-        <button type="submit" class="btn btn-primary">ፍጠር</button>
-        <a asp-action="Index" class="btn btn-secondary">ተመልሰው</a>
-    </div>
+    </div>    
 </form>
 
 @section Scripts {

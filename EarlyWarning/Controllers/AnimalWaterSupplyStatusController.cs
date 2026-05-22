@@ -2,6 +2,7 @@
 using EarlyWarning.Enums;
 using EarlyWarning.Models;
 using EarlyWarning.Services;
+using EarlyWarning.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +32,7 @@ namespace EarlyWarning.Controllers
         }
 
         // GET: AnimalWaterSupplyStatus/Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(RegistrationWithardViewModel model)
         {
             var woreda = await GetCurrentUserWoredaAsync();
             if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
@@ -40,14 +41,13 @@ namespace EarlyWarning.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var model = new AnimalWaterSupplyStatus { WoredaId = woreda.Id };
             ViewBag.WoredaName = woreda.LocationName;
             return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(AnimalWaterSupplyStatus model)
+        public async Task<IActionResult> CreatePost(RegistrationWithardViewModel model, DateTime StartDate, DateTime EndDate)
         {
             var woreda = await GetCurrentUserWoredaAsync();
             if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
@@ -56,15 +56,15 @@ namespace EarlyWarning.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (model.WoredaId != woreda.Id)
+            if (model.AnimalWaterSupplyStatus.WoredaId != woreda.Id)
                 ModelState.AddModelError("", "Invalid woreda selection.");
 
             if (!ModelState.IsValid)
             {
-                model.Status = ReportStatus.Draft;
-                await _service.CreateReportAsync(model);
-                TempData["Success"] = "Animal water supply status report created successfully.";
-                return RedirectToAction(nameof(Index));
+                model.AnimalWaterSupplyStatus.Status = ReportStatus.Draft;
+                await _service.CreateReportAsync(model.AnimalWaterSupplyStatus);
+                //TempData["Success"] = "Animal water supply status report created successfully.";
+                return RedirectToAction("Create", "AnimalHealthStatus", new {model});
             }
 
             ViewBag.WoredaName = woreda.LocationName;

@@ -1,0 +1,970 @@
+﻿@model EarlyWarning.ViewModels.RegistrationWithardViewModel
+@using EarlyWarning.Enums
+
+<div class="container-fluid mt-4">
+    <div class="card shadow border-0 rounded-lg">
+        <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-magic me-2"></i>የተቀናጀ የሳምንታዊ መረጃ መሰብሰቢያ ዊዛርድ (Early Warning Data Wizard)</h4>
+            <span class="badge bg-info p-2" id="stepIndicator">ደረጃ 1 ከ 8</span>
+        </div>
+        
+        <div class="progress rounded-0" style="height: 6px;">
+            <div id="wizardProgress" class="progress-bar bg-success" role="progressbar" style="width: 12.5%;"></div>
+        </div>
+
+        <div class="card-body bg-light">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div id="wizardModeBanner" class="alert alert-info py-2 d-none shadow-sm animate-fade-in">
+                <i class="fas fa-info-circle me-2"></i><span id="wizardModeText">አዲስ መረጃ በመፍጠር ላይ...</span>
+            </div>
+
+            <form asp-action="SubmitWizard" method="post" id="earlyWarningForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger mb-3 card p-2 bg-white d-none" id="errorSummaryBox"></div>
+
+                <input type="hidden" asp-for="UserId" />
+                <input type="hidden" id="RecordId" name="RecordId" value="0" />
+
+                <div class="wizard-step" id="step1">
+                    <div class="p-4 bg-white rounded shadow-sm border-top border-primary border-4">
+                        <h4 class="text-primary mb-3"><i class="fas fa-map-marker-alt me-2"></i>ደረጃ 1፡ አጠቃላይ የአካባቢ እና የጊዜ መረጃ</h4>
+                        <div class="alert alert-danger p-2 d-none" id="dateValidationWarning">
+                            <i class="fas fa-exclamation-triangle me-2"></i><strong>የቀን ስህተት፡</strong> እባክዎ ካለፉት 8 ቀናት እስከ ዛሬ ያለውን ቀን ብቻ ያስገቡ (የወደፊት ቀን ወይም ከ8 ቀን የበለሰ መረጃ ማስገባት አይቻልም)።
+                        </div>
+                        <hr />
+                        <div class="row">                            
+                            <div class="col-md-4">
+                                <label class="fw-bold">በወረዳ ያሉ ቀበሌዎች ብዛት</label>
+                                <input id="totalWoredaKebeles" class="form-control text-center bg-light fw-bold text-primary" value="@ViewBag.TotalKebeles" readonly disabled />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="StartDate" class="form-label fw-bold">የመነሻ ቀን (ከ)</label>
+                                <input asp-for="StartDate" id="StartDate" type="date" class="form-control" />
+                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="EndDate" class="form-label fw-bold">የማጠናቀቂያ ቀን (እስከ)</label>
+                                <input asp-for="EndDate" id="EndDate" type="date" class="form-control" />
+                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-step d-none" id="step2">
+                    <div class="p-4 bg-white rounded shadow-sm border-top border-info border-4">
+                        <h4 class="text-info mb-3"><i class="fas fa-cloud-showers-heavy me-2"></i>ደረጃ 2፡ የዝናብ ስርጭት ሁኔታ</h4>
+                        <div class="alert alert-info py-1 mb-3 bg-opacity-10 text-dark border-info">
+                            <i class="fas fa-info-circle me-2 text-info"></i>የወረዳው ጠቅላላ የቀበሌዎች ብዛት ገደብ፦ <span id="woredaKebeleCountBadge" class="fw-bold text-primary">0</span>
+                        </div>
+                        <hr />
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label asp-for="RainfallReport.FullCoverageKebeles" class="form-label"></label>
+                                <input asp-for="RainfallReport.FullCoverageKebeles" id="rainFull" class="form-control text-center" type="number" min="0" value="0" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="RainfallReport.PartialCoverageKebeles" class="form-label"></label>
+                                <input asp-for="RainfallReport.PartialCoverageKebeles" id="rainPartial" class="form-control text-center" type="number" min="0" value="0" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="RainfallReport.NoRainKebeles" class="form-label"></label>
+                                <input asp-for="RainfallReport.NoRainKebeles" id="rainNone" class="form-control text-center" type="number" min="0" value="0" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="RainfallReport.HighAmountKebeles" class="form-label"></label>
+                                <input asp-for="RainfallReport.HighAmountKebeles" id="rainHigh" class="form-control text-center" type="number" min="0" value="0" />
+                            </div>
+                        </div>
+                        <div class="p-3 bg-light rounded shadow-sm border">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-map-signs me-1"></i>በከፍተኛ ዝናብ የተጎዱ ቀበሌዎችን ይምረጡ</label>
+                            <div class="row pt-2 ms-1">
+                                @if (Model.Kebelies != null)
+                                {
+                                    foreach (var kebele in Model.Kebelies)
+                                    {
+                                        <div class="col-md-3 form-check mb-2">
+                                            <input class="form-check-input kebele-checkbox" type="checkbox" name="SelectedKebeliesIds" value="@kebele.Id" data-name="@kebele.LocationAmharicName" id="keb_@kebele.Id" />
+                                            <label class="form-check-label" for="keb_@kebele.Id">@kebele.LocationAmharicName</label>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-step d-none" id="step3">
+                    <div class="p-4 bg-white rounded shadow-sm border-top border-success border-4">
+                        <h4 class="text-success mb-3"><i class="fas fa-seedling me-2"></i>ደረጃ 3፡ የግብርና ስራዎች ክንውን (ሄክታር)</h4>
+                        <div class="alert alert-warning p-2 d-none" id="farmPlanValidationError">
+                            <i class="fas fa-exclamation-triangle me-2"></i><strong>ስህተት፡</strong> የእቅድ መጠን ከተከናወኑት ማናቸውም መስኮች ማነስ አይችልም።
+                        </div>
+                        <hr />
+                        <div class="row g-3">
+                            <div class="col-md-6 border-end">
+                                <h5 class="text-muted border-bottom pb-2">የመኸር ወቅት (Meher Season)</h5>
+                                <div class="mb-2"><label class="fw-bold">የታቀደ (Plan)</label><input asp-for="FarmingActivity.MeherFarmPlan" id="meherPlan" type="number" step="any" min="0" class="form-control" value="0" /></div>
+                                <div class="mb-2"><label>የታረሰ (Ploughed)</label><input asp-for="FarmingActivity.MeherPloughed" id="meherPloughed" type="number" step="any" min="0" class="form-control farm-val-meher" value="0" /></div>
+                                <div class="mb-2"><label>የተዘራ (Sown)</label><input asp-for="FarmingActivity.MeherSown" id="meherSown" type="number" step="any" min="0" class="form-control farm-val-meher" value="0" /></div>
+                                <div class="mb-2"><label>የተሰበሰበ (Harvesting)</label><input asp-for="FarmingActivity.MeherHarvestingHHarvesting" id="meherHarvesting" type="number" step="any" min="0" class="form-control farm-val-meher" value="0" /></div>
+                                <div class="mb-2"><label>በቀሪ እርጥበት የተዘራ</label><input asp-for="FarmingActivity.MeherSownWithResidualMoisture" id="meherResidual" type="number" step="any" min="0" class="form-control farm-val-meher" value="0" /></div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="text-muted border-bottom pb-2">የበልግ ወቅት (Autumn/Belg Season)</h5>
+                                <div class="mb-2"><label class="fw-bold">የታቀደ (Plan)</label><input asp-for="FarmingActivity.AutumnFarmPlan" id="autumnPlan" type="number" step="any" min="0" class="form-control" value="0" /></div>
+                                <div class="mb-2"><label>የታረሰ (Ploughed)</label><input asp-for="FarmingActivity.AutumnPloughed" id="autumnPloughed" type="number" step="any" min="0" class="form-control farm-val-autumn" value="0" /></div>
+                                <div class="mb-2"><label>የተዘራ (Sown)</label><input asp-for="FarmingActivity.AutumnSown" id="autumnSown" type="number" step="any" min="0" class="form-control farm-val-autumn" value="0" /></div>
+                                <div class="mb-2"><label>የተሰበሰበ (Harvesting)</label><input asp-for="FarmingActivity.AutumnHarvestingHHarvesting" id="autumnHarvesting" type="number" step="any" min="0" class="form-control farm-val-autumn" value="0" /></div>
+                                <div class="mb-2"><label>በቀሪ እርጥበት የተዘራ</label><input asp-for="FarmingActivity.AutumnSownWithResidualMoisture" id="autumnResidual" type="number" step="any" min="0" class="form-control farm-val-autumn" value="0" /></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-step d-none" id="step4">
+                    <div class="p-4 bg-white rounded shadow-sm border-top border-warning border-4">
+                        <h4 class="text-warning mb-3"><i class="fas fa-bug me-2"></i>ደረጃ 4፡ የሰብል ተባይ እና በሽታ ሁኔታ</h4>
+                        <hr />
+                        
+                        <div class="card p-3 bg-light mb-3">
+                            <label class="form-label fw-bold mb-2">የሰብል ተባይ እና በሽታ ተከስቷል?</label>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="hasPestRadio" id="hasPestYes" value="true" onchange="toggleCropPestFields()">
+                                    <label class="form-check-label fw-bold text-danger" for="hasPestYes">አዎ ተከስቷል</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="hasPestRadio" id="hasPestNo" value="false" onchange="toggleCropPestFields()" checked>
+                                    <label class="form-check-label fw-bold text-success" for="hasPestNo">አልተከሰተም</label>
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="CropPestAndDeseaseReport.HasPestAndDeseasOccured" id="hasPestSwitch" value="false" />
+                        </div>
+
+                        <div id="cropPestFields" class="d-none">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="CropPestAndDeseaseReport.AffectedLandInHectar" class="form-label"></label>
+                                    <input asp-for="CropPestAndDeseaseReport.AffectedLandInHectar" id="pestHectars" class="form-control" value="0" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="CropPestAndDeseaseReport.TypeOfCropAffected" class="form-label"></label>
+                                    <input asp-for="CropPestAndDeseaseReport.TypeOfCropAffected" id="pestCropType" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-light rounded mb-3 shadow-sm border">
+                                <label class="form-label fw-bold text-danger"><i class="fas fa-virus me-1"></i>የተከሰቱ የበሽታ/ተባይ አይነቶች</label>
+                                <div class="row pt-2 ms-1">
+                                    @if (Model.CropPestAndDeseases != null)
+                                    {
+                                        foreach (var pest in Model.CropPestAndDeseases)
+                                        {
+                                            <div class="col-md-4 form-check mb-2">
+                                                <input class="form-check-input pest-checkbox" type="checkbox" name="SelectedCropDiseaseIds" value="@pest.Id" data-name="@pest.Name" id="pest_@pest.Id" />
+                                                <label class="form-check-label" for="pest_@pest.Id">@pest.Name</label>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በተባይ/በሽታ ምክንያት የተጎዱ አርሶ አደሮች ስብጥር</h5>
+                            <div class="table-responsive bg-white rounded shadow-sm">
+                                <table class="table table-bordered text-center align-middle m-0 calc-table" id="pestTable">
+                                    <thead class="table-warning text-dark">
+                                        <tr>
+                                            <th>የተጎጂዎች ምድብ</th>
+                                            <th style="width: 25%;">ወንድ</th>
+                                            <th style="width: 25%;">ሴት</th>
+                                            <th style="width: 20%;" class="bg-warning bg-opacity-25 fw-bold">ድምር</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="bg-light fw-bold" data-label="አባወራ / እማወራ">አባወራ / እማወራ</td><td><input asp-for="CropPestAndDeseaseReport.MaleHouseHold" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.FemaleHouseHold" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="የቤተሰብ አባላት">የቤተሰብ አባላት</td><td><input asp-for="CropPestAndDeseaseReport.MaleFamily" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.FemaleFamily" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ህጻናት">ህጻናት</td><td><input asp-for="CropPestAndDeseaseReport.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ወጣቶች">ወጣቶች</td><td><input asp-for="CropPestAndDeseaseReport.YouthMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.YouthFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="አረጋውያን">አረጋውያን</td><td><input asp-for="CropPestAndDeseaseReport.ElderlyMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.ElderlyFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="አካል ጉዳተኞች">አካል ጉዳተኞች</td><td><input asp-for="CropPestAndDeseaseReport.DisabledMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.DisabledFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                    </tbody>
+                                    <tfoot class="table-light fw-bold border-top border-2">
+                                        <tr class="text-primary">
+                                            <td>ጠቅላላ ድምር (Grand Total)</td>
+                                            <td class="total-male">0</td>
+                                            <td class="total-female">0</td>
+                                            <td class="bg-primary text-white grand-total">0</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-step d-none" id="step5">
+                    <div class="p-4 bg-white rounded shadow-sm border-top border-success border-4">
+                        <h4 class="text-success mb-3"><i class="fas fa-leaf me-2"></i>ደረጃ 5፡ 
+                            መኖ ሁኔታ (Pasture Status)</h4>
+                        <hr />
+                        
+                        <div class="card p-3 bg-light mb-3">
+                            <label class="form-label fw-bold mb-2">የእንስሳት መኖ አቅርቦት ሁኔታ ምንድነው?</label>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="pastureEnoughRadio" id="pastureEnoughYes" value="true" onchange="togglePastureFields()" checked>
+                                    <label class="form-check-label fw-bold text-success" for="pastureEnoughYes">በቂ ነው</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="pastureEnoughRadio" id="pastureEnoughNo" value="false" onchange="togglePastureFields()">
+                                    <label class="form-check-label fw-bold text-danger" for="pastureEnoughNo">እጥረት አለ</label>
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="PastureStatus.Enough" id="pastureEnoughSwitch" value="true" />
+                        </div>
+
+                        <div id="pastureFields" class="d-none">
+                            <div class="mb-3 col-md-4">
+                                <label asp-for="PastureStatus.NumberOfAnimalsAffected" class="form-label fw-bold text-danger"></label>
+                                <input asp-for="PastureStatus.NumberOfAnimalsAffected" id="pastureAnimalsAffected" class="form-for-int form-control border-danger" type="number" min="0" value="0" />
+                            </div>
+
+                            <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በመኖ እጥረት ምክንያት የተጎዱ አርብቶ አደሮች ስብጥር</h5>
+                            <div class="table-responsive bg-white rounded shadow-sm">
+                                <table class="table table-bordered text-center align-middle m-0 calc-table" id="pastureTable">
+                                    <thead class="table-success text-dark">
+                                        <tr>
+                                            <th>የተጎጂዎች ምድብ</th>
+                                            <th style="width: 40%;">ወንድ</th>
+                                            <th style="width: 40%;">ሴት</th>
+                                            <th style="width: 20%;" class="bg-success bg-opacity-25 fw-bold">ድምር</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="bg-light fw-bold" data-label="አባወራ / እማወራ">አባወራ / እማወራ</td><td><input asp-for="PastureStatus.MaleHouseHold" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.FemaleHouseHold" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="የቤተሰብ አባላት">የቤተሰብ አባላት</td><td><input asp-for="PastureStatus.MaleFamily" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.FemaleFamily" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ህጻናት">ህጻናት</td><td><input asp-for="PastureStatus.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ወጣቶች">ወጣቶች</td><td><input asp-for="PastureStatus.YouthMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.YouthFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="አረጋውያን">አረጋውያን</td><td><input asp-for="PastureStatus.ElderlyMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.ElderlyFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="አካል ጉዳተኞች">አካል ጉዳተኞች</td><td><input asp-for="PastureStatus.DisabledMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.DisabledFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                    </tbody>
+                                    <tfoot class="table-light fw-bold border-top border-2">
+                                        <tr class="text-success">
+                                            <td>ጠቅላላ ድምር (Grand Total)</td>
+                                            <td class="total-male">0</td>
+                                            <td class="total-female">0</td>
+                                            <td class="bg-success text-white grand-total">0</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-step d-none" id="step6">
+                    <div class="p-4 bg-white rounded shadow-sm border-top border-primary border-4">
+                        <h4 class="text-primary mb-3"><i class="fas fa-tint me-2"></i>ደረጃ 6፡ የእንስሳት ውሃ አቅርቦት ሁኔታ</h4>
+                        <hr />
+                        
+                        <div class="card p-3 bg-light mb-3">
+                            <label class="form-label fw-bold mb-2">የእንስሳት ውሃ አቅርቦት ሁኔታ ምንድነው?</label>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="waterEnoughRadio" id="waterEnoughYes" value="true" onchange="toggleWaterFields()" checked>
+                                    <label class="form-check-label fw-bold text-success" for="waterEnoughYes">በቂ ነው</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="waterEnoughRadio" id="waterEnoughNo" value="false" onchange="toggleWaterFields()">
+                                    <label class="form-check-label fw-bold text-danger" for="waterEnoughNo">እጥረት አለ</label>
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="AnimalWaterSupplyStatus.Enough" id="waterEnoughSwitch" value="true" />
+                        </div>
+
+                        <div id="waterFields" class="d-none">
+                            <div class="mb-3 col-md-6">
+                                <label asp-for="AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply" class="form-label"></label>
+                                <input asp-for="AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply" id="waterKebelesCount" class="form-for-int form-control" type="number" min="0" value="0" />
+                            </div>
+
+                            <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በውሃ እጥረት ምክንያት የተጎዱ አርብቶ አደሮች ስብጥር</h5>
+                            <div class="table-responsive bg-white rounded shadow-sm">
+                                <table class="table table-bordered text-center align-middle m-0 calc-table" id="waterTable">
+                                    <thead class="table-primary text-dark">
+                                        <tr>
+                                            <th>የተጎጂዎች ምድብ</th>
+                                            <th style="width: 40%;">ወንድ</th>
+                                            <th style="width: 40%;">ሴት</th>
+                                            <th style="width: 20%;" class="bg-primary bg-opacity-25 fw-bold">ድምር</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="bg-light fw-bold" data-label="አባወራ / እማወራ">አባወራ / እማወራ</td><td><input asp-for="AnimalWaterSupplyStatus.MaleHouseHold" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.FemaleHouseHold" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="የቤተሰብ አባላት">የቤተሰብ አባላት</td><td><input asp-for="AnimalWaterSupplyStatus.MaleFamily" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.FemaleFamily" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ህጻናት">ህጻናት</td><td><input asp-for="AnimalWaterSupplyStatus.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ወጣቶች">ወጣቶች</td><td><input asp-for="AnimalWaterSupplyStatus.YouthMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.YouthFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="አረጋውያን">አረጋውያን</td><td><input asp-for="AnimalWaterSupplyStatus.ElderlyMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.ElderlyFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="አካል ጉዳተኞች">አካል ጉዳተኞች</td><td><input asp-for="AnimalWaterSupplyStatus.DisabledMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.DisabledFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                    </tbody>
+                                    <tfoot class="table-light fw-bold border-top border-2">
+                                        <tr class="text-primary">
+                                            <td>ጠቅላላ ድምር (Grand Total)</td>
+                                            <td class="total-male">0</td>
+                                            <td class="total-female">0</td>
+                                            <td class="bg-primary text-white grand-total">0</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-step d-none" id="step7">
+                    <div class="p-4 bg-white rounded shadow-sm border-top border-danger border-4">
+                        <h4 class="text-danger mb-3"><i class="fas fa-ambulance me-2"></i>ደረጃ 7፡ የእንስሳት ጤና እና በሽታዎች ሁኔታ መመዝገቢያ</h4>
+                        <hr />
+                        
+                        <div class="card p-3 bg-light mb-3">
+                            <label class="form-label fw-bold mb-2">የእንስሳት ጤና ሁኔታ እንዴት ነው?</label>
+                            <div class="d-fl ex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="healthEnoughRadio" id="healthEnoughYes" value="true" onchange="toggleAnimalHealthFields()" checked>
+                                    <label class="form-check-label fw-bold text-success" for="healthEnoughYes">አጥጋቢ / ጤናማ ነው</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="healthEnoughRadio" id="healthEnoughNo" value="false" onchange="toggleAnimalHealthFields()">
+                                    <label class="form-check-label fw-bold text-danger" for="healthEnoughNo">ያልተረጋጋ / የበሽታ ወረርሽኝ አለ</label>
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="AnimalHealthStatus.Enough" id="animalHealthEnoughSwitch" value="true" />
+                        </div>
+                        
+                        <div id="animalHealthFields" class="d-none">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="AnimalHealthStatus.NoOfKebeliesWithWaterSupply" class="form-label fw-bold"></label>
+                                    <input asp-for="AnimalHealthStatus.NoOfKebeliesWithWaterSupply" id="healthAnimalsMale" class="form-for-int form-control" type="number" min="0" value="0" />
+                                </div>
+                            </div>
+                            <div class="p-3 bg-light rounded border mb-3 shadow-sm">
+                                <label class="form-label fw-bold text-dark"><i class="fas fa-shield-virus me-1"></i>የተከሰቱ የእንስሳት በሽታዎች ዝርዝር</label>
+                                <div class="row pt-2 ms-1">
+                                    @if (Model.AnimalDiseases != null)
+                                    {
+                                        foreach (var dis in Model.AnimalDiseases)
+                                        {
+                                            <div class="col-md-4 form-check mb-2">
+                                                <input class="form-check-input health-checkbox" type="checkbox" name="SelectedAnimalDiseaseIds" value="@dis.Id" data-name="@dis.Name" id="an_@dis.Id" />
+                                                <label class="form-check-label" for="an_@dis.Id">@dis.Name</label>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በእንስሳት በሽታ ምክንያት የተጎዱ አርብቶ አደሮች ስብጥር</h5>
+                            <div class="table-responsive bg-white rounded shadow-sm">
+                                <table class="table table-bordered text-center align-middle m-0 calc-table" id="healthTable">
+                                    <thead class="table-danger text-dark">
+                                        <tr>
+                                            <th>የተጎጂዎች ምድብ</th>
+                                            <th style="width: 40%;">ወንድ</th>
+                                            <th style="width: 40%;">ሴት</th>
+                                            <th style="width: 20%;" class="bg-danger bg-opacity-25 fw-bold">ድምር</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="bg-light fw-bold" data-label="አባወራ / እማወራ">አባወራ / እማወራ</td><td><input asp-for="AnimalHealthStatus.MaleHouseHold" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.FemaleHouseHold" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="የቤተሰብ አባላት">የቤተሰብ አባላት</td><td><input asp-for="AnimalHealthStatus.MaleFamily" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.FemaleFamily" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ህጻናት">ህጻናት</td><td><input asp-for="AnimalHealthStatus.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ወጣቶች">ወጣቶች</td><td><input asp-for="AnimalHealthStatus.YouthMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.YouthFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="አረጋውያን">አረጋውያን</td><td><input asp-for="AnimalHealthStatus.ElderlyMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.ElderlyFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="አካል ጉዳተኞች">አካል ጉዳተኞች</td><td><input asp-for="AnimalHealthStatus.DisabledMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.DisabledFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                    </tbody>
+                                    <tfoot class="table-light fw-bold border-top border-2">
+                                        <tr class="text-danger">
+                                            <td>ጠቅላላ ድምር (Grand Total)</td>
+                                            <td class="total-male">0</td>
+                                            <td class="total-female">0</td>
+                                            <td class="bg-danger text-white grand-total">0</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mb-2 mt-4">
+                            <label asp-for="Remarks" class="form-label fw-bold">የማጠቃለያ ተጨማሪ ማስታወሻ ወይም ማብራሪያ (Remarks)</label>
+                            <textarea asp-for="Remarks" id="remarksInput" class="form-control" rows="3" placeholder="አጠቃላይ ተጨማሪ አስተያየት ካለ እዚህ ያስፍሩ..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-step d-none" id="step8">
+                    <div class="p-4 bg-white rounded shadow-sm border-top border-dark border-4">
+                        <h4 class="text-dark mb-3"><i class="fas fa-eye me-2"></i>ደረጃ 8፡ የተመዘገቡ መረጃዎች ማጠቃለያ ቅድመ-ዕይታ (Master Review Dashboard)</h4>
+                        <div class="alert alert-warning py-2 shadow-sm"><i class="fas fa-exclamation-circle me-2"></i><strong>ማሳሰቢያ፡</strong> መረጃውን ወደ ዳታቤዝ ከመላክዎ በፊት ሁሉንም ክፍሎች እዚህ ማረጋገጥ ይችላሉ። ስህተት ካለ "ቀደመው ገጽ" በመጫን ማስተካከል ይቻላል።</div>
+                        <hr />
+
+                        <div id="previewContainer"></div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4 p-3 bg-white rounded shadow-sm">
+                    <button type="button" class="btn btn-secondary px-4 d-none" id="prevBtn" onclick="nextPrev(-1)">
+                        <i class="fas fa-arrow-left me-2"></i>ቀደመው ገጽ
+                    </button>
+                    <button type="button" class="btn btn-primary px-5 ms-auto" id="nextBtn" onclick="nextPrev(1)">
+                        ቀጣይ ገጽ<i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentStep = 0;
+        const steps = document.getElementsByClassName("wizard-step");
+        const totalSteps = steps.length;
+        let currentWoredaMaxKebeles = 0;
+
+        function updateMaxKebeleLimit() {
+            const totalKebelesInput = document.getElementById("totalWoredaKebeles");
+            if (totalKebelesInput) {
+                currentWoredaMaxKebeles = parseInt(totalKebelesInput.value) || 0;
+            }
+            
+            const badge = document.getElementById("woredaKebeleCountBadge");
+            if (badge) {
+                badge.innerText = currentWoredaMaxKebeles;
+            }
+        }
+
+        function showStep(n) {
+            steps[n].classList.remove("d-none");
+            document.getElementById("prevBtn").classList.toggle("d-none", n === 0);
+
+            if (n === (totalSteps - 1)) {
+                buildDataPreviewEngine();
+                document.getElementById("nextBtn").className = "btn btn-success px-5 ms-auto";
+                document.getElementById("nextBtn").innerHTML = 'መረጃውን በአንድነት መዝግብ <i class="fas fa-cloud-upload-alt ms-2"></i>';
+            } else {
+                document.getElementById("nextBtn").className = "btn btn-primary px-5 ms-auto";
+                document.getElementById("nextBtn").innerHTML = 'ቀጣይ ገጽ <i class="fas fa-arrow-right ms-2"></i>';
+            }
+
+            document.getElementById("stepIndicator").innerText = `ደረጃ ${n + 1} ከ ${totalSteps}`;
+            document.getElementById("wizardProgress").style.width = ((n + 1) / totalSteps) * 100 + "%";
+        }
+
+        async function nextPrev(n) {
+            if (n === 1) {
+                let isStepValid = await validateCurrentStep();
+                if (!isStepValid) return false;
+            }
+
+            steps[currentStep].classList.add("d-none");
+            currentStep += n;
+
+            if (currentStep >= totalSteps) {
+                document.getElementById("earlyWarningForm").submit();
+                return false;
+            }
+            showStep(currentStep);
+        }
+
+        // =======================================================
+        // CLIENT-SIDE REALTIME INTEGER TYPE CONSTRAINT EVALUATION
+        // =======================================================
+        document.querySelectorAll(".form-for-int, input[type='number']:not([step='any'])").forEach(input => {
+            input.addEventListener("keydown", function(e) {
+                if (e.key === '.' || e.key === ',') {
+                    e.preventDefault();
+                }
+            });
+
+            input.addEventListener("input", function() {
+                let val = this.value;
+                if (parseFloat(val) < 0) {
+                    this.value = 0;
+                    return;
+                }
+                if (val.includes(".")) {
+                    this.value = Math.floor(parseFloat(val)) || 0;
+                }
+            });
+
+            input.addEventListener("blur", function() {
+                if (this.value.trim() === "") {
+                    this.value = 0;
+                }
+            });
+        });
+
+        // =======================================================
+        // OVERRIDE TOGGLE HANDLERS TO WORK WITH RADIO ACTIONS
+        // =======================================================
+        function toggleCropPestFields() {
+            const value = document.querySelector('input[name="hasPestRadio"]:checked').value === "true";
+            document.getElementById("hasPestSwitch").value = value;
+            document.getElementById("cropPestFields").classList.toggle("d-none", !value);
+        }
+
+        function togglePastureFields() {
+            const value = document.querySelector('input[name="pastureEnoughRadio"]:checked').value === "true";
+            document.getElementById("pastureEnoughSwitch").value = value;
+            document.getElementById("pastureFields").classList.toggle("d-none", value);
+        }
+
+        function toggleWaterFields() {
+            const value = document.querySelector('input[name="waterEnoughRadio"]:checked').value === "true";
+            document.getElementById("waterEnoughSwitch").value = value;
+            document.getElementById("waterFields").classList.toggle("d-none", value);
+        }
+
+        function toggleAnimalHealthFields() {
+            const value = document.querySelector('input[name="healthEnoughRadio"]:checked').value === "true";
+            document.getElementById("animalHealthEnoughSwitch").value = value;
+            document.getElementById("animalHealthFields").classList.toggle("d-none", value);
+        }
+
+        // =======================================================
+        // ASYNC STEP STEP-TRANSITION VALIDATOR WITH BOUNDARY CHECKS
+        // =======================================================
+        async function validateCurrentStep() {
+            let valid = true;
+            updateMaxKebeleLimit();
+            
+            // STEP 1 CONTEXT CHECK
+            if (currentStep === 0) {
+                const woredaSelect = document.getElementById("WoredaId");
+                const startDateInput = document.getElementById("StartDate");
+                const dateWarningAlert = document.getElementById("dateValidationWarning");
+
+                if (!woredaSelect.value) { woredaSelect.classList.add("is-invalid"); valid = false; } 
+                else { woredaSelect.classList.remove("is-invalid"); }
+
+                if (startDateInput.value) {
+                    const selectedDate = new Date(startDateInput.value);
+                    selectedDate.setHours(0,0,0,0);
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    const oldestAllowedDate = new Date(today);
+                    oldestAllowedDate.setDate(today.getDate() - 8);
+
+                    if (selectedDate < oldestAllowedDate || selectedDate > today) {
+                        startDateInput.classList.add("is-invalid");
+                        dateWarningAlert.classList.remove("d-none");
+                        valid = false;
+                    } else {
+                        startDateInput.classList.remove("is-invalid");
+                        dateWarningAlert.classList.add("d-none");
+                    }
+                } else { startDateInput.classList.add("is-invalid"); valid = false; }
+
+                if (!valid) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return false;
+                }
+
+                // API QUERY INTEGRATION
+                try {
+                    let response = await fetch(`/EarlyWarning/GetExistingWizardData?woredaId=${woredaSelect.value}&startDate=${startDateInput.value}&endDate=${document.getElementById("EndDate").value}`);
+                    if (response.ok) {
+                        let data = await response.json();
+                        if (data.exists) {
+                            document.getElementById("RecordId").value = "1";
+                            document.getElementById("wizardModeBanner").classList.remove("d-none", "alert-info");
+                            document.getElementById("wizardModeBanner").classList.add("alert-warning");
+                            document.getElementById("wizardModeText").innerText = `‼️ ማሳሰቢያ፡ ለተመረጠው ወረዳ እና ሳምንት ቀድሞ የተመዘገበ ሪፖርት ተገኝቷል። አሁን የሚሞላው መረጃ የድሮውን ይተካዋል (Edit Mode Active)።`;
+                            hydrateWizardForm(data);
+                        } else {
+                            document.getElementById("RecordId").value = "0";
+                            document.getElementById("wizardModeBanner").classList.remove("d-none", "alert-warning");
+                            document.getElementById("wizardModeBanner").classList.add("alert-info");
+                            document.getElementById("wizardModeText").innerText = "✨ አዲስ ሳምንታዊ መረጃ ምዝገባ (Create Mode Active)...";
+                            resetWizardForm();
+                        }
+                    }
+                } catch (err) { console.error("Database graph API error:", err); }
+            }
+            
+            // STEP 2 METADATA GEOMETRIC SUM LIMIT EVALUATION (Rainfall Report)
+            if (currentStep === 1) {
+                let rFull = parseInt(document.getElementById("rainFull").value) || 0;
+                let rPartial = parseInt(document.getElementById("rainPartial").value) || 0;
+                let rNone = parseInt(document.getElementById("rainNone").value) || 0;
+                let rHigh = parseInt(document.getElementById("rainHigh").value) || 0;
+
+                let totalReportedKebeles = rFull + rPartial + rNone;
+                const rainFields = ["rainFull", "rainPartial", "rainNone", "rainHigh"];
+                
+                rainFields.forEach(id => {
+                    let el = document.getElementById(id);
+                    if (parseInt(el.value) > currentWoredaMaxKebeles) { el.classList.add("is-invalid"); valid = false; } 
+                    else { el.classList.remove("is-invalid"); }
+                });
+
+                if (totalReportedKebeles > currentWoredaMaxKebeles || rHigh > currentWoredaMaxKebeles) {
+                    valid = false;
+                    alert(`⚠️ የተመዘገበው የቀበሌዎች ቁጥር ድምር ከወረዳው ጠቅላላ ቀበሌዎች ብዛት (${currentWoredaMaxKebeles}) መብለጥ አይችልም! እባክዎ ያርሙ።`);
+                }
+                if (!valid) window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // STEP 3 LAND ALLOCATION HIERARCHY EVALUATIONS
+            if (currentStep === 2) {
+                const errorAlert = document.getElementById("farmPlanValidationError");
+                errorAlert.classList.add("d-none");
+                document.querySelectorAll(".farm-val-meher, .farm-val-autumn, #meherPlan, #autumnPlan").forEach(el => el.classList.remove("is-invalid"));
+
+                let meherPlanVal = parseFloat(document.getElementById("meherPlan").value) || 0;
+                document.querySelectorAll(".farm-val-meher").forEach(input => {
+                    if ((parseFloat(input.value) || 0) > meherPlanVal) { input.classList.add("is-invalid"); document.getElementById("meherPlan").classList.add("is-invalid"); valid = false; }
+                });
+
+                let autumnPlanVal = parseFloat(document.getElementById("autumnPlan").value) || 0;
+                document.querySelectorAll(".farm-val-autumn").forEach(input => {
+                    if ((parseFloat(input.value) || 0) > autumnPlanVal) { input.classList.add("is-invalid"); document.getElementById("autumnPlan").classList.add("is-invalid"); valid = false; }
+                });
+                if (!valid) { errorAlert.classList.remove("d-none"); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+            }
+
+            // STEP 6 VALIDATION: ANIMAL WATER SUPPLY FIELD BOUNDARY CHECK
+            if (currentStep === 5) {
+                const waterKebelesInput = document.getElementById("waterKebelesCount");
+                const waterFieldsActive = document.querySelector('input[name="waterEnoughRadio"]:checked').value === "false";
+                
+                if (waterFieldsActive) {
+                    let waterKebelesCount = parseInt(waterKebelesInput.value) || 0;
+                    
+                    if (waterKebelesCount > currentWoredaMaxKebeles) {
+                        waterKebelesInput.classList.add("is-invalid");
+                        alert(`⚠️ የውሃ እጥረት የታየባቸው ቀበሌዎች ብዛት (${waterKebelesCount}) ከወረዳው ጠቅላላ ቀበሌዎች ብዛት (${currentWoredaMaxKebeles}) ሊበልጥ አይችልም!`);
+                        valid = false;
+                        window.scrollTo({ top: waterKebelesInput.offsetTop - 100, behavior: 'smooth' });
+                    } else {
+                        waterKebelesInput.classList.remove("is-invalid");
+                    }
+                }
+            }
+
+            return valid;
+        }
+
+        // =======================================================
+        // HYDRATION AND DATA FLOW SCHEDULER
+        // =======================================================
+        function hydrateWizardForm(data) {
+            document.getElementById("remarksInput").value = data.remarks || "";
+
+            if (data.totalKebelesCount) {
+                document.getElementById("totalWoredaKebeles").value = data.totalKebelesCount;
+            }
+            updateMaxKebeleLimit();
+
+            if (data.rainfall) {
+                document.getElementById("rainFull").value = data.rainfall.full;
+                document.getElementById("rainPartial").value = data.rainfall.partial;
+                document.getElementById("rainNone").value = data.rainfall.none;
+                document.getElementById("rainHigh").value = data.rainfall.high;
+                document.querySelectorAll(".kebele-checkbox").forEach(cb => cb.checked = data.rainfall.kebeleIds.includes(parseInt(cb.value)));
+            }
+
+            if (data.farming) {
+                document.getElementById("meherPlan").value = data.farming.meherPlan;
+                document.getElementById("meherPloughed").value = data.farming.meherPloughed;
+                document.getElementById("meherSown").value = data.farming.meherSown;
+                document.getElementById("meherHarvesting").value = data.farming.meherHarvesting;
+                document.getElementById("meherResidual").value = data.farming.meherResidual;
+                document.getElementById("autumnPlan").value = data.farming.autumnPlan;
+                document.getElementById("autumnPloughed").value = data.farming.autumnPloughed;
+                document.getElementById("autumnSown").value = data.farming.autumnSown;
+                document.getElementById("autumnHarvesting").value = data.farming.autumnHarvesting;
+                document.getElementById("autumnResidual").value = data.farming.autumnResidual;
+            }
+
+            if (data.pest) {
+                document.getElementById(`hasPest${data.pest.hasOccured ? 'Yes' : 'No'}`).checked = true;
+                document.getElementById("pestHectars").value = data.pest.hectars;
+                document.getElementById("pestCropType").value = data.pest.cropType || "";
+                document.querySelectorAll(".pest-checkbox").forEach(cb => cb.checked = data.pest.pestIds.includes(parseInt(cb.value)));
+                const rows = document.getElementById("pestTable").querySelectorAll("tbody tr");
+                mapDemographicInputs(rows[0], data.pest.mHH, data.pest.fHH);
+                mapDemographicInputs(rows[1], data.pest.mFam, data.pest.fFam);
+                mapDemographicInputs(rows[2], data.pest.mChild, data.pest.fChild);
+                mapDemographicInputs(rows[3], data.pest.mYouth, data.pest.fYouth);
+                mapDemographicInputs(rows[4], data.pest.mEld, data.pest.fEld);
+                mapDemographicInputs(rows[5], data.pest.mDis, data.pest.fDis);
+                toggleCropPestFields();
+            }
+
+            if (data.pasture) {
+                document.getElementById(`pastureEnough${data.pasture.enough ? 'Yes' : 'No'}`).checked = true;
+                document.getElementById("pastureAnimalsAffected").value = data.pasture.animalsAffected;
+                const rows = document.getElementById("pastureTable").querySelectorAll("tbody tr");
+                mapDemographicInputs(rows[0], data.pasture.mHH, data.pasture.fHH);
+                mapDemographicInputs(rows[1], data.pasture.mFam, data.pasture.fFam);
+                mapDemographicInputs(rows[2], data.pasture.mChild, data.pasture.fChild);
+                mapDemographicInputs(rows[3], data.pasture.mYouth, data.pasture.fYouth);
+                mapDemographicInputs(rows[4], data.pasture.mEld, data.pasture.fEld);
+                mapDemographicInputs(rows[5], data.pasture.mDis, data.pasture.fDis);
+                togglePastureFields();
+            }
+
+            if (data.water) {
+                document.getElementById(`waterEnough${data.water.enough ? 'Yes' : 'No'}`).checked = true;
+                document.getElementById("waterKebelesCount").value = data.water.kebelesCount;
+                const rows = document.getElementById("waterTable").querySelectorAll("tbody tr");
+                mapDemographicInputs(rows[0], data.water.mHH, data.water.fHH);
+                mapDemographicInputs(rows[1], data.water.mFam, data.water.fFam);
+                mapDemographicInputs(rows[2], data.water.mChild, data.water.fChild);
+                mapDemographicInputs(rows[3], data.water.mYouth, data.water.fYouth);
+                mapDemographicInputs(rows[4], data.water.mEld, data.water.fEld);
+                mapDemographicInputs(rows[5], data.water.mDis, data.water.fDis);
+                toggleWaterFields();
+            }
+
+            if (data.health) {
+                document.getElementById(`healthEnough${data.health.enough ? 'Yes' : 'No'}`).checked = true;
+                document.getElementById("healthAnimalsMale").value = data.health.infectedMale;
+                document.getElementById("healthAnimalsFemale").value = data.health.infectedFemale;
+                document.querySelectorAll(".health-checkbox").forEach(cb => cb.checked = data.health.diseaseIds.includes(parseInt(cb.value)));
+                const rows = document.getElementById("healthTable").querySelectorAll("tbody tr");
+                mapDemographicInputs(rows[0], data.health.mHH, data.health.fHH);
+                mapDemographicInputs(rows[1], data.health.mFam, data.health.fFam);
+                mapDemographicInputs(rows[2], data.health.mChild, data.health.fChild);
+                mapDemographicInputs(rows[3], data.health.mYouth, data.health.fYouth);
+                mapDemographicInputs(rows[4], data.health.mEld, data.health.fEld);
+                mapDemographicInputs(rows[5], data.health.mDis, data.health.fDis);
+                toggleAnimalHealthFields();
+            }
+
+            document.querySelectorAll('.calc-table').forEach(t => calculateGridTotals(t));
+        }
+
+        function mapDemographicInputs(rowDOM, maleVal, femaleVal) {
+            if(!rowDOM) return;
+            rowDOM.querySelector(".val-male").value = maleVal;
+            rowDOM.querySelector(".val-female").value = femaleVal;
+            rowDOM.querySelector(".row-total").innerText = (maleVal + femaleVal).toLocaleString();
+        }
+
+        function resetWizardForm() {
+            document.getElementById("remarksInput").value = "";
+            document.querySelectorAll("input[type='number']").forEach(el => el.value = "0");
+            document.querySelectorAll("input[type='text']").forEach(el => el.value = "");
+            document.querySelectorAll("input[type='checkbox']").forEach(el => el.checked = false);
+            
+            document.getElementById("hasPestNo").checked = true;
+            document.getElementById("pastureEnoughYes").checked = true;
+            document.getElementById("waterEnoughYes").checked = true;
+            document.getElementById("healthEnoughYes").checked = true;
+            
+            toggleCropPestFields();
+            togglePastureFields();
+            toggleWaterFields();
+            toggleAnimalHealthFields();
+            document.querySelectorAll('.calc-table').forEach(t => calculateGridTotals(t));
+        }
+
+        // =======================================================
+        // REAL-TIME MATHEMATICAL MATRIX GRID CALCULATION ENGINE
+        // =======================================================
+        function initMatrixCalculations() {
+            document.querySelectorAll('.calc-table').forEach(table => {
+                table.querySelectorAll('tbody tr').forEach(row => {
+                    const maleInput = row.querySelector('.val-male');
+                    const femaleInput = row.querySelector('.val-female');
+
+                    if(maleInput && femaleInput) {
+                        const calculateRow = () => {
+                            let mValue = parseInt(maleInput.value) || 0;
+                            let fValue = parseInt(femaleInput.value) || 0;
+                            row.querySelector('.row-total').innerText = (mValue + fValue).toLocaleString();
+                            calculateGridTotals(table);
+                        };
+                        maleInput.addEventListener('input', calculateRow);
+                        femaleInput.addEventListener('input', calculateRow);
+                    }
+                });
+            });
+        }
+
+        function calculateGridTotals(table) {
+            let totalMaleSum = 0, totalFemaleSum = 0;
+            table.querySelectorAll('tbody tr').forEach(row => {
+                totalMaleSum += parseInt(row.querySelector('.val-male').value) || 0;
+                totalFemaleSum += parseInt(row.querySelector('.val-female').value) || 0;
+            });
+            table.querySelector('.total-male').innerText = totalMaleSum.toLocaleString();
+            table.querySelector('.total-female').innerText = totalFemaleSum.toLocaleString();
+            table.querySelector('.grand-total').innerText = (totalMaleSum + totalFemaleSum).toLocaleString();
+        }
+
+        // =======================================================
+        // STEP 8 PREVIEW SUMMARY RENDERING CORE ENGINE
+        // =======================================================
+        function buildDataPreviewEngine() {
+            const woredaSelect = document.getElementById("WoredaId");
+            const woredaText = woredaSelect.selectedIndex >= 0 ? woredaSelect.options[woredaSelect.selectedIndex].text : "-";
+            const sDate = document.getElementById("StartDate").value || "-";
+            const eDate = document.getElementById("EndDate").value || "-";
+
+            let selectedKebeles = Array.from(document.querySelectorAll(".kebele-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
+            let selectedPests = Array.from(document.querySelectorAll(".pest-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
+            let selectedDiseases = Array.from(document.querySelectorAll(".health-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
+
+            let isPestActive = document.getElementById("hasPestSwitch").value === "true";
+            let isPastureShort = document.getElementById("pastureEnoughSwitch").value === "false";
+            let isWaterShort = document.getElementById("waterEnoughSwitch").value === "false";
+            let isHealthIssues = document.getElementById("animalHealthEnoughSwitch").value === "false";
+
+            let hasPestData = isPestActive || parseFloat(document.getElementById("pestHectars").value) > 0 || selectedPests !== "ምንም አልተመረጠም";
+            let hasPastureShortage = isPastureShort || parseInt(document.getElementById("pastureAnimalsAffected").value) > 0;
+            let hasWaterShortage = isWaterShort || parseInt(document.getElementById("waterKebelesCount").value) > 0;
+            let hasHealthIssues = isHealthIssues || parseInt(document.getElementById("healthAnimalsMale").value) > 0 || parseInt(document.getElementById("healthAnimalsFemale").value) > 0 || selectedDiseases !== "ምንም አልተመረጠም";
+
+            let html = `
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4"><div class="p-3 bg-white border rounded shadow-sm"><strong>የሪፖርቱ ወረዳ፡</strong> <span class="text-primary fw-bold">${woredaText}</span></div></div>
+                    <div class="col-md-4"><div class="p-3 bg-white border rounded shadow-sm"><strong>የመነሻ ቀን (ከ)፡</strong> <span class="fw-bold">${sDate}</span></div></div>
+                    <div class="col-md-4"><div class="p-3 bg-white border rounded shadow-sm"><strong>የማጠናቀቂያ ቀን (እስከ)፡</strong> <span class="fw-bold">${eDate}</span></div></div>
+                </div>
+
+                <div class="card mb-3 border-info shadow-sm">
+                    <div class="card-header bg-info bg-opacity-10 text-info fw-bold"><i class="fas fa-cloud-showers-heavy me-2"></i>ደረጃ 2፡ የዝናብ ስርጭት ሁኔታ ማጠቃለያ</div>
+                    <div class="card-body bg-white">
+                        <div class="row text-center g-2 mb-2">
+                            <div class="col-6 col-md-3"><div class="p-2 border rounded bg-light"><strong>ሙሉ፡</strong> ${document.getElementById("rainFull").value}</div></div>
+                            <div class="col-6 col-md-3"><div class="p-2 border rounded bg-light"><strong>ከፊል፡</strong> ${document.getElementById("rainPartial").value}</div></div>
+                            <div class="col-6 col-md-3"><div class="p-2 border rounded bg-light"><strong>ዝናብ የለሽ፡</strong> ${document.getElementById("rainNone").value}</div></div>
+                            <div class="col-6 col-md-3"><div class="p-2 border rounded bg-light"><strong>ከፍተኛ፡</strong> ${document.getElementById("rainHigh").value}</div></div>
+                        </div>
+                        <p class="mb-0 mt-2"><strong>በከፍተኛ ዝናብ የተጎዱ ቀበሌዎች፡</strong> <span class="badge bg-secondary p-1">${selectedKebeles}</span></p>
+                    </div>
+                </div>
+
+                <div class="card mb-3 border-success shadow-sm">
+                    <div class="card-header bg-success bg-opacity-10 text-success fw-bold"><i class="fas fa-seedling me-2"></i>ደረጃ 3፡ የግብርና ስራዎች ክንውን (ሄክታር)</div>
+                    <div class="card-body p-0 bg-white">
+                        <table class="table table-sm table-bordered m-0 text-center align-middle">
+                            <thead class="table-light">
+                                <tr><th>ወቅት</th><th>እቅድ (Plan)</th><th>ታረሰ</th><th>ተዘራ</th><th>ተሰበሰበ</th><th>ቀሪ እርጥበት</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="fw-bold bg-light">መኸር (Meher)</td><td class="fw-bold text-primary">${document.getElementById("meherPlan").value}</td><td>${document.getElementById("meherPloughed").value}</td><td>${document.getElementById("meherSown").value}</td><td>${document.getElementById("meherHarvesting").value}</td><td>${document.getElementById("meherResidual").value}</td></tr>
+                                <tr><td class="fw-bold bg-light">በልግ (Autumn)</td><td class="fw-bold text-primary">${document.getElementById("autumnPlan").value}</td><td>${document.getElementById("autumnPloughed").value}</td><td>${document.getElementById("autumnSown").value}</td><td>${document.getElementById("autumnHarvesting").value}</td><td>${document.getElementById("autumnResidual").value}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card mb-3 border-warning shadow-sm">
+                    <div class="card-header bg-warning bg-opacity-10 text-warning fw-bold"><i class="fas fa-bug me-2"></i>ደረጃ 4፡ የሰብል ተባይ እና በሽታ ሁኔታ</div>
+                    <div class="card-body bg-white">
+                        <p><strong>የተከሰተ ተባይ/በሽታ አለ?</strong> ${isPestActive ? '<span class="badge bg-danger">አዎ ተከስቷል</span>' : '<span class="badge bg-success">አልተከሰተም</span>'}</p>
+                        ${hasPestData ? `
+                            <p><strong>የተጎዳ መሬት (ሄክታር)፡</strong> <span class="fw-bold text-danger">${document.getElementById("pestHectars").value}</span> | <strong>የሰብል አይነት፡</strong> <span class="fw-bold">${document.getElementById("pestCropType").value || "-"}</span></p>
+                            <p><strong>የበሽታ አይነቶች፡</strong> <span class="text-danger fw-bold">${selectedPests}</span></p>
+                            ${compileReviewGridHtml('pestTable', 'warning')}
+                        ` : ''}
+                    </div>
+                </div>
+
+                <div class="card mb-3 border-success shadow-sm">
+                    <div class="card-header bg-success bg-opacity-10 text-success fw-bold"><i class="fas fa-leaf me-2"></i>ደረጃ 5፡ የእንስሳት መኖ ሁኔታ (Pasture)</div>
+                    <div class="card-body bg-white">
+                        <p><strong>የመኖ አቅርቦት በቂ ነው?</strong> ${!isPastureShort ? '<span class="badge bg-success">በቂ ነው</span>' : '<span class="badge bg-danger">እጥረት አለ</span>'}</p>
+                        ${hasPastureShortage ? `
+                            <p><strong>በመኖ እጥረት የተጎዱ እንስሳት ብዛት፡</strong> <span class="text-danger fw-bold">${document.getElementById("pastureAnimalsAffected").value}</span></p>
+                            ${compileReviewGridHtml('pastureTable', 'success')}
+                        ` : ''}
+                    </div>
+                </div>
+
+                <div class="card mb-3 border-primary shadow-sm">
+                    <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold"><i class="fas fa-tint me-2"></i>ደረጃ 6፡ የእንስሳት ውሃ አቅርቦት ሁኔታ</div>
+                    <div class="card-body bg-white">
+                        <p><strong>የውሃ አቅርቦት በቂ ነው?</strong> ${!isWaterShort ? '<span class="badge bg-success">በቂ ነው</span>' : '<span class="badge bg-danger">እጥረት አለ</span>'}</p>
+                        ${hasWaterShortage ? `
+                            <p><strong>የውሃ እጥረት የታየባቸው ቀበሌዎች ብዛት፡</strong> <span class="fw-bold text-danger">${document.getElementById("waterKebelesCount").value}</span></p>
+                            ${compileReviewGridHtml('waterTable', 'primary')}
+                        ` : ''}
+                    </div>
+                </div>
+
+                <div class="card mb-3 border-danger shadow-sm">
+                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold"><i class="fas fa-ambulance me-2"></i>ደረጃ 7፡ የእንስሳት ጤና እና በሽታዎች ሁኔታ ማጠቃለያ</div>
+                    <div class="card-body bg-white">
+                        <p><strong>የእንስሳት ጤና ሁኔታ አጥጋቢ ነው?</strong> ${!isHealthIssues ? '<span class="badge bg-success">አዎ አጥጋቢ ነው</span>' : '<span class="badge bg-danger">አጥጋቢ አይደለም (ችግር አለ)</span>'}</p>
+                        ${hasHealthIssues ? `
+                            <p><strong>የሞቱ/የታመሙ እንስሳት፡</strong> ወንድ፦ <span class="fw-bold text-danger">${document.getElementById("healthAnimalsMale").value}</span> | ሴት፦ <span class="fw-bold text-danger">${document.getElementById("healthAnimalsFemale").value}</span></p>
+                            <p><strong>የተከሰቱ በሽታዎች፡</strong> <span class="text-danger fw-bold">${selectedDiseases}</span></p>
+                            ${compileReviewGridHtml('healthTable', 'danger')}
+                        ` : ''}
+                        <div class="p-2 border rounded bg-light mt-3">
+                            <strong>ተጨማሪ ማስታወሻ (Remarks)፦</strong> 
+                            <p class="mb-0 text-muted italic small pt-1">${document.getElementById("remarksInput").value || "ምንም አስተያየት አልተሰጠም"}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById("previewContainer").innerHTML = html;
+        }
+
+        function compileReviewGridHtml(tableId, theme) {
+            const table = document.getElementById(tableId);
+            if (!table) return '';
+            let rowsHtml = '';
+            table.querySelectorAll('tbody tr').forEach(row => {
+                let cell = row.querySelector('td[data-label]');
+                let category = cell ? cell.getAttribute('data-label') : 'ምድብ';
+                let male = row.querySelector('.val-male').value || 0;
+                let female = row.querySelector('.val-female').value || 0;
+                let total = row.querySelector('.row-total').innerText || 0;
+                rowsHtml += `<tr><td class="bg-light fw-bold text-start ps-3">${category}</td><td>${male}</td><td>${female}</td><td class="fw-bold bg-light">${total}</td></tr>`;
+            });
+
+            return `
+                <div class="table-responsive mt-2">
+                    <table class="table table-sm table-bordered text-center m-0" style="font-size:0.85rem;">
+                        <thead class="table-${theme} text-dark">
+                            <tr><th>የተጎጂዎች ምድብ</th><th style="width:25%;">ወንድ</th><th style="width:25%;">ሴት</th><th style="width:20%;">ድምር</th></tr>
+                        </thead>
+                        <tbody>${rowsHtml}</tbody>
+                        <tfoot class="table-light fw-bold text-${theme}">
+                            <tr>
+                                <td class="text-start ps-3">ጠቅላላ ድምር</td>
+                                <td>${table.querySelector('.total-male').innerText}</td>
+                                <td>${table.querySelector('.total-female').innerText}</td>
+                                <td class="bg-${theme} text-white">${table.querySelector('.grand-total').innerText}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>`;
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            showStep(currentStep);
+            updateMaxKebeleLimit();
+            toggleCropPestFields();
+            togglePastureFields();
+            toggleWaterFields();
+            toggleAnimalHealthFields();
+            initMatrixCalculations();
+        });
+    </script>
+}

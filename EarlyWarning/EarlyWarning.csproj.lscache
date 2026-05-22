@@ -90,16 +90,22 @@ Areas/Identity/Pages/Account/
  ResetPasswordConfirmation.cshtml.cs
 Areas/Identity/Pages/Error.cshtml.cs
 Controllers/
+ AnimalDiseasesController.cs
+ AnimalHealthStatusController.cs
+ AnimalWaterSupplyStatusController.cs
  CropGrowthsController.cs
  CropPestAndDeseaseReportsController.cs
  CropPestAndDeseasesController.cs
  FarmingActivitiesController.cs
  HomeController.cs
  LocationsController.cs
+ PastureStatusController.cs
  RainfallReportsController.cs
+ RegistrationWizardController.cs
  RoleManagerController.cs
  RolesController.cs
  UserRolesController.cs
+ WizardController.cs
 Data/EarlyWarningDbContext.cs
 Enums/Enums.cs
 Migrations/
@@ -117,17 +123,42 @@ Migrations/
  20260509202907_AddRejection.Designer.cs
  20260509230055_AddCropFarm.cs
  20260509230055_AddCropFarm.Designer.cs
+ 20260510010530_addcroppestdesease.cs
+ 20260510010530_addcroppestdesease.Designer.cs
+ 20260510223019_AddRemark.cs
+ 20260510223019_AddRemark.Designer.cs
+ 20260510235555_AddPasture.cs
+ 20260510235555_AddPasture.Designer.cs
+ 20260511001508_removeremarks.cs
+ 20260511001508_removeremarks.Designer.cs
+ 20260511004859_removenotenough.cs
+ 20260511004859_removenotenough.Designer.cs
+ 20260511012503_AnimalWaterSupply.cs
+ 20260511012503_AnimalWaterSupply.Designer.cs
+ 20260511050425_AddAnimalHealth.cs
+ 20260511050425_AddAnimalHealth.Designer.cs
+ 20260516165346_addCropGrowth.cs
+ 20260516165346_addCropGrowth.Designer.cs
+ 20260517180625_NoOfKebeliesWithWaterSupplyError.cs
+ 20260517180625_NoOfKebeliesWithWaterSupplyError.Designer.cs
  EarlyWarningDbContextModelSnapshot.cs
 Models/
+ AnimalDisease.cs
+ AnimalHealthStatus.cs
+ AnimalPhysicality.cs
+ AnimalWaterSupplyStatus.cs
  ApplicationUser.cs
  CommonAttribute.cs
  CropGrowth.cs
  CropPestAndDesease.cs
  CropPestAndDeseaseReport.cs
+ EarlyWarningExtensions.cs
  ErrorViewModel.cs
+ ExtendedSelectListItem.cs
  FarmingActivity.cs
  Locations.cs
  PasswordResetKey.cs
+ PastureStatus.cs
  RainFallReport.cs
 obj/Debug/net8.0/
  .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
@@ -136,27 +167,41 @@ obj/Debug/net8.0/
  EarlyWarning.RazorAssemblyInfo.cs
 Program.cs
 Repositories/
+ AnimalHealthStatusRepository.cs
+ AnimalWaterSupplyStatusRepository.cs
  CropGrowthRepository.cs
  CropPestAndDeseasReportRepository.cs
  FarmingActivityRepository.cs
+ IAnimalHealthStatusRepository.cs
+ IAnimalWaterSupplyStatusRepository.cs
  ICropGrowthRepository.cs
  ICropPestAndDeseasReportRepository.cs
  IFarmingActivityRepository.cs
+ IHasWoreda.cs
+ IPastureStatusRepository.cs
  IRainfallReportRepository.cs
+ PastureStatusRepository.cs
  RainfallReportRepository.cs
 Services/
+ AnimalHealthStatusService.cs
+ AnimalWaterSupplyStatusService.cs
  CropGrowthService.cs
  FarmingActivityService.cs
+ IReportSaveService.cs
+ PastureStatusService.cs
  RainfallReportService.cs
 Static files/SD.cs
 ViewModels/
  AddressViewModel.cs
  LocationViewModel.cs
+ RegistrationWithardViewModel.cs
+ RegistrationWizardIndexViewModel.cs
  UserManagementViewModel/
   ManageUserRolesViewModel.cs
   RolesViewModel.cs
   UserProfileViewModel.cs
   UserRolesViewModel.cs
+ WizardViewModel.cs
 
 [metadataReferences]
 <DOTNET>/packs/Microsoft.AspNetCore.App.Ref/8.0.26/ref/net8.0/
@@ -617,6 +662,22 @@ Areas/Identity/Pages/
  _ValidationScriptsPartial.cshtml
  _ViewImports.cshtml
  _ViewStart.cshtml
+Views/AnimalDiseases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalHealthStatus/
+ create.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalWaterSupplyStatus/
+ Create.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/CropGrowths/
  Create.cshtml
  Details.cshtml
@@ -628,8 +689,11 @@ Views/CropPestAndDeseases/
  Details.cshtml
  Edit.cshtml
  Index.cshtml
-Views/CropReports/
+Views/CropPestAndDeseasReports/
  Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
  Index.cshtml
 Views/FarmingActivities/
  Create.cshtml
@@ -654,36 +718,51 @@ Views/Locations/
  UserBasedLocationList.cshtml
  WoredaIndex.cshtml
  ZoneIndex.cshtml
+Views/PastureStatus/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/RainfallReports/
  Create.cshtml
  Details.cshtml
  Edit.cshtml
  Index.cshtml
-Views/Roles/
- Index.cshtml
- Upsert.cshtml
-Views/Shared/
- Error.cshtml
- _CropGrowthDetails.cshtml
- _FarmingActivityDetails.cshtml
- _Layout.cshtml
- _LoginPartial.cshtml
- _Notifications.cshtml
- _ReportDetails.cshtml
- _ValidationScriptsPartial.cshtml
-Views/UserRoles/
- AddPasswordResetKey.cshtml
- ChangePassword.cshtml
- ChangePasswordOwn.cshtml
- DeleteUser.cshtml
- Edit.cshtml
- Index.cshtml
- Manage.cshtml
- ManageRole.cshtml
- PasswordResetKeyIndex.cshtml
- UserIndex.cshtml
- UserRoleIndex.cshtml
 Views/
+ RegisterationWizard/Index.cshtml
+ Roles/
+  Index.cshtml
+  Upsert.cshtml
+ Shared/
+  Error.cshtml
+  _CropGrowthDetails.cshtml
+  _FarmingActivityDetails.cshtml
+  _Layout.cshtml
+  _LoginPartial.cshtml
+  _Notifications.cshtml
+  _ReportDetails.cshtml
+  _ValidationScriptsPartial.cshtml
+ UserRoles/
+  AddPasswordResetKey.cshtml
+  ChangePassword.cshtml
+  ChangePasswordOwn.cshtml
+  DeleteUser.cshtml
+  Edit.cshtml
+  Index.cshtml
+  Manage.cshtml
+  ManageRole.cshtml
+  PasswordResetKeyIndex.cshtml
+  UserIndex.cshtml
+  UserRoleIndex.cshtml
+ Wizard/
+  Index.cshtml
+  Wizard.cshtml
+  _AnimalHealthStep.cshtml
+  _FarmingStep.cshtml
+  _PestDiseaseStep.cshtml
+  _PreviewStep.cshtml
+  _RainfallStep.cshtml
  _ViewImports.cshtml
  _ViewStart.cshtml
 
@@ -731,6 +810,22 @@ Areas/Identity/Pages/
  _ValidationScriptsPartial.cshtml
  _ViewImports.cshtml
  _ViewStart.cshtml
+Views/AnimalDiseases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalHealthStatus/
+ create.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalWaterSupplyStatus/
+ Create.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/CropGrowths/
  Create.cshtml
  Details.cshtml
@@ -742,8 +837,11 @@ Views/CropPestAndDeseases/
  Details.cshtml
  Edit.cshtml
  Index.cshtml
-Views/CropReports/
+Views/CropPestAndDeseasReports/
  Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
  Index.cshtml
 Views/FarmingActivities/
  Create.cshtml
@@ -768,35 +866,50 @@ Views/Locations/
  UserBasedLocationList.cshtml
  WoredaIndex.cshtml
  ZoneIndex.cshtml
+Views/PastureStatus/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/RainfallReports/
  Create.cshtml
  Details.cshtml
  Edit.cshtml
  Index.cshtml
-Views/Roles/
- Index.cshtml
- Upsert.cshtml
-Views/Shared/
- Error.cshtml
- _CropGrowthDetails.cshtml
- _FarmingActivityDetails.cshtml
- _Layout.cshtml
- _LoginPartial.cshtml
- _Notifications.cshtml
- _ReportDetails.cshtml
- _ValidationScriptsPartial.cshtml
-Views/UserRoles/
- AddPasswordResetKey.cshtml
- ChangePassword.cshtml
- ChangePasswordOwn.cshtml
- DeleteUser.cshtml
- Edit.cshtml
- Index.cshtml
- Manage.cshtml
- ManageRole.cshtml
- PasswordResetKeyIndex.cshtml
- UserIndex.cshtml
- UserRoleIndex.cshtml
 Views/
+ RegisterationWizard/Index.cshtml
+ Roles/
+  Index.cshtml
+  Upsert.cshtml
+ Shared/
+  Error.cshtml
+  _CropGrowthDetails.cshtml
+  _FarmingActivityDetails.cshtml
+  _Layout.cshtml
+  _LoginPartial.cshtml
+  _Notifications.cshtml
+  _ReportDetails.cshtml
+  _ValidationScriptsPartial.cshtml
+ UserRoles/
+  AddPasswordResetKey.cshtml
+  ChangePassword.cshtml
+  ChangePasswordOwn.cshtml
+  DeleteUser.cshtml
+  Edit.cshtml
+  Index.cshtml
+  Manage.cshtml
+  ManageRole.cshtml
+  PasswordResetKeyIndex.cshtml
+  UserIndex.cshtml
+  UserRoleIndex.cshtml
+ Wizard/
+  Index.cshtml
+  Wizard.cshtml
+  _AnimalHealthStep.cshtml
+  _FarmingStep.cshtml
+  _PestDiseaseStep.cshtml
+  _PreviewStep.cshtml
+  _RainfallStep.cshtml
  _ViewImports.cshtml
  _ViewStart.cshtml

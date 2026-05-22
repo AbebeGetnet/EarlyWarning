@@ -1,6 +1,7 @@
 ﻿using EarlyWarning.Data;
 using EarlyWarning.Enums;
 using EarlyWarning.Models;
+using EarlyWarning.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ public class CropPestAndDeseasReportsController : Controller
         return View(reports);
     }
     [Authorize(Roles = "Data Encoder")]
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create(RegistrationWithardViewModel model, DateTime StartDate, DateTime EndDate)
     {
         var woreda = await GetCurrentUserWoredaAsync();
         if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
@@ -35,20 +36,19 @@ public class CropPestAndDeseasReportsController : Controller
         }
         var cropPestAndDeseases = await _dbContext.CropPestAndDesease.ToListAsync();
 
-        var model = new CropPestAndDeseaseReport
+        var cropModel = new RegistrationWithardViewModel
         {
-            WoredaId = woreda.Id,
-            HasPestAndDeseasOccured = false,
+            CropPestAndDeseaseReport = model.CropPestAndDeseaseReport,
         };
-        ViewBag.CropPestAndDeseases = cropPestAndDeseases;
-        ViewBag.WoredaName = woreda.LocationName;
-        return View(model);
+        return View(cropModel);
     }
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CropPestAndDeseaseReport model, List<Guid> SelectedDiseaseIds)
+    public async Task<IActionResult> Create(RegistrationWithardViewModel model, List<Guid> SelectedDiseaseIds, DateTime StartDate, DateTime EndDate)
     {
         var woreda = await GetCurrentUserWoredaAsync();
+        var currentUser = await _userManager.GetUserAsync(User);
+
         if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
         {
             TempData["Error"] = "Invalid woreda.";
@@ -60,13 +60,17 @@ public class CropPestAndDeseasReportsController : Controller
 
         if (!ModelState.IsValid)
         {
-            model.Status = ReportStatus.Draft;
-            model.SelectedDiseaseIds = SelectedDiseaseIds ?? new List<Guid>();
-            model.SerializeCropDiseases();
-            await _repository.AddAsync(model);
+            model.CropPestAndDeseaseReport.WoredaId = woreda.Id;
+            model.CropPestAndDeseaseReport.UserId = currentUser.Id;
+            model.CropPestAndDeseaseReport.StartDate = StartDate;
+            model.CropPestAndDeseaseReport.EndDate = EndDate;
+            model.CropPestAndDeseaseReport.Status = ReportStatus.Draft;
+            model.CropPestAndDeseaseReport.SelectedDiseaseIds = SelectedDiseaseIds ?? new List<Guid>();
+            model.CropPestAndDeseaseReport.SerializeCropDiseases();
+            await _repository.AddAsync(model.CropPestAndDeseaseReport);
             await _repository.SaveChangesAsync();
-            TempData["Success"] = "Crop pest/disease report created.";
-            return RedirectToAction(nameof(Index));
+            //TempData["Success"] = "Crop pest/disease report created.";
+            return RedirectToAction("Create", "PastureStatus", new {model, model.StartDate, model.EndDate});
         }
 
         ViewBag.WoredaName = woreda.LocationName;
@@ -128,9 +132,6 @@ public class CropPestAndDeseasReportsController : Controller
                 if (existingReport == null)
                     return NotFound();
 
-                // Update scalar properties using reflection or manually
-                existingReport.StartDate = model.StartDate;
-                existingReport.EndDate = model.EndDate;
                 existingReport.HasPestAndDeseasOccured = model.HasPestAndDeseasOccured;
                 existingReport.AffectedLandInHectar = model.AffectedLandInHectar;
                 existingReport.TypeOfCropAffected = model.TypeOfCropAffected;

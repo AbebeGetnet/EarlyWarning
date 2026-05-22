@@ -1,4 +1,4 @@
-﻿@model PastureStatus
+﻿@model RegistrationWithardViewModel
 @{
     ViewData["Title"] = "የእንስሣት የግጦሽ ሁኔታ";
 }
@@ -8,88 +8,102 @@
             <h3>@ViewData["Title"]</h3>
         </div>
         <div class="card-body">
-            <form asp-action="Create" method="post" id="pastureForm">
+            <form asp-action="CreatePost" method="post" id="pastureForm">
                 @Html.AntiForgeryToken()
-                <input type="hidden" asp-for="WoredaId" />
-                <div class="row">
-                    <div class="col-md-6">
-                        <label>ወረዳ</label>
-                        <input class="form-control" value="@ViewBag.WoredaName" readonly disabled />
-                    </div>
-                </div>
-                <hr />
-                <!-- Date range row -->
-                <div class="section-card mb-1 p-3 bg-light rounded">
-                    <h5 class="text-primary-custom"><i class="bi bi-calendar-week"></i> የሪፖርት ጊዜ/ሳምንት</h5>
+                <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <label asp-for="StartDate" class="form-label fw-bold"></label>
-                            <input asp-for="StartDate" type="date" required class="form-control" />
-                            <span asp-validation-for="StartDate" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label asp-for="EndDate" class="form-label fw-bold"></label>
-                            <input asp-for="EndDate" type="date" required class="form-control" />
-                            <span asp-validation-for="EndDate" class="text-danger"></span>
+                            <label>ወረዳ</label>
+                            <input class="form-control" value="@ViewBag.WoredaName" readonly disabled />
                         </div>
                     </div>
-                    <div id="dateRangeError" class="validation-summary-error" style="display:none;"></div>
-                </div>
-                <!-- Radio buttons for Enough / Not Enough -->
-                <div class="row">
-                    <div class="col">
-                        <label>የግጦሽ መሬት ሁኔታ</label>
-                        <div class="d-flex gap-3 mt-2">
-                            <div class="form-check">
-                                <input type="radio" asp-for="Enough" value="true" class="form-check-input" id="enoughTrue" />
-                                <label class="form-check-label" for="enoughTrue">በቂ ነው</label>
-                            </div>&nbsp;&nbsp;&nbsp;
-                            <div class="form-check">
-                                <input type="radio" asp-for="Enough" value="false" class="form-check-input" id="enoughFalse" />
-                                <label class="form-check-label" for="enoughFalse">በቂ አይደለም</label>
+                    <hr />
+                    <!-- Radio buttons for Enough / Not Enough -->
+                    <div class="row">
+                        <div class="col">
+                            <label>የግጦሽ መሬት ሁኔታ</label>
+                            <div class="d-flex gap-3 mt-2">
+                                <div class="form-check">
+                                    <input type="radio" asp-for="PastureStatus.Enough" value="true" class="form-check-input" id="enoughTrue" />
+                                    <label class="form-check-label" for="enoughTrue">በቂ ነው</label>
+                                </div>&nbsp;&nbsp;&nbsp;
+                                <div class="form-check">
+                                    <input type="radio" asp-for="PastureStatus.Enough" value="false" class="form-check-input" id="enoughFalse" />
+                                    <label class="form-check-label" for="enoughFalse">በቂ አይደለም</label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Detailed fields – hidden when Enough is true -->
-                <div id="detailsSection" style="display: none;">
-                    <div class="row mt-3">
-                        <div class="col">
-                            <label asp-for="NumberOfAnimalsAffected"></label>
-                            <input asp-for="NumberOfAnimalsAffected" class="form-control" />
+                    <!-- Detailed fields – hidden when Enough is true -->
+                    <div id="detailsSection" style="display: none;">
+                        <div class="row mt-3">
+                            <div class="col">
+                                <label asp-for="PastureStatus.NumberOfAnimalsAffected"></label>
+                                <input asp-for="PastureStatus.NumberOfAnimalsAffected" class="form-control" />
+                            </div>
                         </div>
-                    </div>
 
-                    <h4 class="mt-3">በችግሩ የተጎዳ ማህበረሰብ</h4>
-                    <h5 class="mt-3">የቤተሰብ ብዛት</h5>
-                    <div class="row">
-                        <div class="col"><label asp-for="MaleHouseHold"></label><input asp-for="MaleHouseHold" class="form-control" /></div>
-                        <div class="col"><label asp-for="FemaleHouseHold"></label><input asp-for="FemaleHouseHold" class="form-control" /></div>
-                        <div class="col"><label asp-for="MaleFamily"></label><input asp-for="MaleFamily" class="form-control" /></div>
-                        <div class="col"><label asp-for="FemaleFamily"></label><input asp-for="FemaleFamily" class="form-control" /></div>
-                    </div>
-                    <div class="row">
-                        <div class="col"><label asp-for="ChildhMale"></label><input asp-for="ChildhMale" class="form-control" /></div>
-                        <div class="col"><label asp-for="ChildFemale"></label><input asp-for="ChildFemale" class="form-control" /></div>
-                        <div class="col"><label asp-for="YouthMale"></label><input asp-for="YouthMale" class="form-control" /></div>
-                        <div class="col"><label asp-for="YouthFemale"></label><input asp-for="YouthFemale" class="form-control" /></div>
-                    </div>
-                    <div class="row">
-                        <div class="col"><label asp-for="ElderlyMale"></label><input asp-for="ElderlyMale" class="form-control" /></div>
-                        <div class="col"><label asp-for="ElderlyFemale"></label><input asp-for="ElderlyFemale" class="form-control" /></div>
-                        <div class="col"><label asp-for="DisabledMale"></label><input asp-for="DisabledMale" class="form-control" /></div>
-                        <div class="col"><label asp-for="DisabledFemale"></label><input asp-for="DisabledFemale" class="form-control" /></div>
-                    </div>
-
-                    <div class="mt-3">
-                        <label asp-for="Remarks"></label>
-                        <textarea asp-for="Remarks" class="form-control"></textarea>
-                    </div>
+                        <!-- Household demographics -->
+                        <div class="row">
+                            <div class="col-md-3"><br /><h5>የተጎዳ አባወራና እማወራ</h5></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.MaleHouseHold"></label><input asp-for="PastureStatus.MaleHouseHold" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.FemaleHouseHold"></label><input asp-for="PastureStatus.FemaleHouseHold" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.TotalHouseHold"></label><input asp-for="PastureStatus.TotalHouseHold" class="form-control" disabled /></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3"><br /><h5>ቤተሰብ </h5></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.MaleFamily"></label><input asp-for="PastureStatus.MaleFamily" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.FemaleFamily"></label><input asp-for="PastureStatus.FemaleFamily" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.TotalFamily"></label><input asp-for="PastureStatus.TotalFamily" class="form-control" disabled /></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3"><br /><h5>ህጻናት ከ5 ዓመት በታች </h5></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.ChildhMale"></label><input asp-for="PastureStatus.ChildhMale" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.ChildFemale"></label><input asp-for="PastureStatus.ChildFemale" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.TotalChild"></label><input asp-for="PastureStatus.TotalChild" class="form-control" disabled /></div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-3"><h5>ወጣት</h5></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.YouthMale"></label><input asp-for="PastureStatus.YouthMale" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.YouthFemale"></label><input asp-for="PastureStatus.YouthFemale" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.TotalYouth"></label><input asp-for="PastureStatus.TotalYouth" class="form-control" disabled /></div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-3"><h5>አረጋዊያን</h5></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.ElderlyMale"></label><input asp-for="PastureStatus.ElderlyMale" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.ElderlyFemale"></label><input asp-for="PastureStatus.ElderlyFemale" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.TotalElderly"></label><input asp-for="PastureStatus.TotalElderly" class="form-control" disabled /></div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-3"><h5>አካል ጉዳተኛ</h5></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.DisabledMale"></label><input asp-for="PastureStatus.DisabledMale" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.DisabledFemale"></label><input asp-for="PastureStatus.DisabledFemale" class="form-control demographic-input" /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.TotalDisabled"></label><input asp-for="PastureStatus.TotalDisabled" class="form-control" disabled /></div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-3"> <br /><h5>በሰብል ተባይ የተጎዳ ጠቅላል ማህበረሰብ </h5></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.TotalMale"></label><input asp-for="PastureStatus.TotalMale" class="form-control" disabled /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.TotalFemale"></label><input asp-for="PastureStatus.TotalFemale" class="form-control" disabled /></div>
+                            <div class="col-md-3"><label asp-for="PastureStatus.TotalAffected"></label><input asp-for="PastureStatus.TotalAffected" class="form-control" disabled /></div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-9">
+                                <label asp-for="PastureStatus.Remarks"></label>
+                                <textarea asp-for="PastureStatus.Remarks" class="form-control"></textarea>
+                            </div>
+                            <div class="card-body">
+                                <button type="submit" class="btn btn-primary mt-3">አስቀምጥ</button>
+                                <a asp-controller="CropPestAndDeseas" asp-action="Create" class="btn btn-secondary mt-3">ተመልሰው</a>
+                            </div>
+                        </div>
+                    </div>                    
                 </div>
-
-                <button type="submit" class="btn btn-primary mt-3">አስቀምጥ</button>
-                <a asp-action="Index" class="btn btn-secondary mt-3">ወደ ዝርዝር</a>
             </form>
         </div>
     </div>
@@ -97,6 +111,7 @@
 
 @section Scripts {
     <script>
+        // ----- Toggle details section based on "Enough" radio button -----
         function toggleDetails() {
             var enoughRadio = document.getElementById('enoughTrue');
             var details = document.getElementById('detailsSection');
@@ -112,6 +127,23 @@
                 inputs.forEach(function(input) {
                     input.disabled = false;
                 });
+                // Re-disable all total fields (they must stay disabled)
+                var totalFields = [
+                    '#PastureStatus_TotalHouseHold',
+                    '#PastureStatus_TotalFamily',
+                    '#PastureStatus_TotalChild',
+                    '#PastureStatus_TotalYouth',
+                    '#PastureStatus_TotalElderly',
+                    '#PastureStatus_TotalDisabled',
+                    '#PastureStatus_TotalMale',
+                    '#PastureStatus_TotalFemale',
+                    '#PastureStatus_TotalAffected'
+                ];
+                totalFields.forEach(function(selector) {
+                    $(selector).prop('disabled', true);
+                });
+                // Recalculate totals in case any values were present while disabled
+                updateAllTotals();
             }
         }
 
@@ -120,5 +152,62 @@
         enoughTrue.addEventListener('change', toggleDetails);
         enoughFalse.addEventListener('change', toggleDetails);
         toggleDetails(); // initial state
+
+        // ----- Live calculation of demographic totals -----
+        function updateAllTotals() {
+            // Helper to get integer value safely
+            function getIntValue(selector) {
+                var val = $(selector).val();
+                if (!val || isNaN(val)) return 0;
+                return parseInt(val, 10) || 0;
+            }
+
+            // Gather all demographic values
+            var maleHouseHold   = getIntValue('#PastureStatus_MaleHouseHold');
+            var femaleHouseHold = getIntValue('#PastureStatus_FemaleHouseHold');
+            var maleFamily      = getIntValue('#PastureStatus_MaleFamily');
+            var femaleFamily    = getIntValue('#PastureStatus_FemaleFamily');
+            var childMale       = getIntValue('#PastureStatus_ChildhMale');
+            var childFemale     = getIntValue('#PastureStatus_ChildFemale');
+            var youthMale       = getIntValue('#PastureStatus_YouthMale');
+            var youthFemale     = getIntValue('#PastureStatus_YouthFemale');
+            var elderlyMale     = getIntValue('#PastureStatus_ElderlyMale');
+            var elderlyFemale   = getIntValue('#PastureStatus_ElderlyFemale');
+            var disabledMale    = getIntValue('#PastureStatus_DisabledMale');
+            var disabledFemale  = getIntValue('#PastureStatus_DisabledFemale');
+
+            // Subgroup totals
+            var totalHouseHold = maleHouseHold + femaleHouseHold;
+            var totalFamily    = maleFamily + femaleFamily;
+            var totalChild     = childMale + childFemale;
+            var totalYouth     = youthMale + youthFemale;
+            var totalElderly   = elderlyMale + elderlyFemale;
+            var totalDisabled  = disabledMale + disabledFemale;
+
+            // Overall gender totals
+            var totalMale   = maleHouseHold + maleFamily + childMale + youthMale + elderlyMale + disabledMale;
+            var totalFemale = femaleHouseHold + femaleFamily + childFemale + youthFemale + elderlyFemale + disabledFemale;
+            var totalAffected = totalMale + totalFemale;
+
+            // Update disabled total fields (they remain disabled)
+            $('#PastureStatus_TotalHouseHold').val(totalHouseHold);
+            $('#PastureStatus_TotalFamily').val(totalFamily);
+            $('#PastureStatus_TotalChild').val(totalChild);
+            $('#PastureStatus_TotalYouth').val(totalYouth);
+            $('#PastureStatus_TotalElderly').val(totalElderly);
+            $('#PastureStatus_TotalDisabled').val(totalDisabled);
+            $('#PastureStatus_TotalMale').val(totalMale);
+            $('#PastureStatus_TotalFemale').val(totalFemale);
+            $('#PastureStatus_TotalAffected').val(totalAffected);
+        }
+
+        // Attach event listeners to all demographic input fields (class 'demographic-input')
+        $(document).ready(function() {
+            $('.demographic-input').on('input', function() {
+                updateAllTotals();
+            });
+            // Initial calculation in case server pre-populates values
+            updateAllTotals();
+        });
     </script>
 }

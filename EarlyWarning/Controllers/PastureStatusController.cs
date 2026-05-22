@@ -2,6 +2,7 @@
 using EarlyWarning.Enums;
 using EarlyWarning.Models;
 using EarlyWarning.Services;
+using EarlyWarning.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +32,7 @@ namespace EarlyWarning.Controllers
         }
 
         // GET: PastureStatus/Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(RegistrationWithardViewModel model, DateTime StartDate, DateTime EndDate)
         {
             var woreda = await GetCurrentUserWoredaAsync();
             if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
@@ -40,16 +41,17 @@ namespace EarlyWarning.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var model = new PastureStatus { WoredaId = woreda.Id };
             ViewBag.WoredaName = woreda.LocationName;
             return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PastureStatus model)
+        public async Task<IActionResult> CreatePost(RegistrationWithardViewModel model,DateTime StartDate, DateTime EndDate)
         {
             var woreda = await GetCurrentUserWoredaAsync();
+            var currentUser = await _userManager.GetUserAsync(User);
+
             if (woreda == null || woreda.Level != LocationLevel.ወረዳ)
             {
                 TempData["Error"] = "Your user account is not linked to a valid woreda.";
@@ -61,10 +63,13 @@ namespace EarlyWarning.Controllers
 
             if (!ModelState.IsValid)
             {
-                model.Status = ReportStatus.Draft;
-                await _service.CreateReportAsync(model);
-                TempData["Success"] = "Pasture status report created successfully.";
-                return RedirectToAction(nameof(Index));
+                model.PastureStatus.WoredaId = woreda.Id;
+                model.PastureStatus.UserId = currentUser.Id;      
+                model.PastureStatus.UserId = model.UserId;
+                model.PastureStatus.Status = ReportStatus.Draft;
+                await _service.CreateReportAsync(model.PastureStatus);
+                //TempData["Success"] = "Pasture status report created successfully.";
+                return RedirectToAction("Create", "AnimalWaterSupplyStatus", new { model});
             }
 
             ViewBag.WoredaName = woreda.LocationName;

@@ -94,4 +94,8 @@ body {
     .text-primary-custom {
         color: #1976d2 !important;
     }
+    /* Center all h5 headings */
+    h5 {
+        text-align: center;
+    }
 }

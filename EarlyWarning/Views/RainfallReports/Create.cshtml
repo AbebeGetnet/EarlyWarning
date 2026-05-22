@@ -1,4 +1,4 @@
-﻿@model RainfallReport
+﻿@model RegistrationWithardViewModel
 @{
     ViewData["Title"] = "አዲስ የዝናብ ሪፖርት";
 }
@@ -86,45 +86,41 @@
             <form asp-action="Create" method="post" id="rainfallForm">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="WoredaId" />
+                <input type="hidden" asp-for="UserId" />
+                <input type="hidden" asp-for="RainfallReport.UserId" />
                 <input type="hidden" id="totalKebeles" value="@ViewBag.TotalKebeles" />
 
-                <div class="row mb-2">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">ወረዳ</label>
-                        <input type="text" class="form-control" value="@ViewBag.WoredaName" readonly disabled />
+                <div class="row">
+                    <div class="col-md-2">
+                        <label>ወረዳ</label>
+                        <input class="form-control" value="@ViewBag.WoredaName" readonly disabled />
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-2">
                         <label class="form-label fw-bold">ጠቅላላ ቀበሌዎች</label>
                         <input type="text" class="form-control" value="@ViewBag.TotalKebeles" readonly disabled />
                     </div>
-                </div>
-
-                <!-- Date range row -->
-                <div class="section-card mb-1 p-3 bg-light rounded">
-                    <h5 class="text-primary-custom"><i class="bi bi-calendar-week"></i> የሪፖርት ጊዜ/ሳምንት</h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label asp-for="StartDate" class="form-label fw-bold"></label>
-                            <input asp-for="StartDate" type="date" required class="form-control" />
-                            <span asp-validation-for="StartDate" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label asp-for="EndDate" class="form-label fw-bold"></label>
-                            <input asp-for="EndDate" type="date" required class="form-control" />
-                            <span asp-validation-for="EndDate" class="text-danger"></span>
-                        </div>
+                    <div class="col-mb-2">
+                        <br />
+                        <h6>ሪፖርቱ የሚሸፍነው</h6>
                     </div>
-                    <div id="dateRangeError" class="validation-summary-error" style="display:none;"></div>
+                    <div class="col-mb-3">
+                        <label asp-for="RainfallReport.StartDate"></label>
+                        <input asp-for="RainfallReport.StartDate" class="form-control" />
+                    </div>
+                    <div class="col-mb-3">
+                        <label asp-for="RainfallReport.EndDate"></label>
+                        <input asp-for="RainfallReport.EndDate" class="form-control" />
+                    </div>
                 </div>
 
                 <!-- Coverage section -->
                 <div class="section-card mb-1 p-3 bg-light rounded">
                     <h5 class="text-primary-custom"><i class="bi bi-brightness-alt-high"></i> የዝናብ ሽፋን (የቀበሌዎች ብዛት)</h5>
                     <div class="row">
-                        <div class="col"><label asp-for="FullCoverageKebeles"></label> <input asp-for="FullCoverageKebeles" class="form-control coverage-field" type="number" min="0" /></div>
-                        <div class="col"><label asp-for="PartialCoverageKebeles"></label> <input asp-for="PartialCoverageKebeles" class="form-control coverage-field" type="number" min="0" /></div>
-                        <div class="col"><label asp-for="NoRainKebeles"></label> <input asp-for="NoRainKebeles" class="form-control coverage-field" type="number" min="0" /></div>
-                        <div class="col"><label asp-for="NoDataKebeles"></label> <input asp-for="NoDataKebeles" class="form-control coverage-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="RainfallReport.FullCoverageKebeles"></label> <input asp-for="RainfallReport.FullCoverageKebeles" class="form-control coverage-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="RainfallReport.PartialCoverageKebeles"></label> <input asp-for="RainfallReport.PartialCoverageKebeles" class="form-control coverage-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="RainfallReport.NoRainKebeles"></label> <input asp-for="RainfallReport.NoRainKebeles" class="form-control coverage-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="RainfallReport.NoDataKebeles"></label> <input asp-for="RainfallReport.NoDataKebeles" class="form-control coverage-field" type="number" min="0" /></div>
                     </div>
                     <div id="coverageError" class="validation-summary-error" style="display:none;"></div>
                 </div>
@@ -133,14 +129,14 @@
                 <div class="section-card mb-1 p-3 bg-light rounded">
                     <h5 class="text-primary-custom"><i class="bi bi-droplet"></i> የዝናብ መጠን (የቀበሌዎች ብዛት)</h5>
                     <div class="row">
-                        <div class="col"><label asp-for="LowAmountKebeles"></label> <input asp-for="LowAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
-                        <div class="col"><label asp-for="LowMediumAmountKebeles"></label> <input asp-for="LowMediumAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
-                        <div class="col"><label asp-for="MediumAmountKebeles"></label> <input asp-for="MediumAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="RainfallReport.LowAmountKebeles"></label> <input asp-for="RainfallReport.LowAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="RainfallReport.LowMediumAmountKebeles"></label> <input asp-for="RainfallReport.LowMediumAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="RainfallReport.MediumAmountKebeles"></label> <input asp-for="RainfallReport.MediumAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
                     </div>
                     <br />
                     <div class="row">
-                        <div class="col"><label asp-for="MediumHighAmountKebeles"></label> <input asp-for="MediumHighAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
-                        <div class="col"><label asp-for="HighAmountKebeles"></label> <input asp-for="HighAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="RainfallReport.MediumHighAmountKebeles"></label> <input asp-for="RainfallReport.MediumHighAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
+                        <div class="col"><label asp-for="RainfallReport.HighAmountKebeles"></label> <input asp-for="RainfallReport.HighAmountKebeles" class="form-control amount-field" type="number" min="0" /></div>
                     </div>
                     <div id="amountError" class="validation-summary-error" style="display:none;"></div>
                 </div>
@@ -200,17 +196,17 @@
                         }
                     </div>
                 </div>
-@* 
+
                 <!-- Remarks -->
                 <div class="mb-4">
-                    <label asp-for="Remarks" class="form-label"></label>
-                    <textarea asp-for="Remarks" class="form-control" rows="2"></textarea>
-                </div> *@
+                    <label asp-for="RainfallReport.Remarks" class="form-label"></label>
+                    <textarea asp-for="RainfallReport.Remarks" class="form-control" rows="2"></textarea>
+                </div>
 
                 <!-- Buttons -->
                 <div class="mt-4 d-flex gap-2">
                     <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save"></i> አስቀምጥ</button>
-                    <a asp-action="Index" class="btn btn-secondary px-4"><i class="bi bi-arrow-left"></i> ተመለስ</a>
+                    <a asp-controller="RainfallReports" asp-action="Create" class="btn btn-secondary px-4">ተመልሰው</a>
                 </div>
             </form>
         </div>
@@ -225,10 +221,10 @@
     <script src="~/js/dateRangeValidator.js"></script>
     <script>
         $(document).ready(function() {
-            // Date range validation
+            // Date range validation - use correct IDs
             $('form').validateDateRange({
-                startDateSelector: '#StartDate',
-                endDateSelector: '#EndDate',
+                startDateSelector: '#RainfallReport_StartDate',
+                endDateSelector: '#RainfallReport_EndDate',
                 maxDays: 8,
                 errorMessage: 'የሪፖርት ጊዜው ከሳምንት መብለጥ የለበትም (ቢበዛ 7 ቀናት)።',
                 errorSpanId: 'dateRangeError'
