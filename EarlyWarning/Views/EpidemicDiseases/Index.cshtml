@@ -1,0 +1,762 @@
+﻿@model IEnumerable<EarlyWarning.Models.EpidemicDisease.EpidemicDisease>
+
+@{
+    ViewData["Title"] = "የወረርሽኝ በሽታ ሪፖርቶች";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+    .btn-create {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+    .stat-header {
+        padding: 15px 20px;
+        text-align: center;
+        color: white;
+    }
+
+        .stat-header.purple {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-header.red {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-header.orange {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .stat-header.green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+    .stat-body {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+        overflow: hidden;
+    }
+
+    .filter-header {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-bottom: 1px solid #e0e0e0;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .filter-header:hover {
+            background: #e9ecef;
+        }
+
+    .filter-body {
+        padding: 20px;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table thead th {
+            background: #f8f9fa;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+            .table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        .table tbody td {
+            padding: 10px 12px;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+    .badge-epidemic {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 5px 12px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+
+    .badge-no-epidemic {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        padding: 5px 12px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+    .search-box {
+        margin-bottom: 20px;
+    }
+
+        .search-box input {
+            border-radius: 25px;
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            width: 300px;
+            transition: all 0.3s ease;
+        }
+
+            .search-box input:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+                outline: none;
+            }
+
+    .export-buttons {
+        margin-bottom: 15px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-export {
+        border-radius: 8px;
+        padding: 6px 15px;
+        font-size: 0.8rem;
+    }
+
+    .table-footer {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 0 0 15px 15px;
+    }
+
+    .footer-stats {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .footer-stat-item {
+        text-align: center;
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .footer-stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .footer-stat-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+    }
+
+    @@media (max-width: 768px) {
+        .stat-number {
+            font-size: 1.5rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .search-box input {
+            width: 100%;
+        }
+
+        .table thead th {
+            font-size: 0.7rem;
+            padding: 8px;
+        }
+
+        .table tbody td {
+            padding: 6px 8px;
+            font-size: 0.75rem;
+        }
+
+        .export-buttons {
+            justify-content: center;
+        }
+
+        .footer-stat-number {
+            font-size: 1.2rem;
+        }
+
+        .table-footer {
+            display: block !important;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+    }
+
+    /* Animation */
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    .table-container {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    /* Scrollbar Styles */
+    .table-responsive::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 10px;
+    }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1>
+                    <i class="fas fa-virus"></i> @ViewData["Title"]
+                </h1>
+                <p>በሳምንቱ የተከሰቱ የወረርሽኝ በሽታዎችን ይመልከቱ፣ ያስተዳድሩ እና አዲስ ሪፖርት ይመዝግቡ</p>
+            </div>
+            <div>
+                <a asp-action="Create" class="btn btn-create">
+                    <i class="fas fa-plus-circle"></i> አዲስ ሪፖርት
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @{
+        var totalReports = Model.Count();
+        var reportsWithEpidemic = Model.Count(x => x.HasEpidemicDisease);
+        var totalAffectedKebeles = Model.Sum(x => x.NumberOfAffectedKebeles);
+        // var totalAffectedPopulation = Model.Sum(x => x.TotalAffectedPopulation);
+    }
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header purple">
+                    <i class="fas fa-file-alt fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@totalReports.ToString("N0")</div>
+                    <div class="stat-label">ጠቅላላ ሪፖርቶች</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header red">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@reportsWithEpidemic.ToString("N0")</div>
+                    <div class="stat-label">ወረርሽኝ ያለባቸው</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header orange">
+                    <i class="fas fa-map-marked-alt fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@totalAffectedKebeles.ToString("N0")</div>
+                    <div class="stat-label">የተጎዱ ቀበሌዎች</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header green">
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    @* <div class="stat-number">@totalAffectedPopulation.ToString("N0")</div> *@
+                    <div class="stat-label">አጠቃላይ ተጎጆች</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="filter-card">
+        <div class="filter-header" onclick="$('#filterBody').slideToggle()">
+            <i class="fas fa-filter"></i> ማጣሪያ
+            <i class="fas fa-chevron-down float-right"></i>
+        </div>
+        <div class="filter-body" id="filterBody" style="display: none;">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">ከቀን</label>
+                    <input type="date" id="filterStartDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">እስከ ቀን</label>
+                    <input type="date" id="filterEndDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">ወረዳ</label>
+                    <select id="filterWoreda" class="form-control">
+                        <option value="">-- ሁሉም --</option>
+                        @if (ViewBag.Woredas != null)
+                        {
+                            foreach (var woreda in ViewBag.Woredas)
+                            {
+                                <option value="@woreda.WoredaId">@woreda.LocationAmharicName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">ወረርሽኝ ሁኔታ</label>
+                    <select id="filterHasEpidemic" class="form-control">
+                        <option value="">-- ሁሉም --</option>
+                        <option value="true">አለ</option>
+                        <option value="false">የለም</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button class="btn btn-primary" onclick="applyFilter()">
+                        <i class="fas fa-search"></i> ፈልግ
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetFilter()">
+                        <i class="fas fa-undo"></i> ዳግም አስጀምር
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="export-buttons">
+        <button class="btn btn-success btn-export" onclick="exportToExcel()">
+            <i class="fas fa-file-excel"></i> Excel
+        </button>
+        <button class="btn btn-danger btn-export" onclick="exportToPDF()">
+            <i class="fas fa-file-pdf"></i> PDF
+        </button>
+        <button class="btn btn-info btn-export" onclick="printReport()">
+            <i class="fas fa-print"></i> አትም
+        </button>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table table-hover" id="epidemicTable">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-calendar-alt"></i> መነሻ ቀን</th>
+                        <th><i class="fas fa-calendar-check"></i> መጨረሻ ቀን</th>
+                        <th><i class="fas fa-map-marker-alt"></i> ወረዳ</th>
+                        <th><i class="fas fa-virus"></i> ሁኔታ</th>
+                        <th><i class="fas fa-map-marked-alt"></i> የተጎዱ ቀበሌዎች</th>
+                        <th><i class="fas fa-male"></i> ወንዶች</th>
+                        <th><i class="fas fa-female"></i> ሴቶች</th>
+                        <th><i class="fas fa-users"></i> ጠቅላላ</th>
+                        <th><i class="fas fa-calendar-day"></i> የሪፖርት ቀን</th>
+                        <th><i class="fas fa-user-edit"></i> አዘጋጅ</th>
+                        <th><i class="fas fa-cogs"></i> ድርጊቶች</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var totalMales = item.MaleHouseholdHeads + item.MaleFamilyMembers + item.MaleChildren + item.MaleYouth + item.MaleElderly + item.MaleDisabled;
+                        var totalFemales = item.FemaleHouseholdHeads + item.FemaleFamilyMembers + item.FemaleChildren + item.FemaleYouth + item.FemaleElderly + item.FemaleDisabled;
+                        var totalPopulation = totalMales + totalFemales;
+
+                        <tr>
+                            <td>@item.StartDate.ToString("yyyy-MM-dd")</td>
+                            <td>@item.EndDate.ToString("yyyy-MM-dd")</td>
+                            <td>@(item.Woreda?.LocationAmharicName ?? "-")</td>
+                            <td>
+                                @if (item.HasEpidemicDisease)
+                                {
+                                    <span class="badge-epidemic">
+                                        <i class="fas fa-exclamation-circle"></i> ወረርሽኝ አለ
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge-no-epidemic">
+                                        <i class="fas fa-check-circle"></i> ወረርሽኝ የለም
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-center">@item.NumberOfAffectedKebeles.ToString("N0")</td>
+                            <td class="text-center">@totalMales.ToString("N0")</td>
+                            <td class="text-center">@totalFemales.ToString("N0")</td>
+                            <td class="text-center fw-bold">@totalPopulation.ToString("N0")</td>
+                            <td>@item.ReportDate.ToString("yyyy-MM-dd")</td>
+                            <td>@(item.ReportedBy ?? "-")</td>
+                            <td class="action-buttons">
+                                <a asp-action="Edit" asp-route-id="@item.EpidemicDiseaseId" class="btn btn-sm btn-warning btn-action" title="አርትዕ">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.EpidemicDiseaseId" class="btn btn-sm btn-info btn-action" title="ዝርዝር">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.EpidemicDiseaseId" class="btn btn-sm btn-danger btn-action" title="ሰርዝ" onclick="return confirm('እርግጠኛ ነዎት? ይህን ሪፖርት መሰረዝ ይፈልጋሉ?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-virus-slash fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">ምንም ሪፖርት አልተገኘም</h4>
+                <p>እባክዎ አዲስ ሪፖርት ለመመዝገብ ከላይ ያለውን ቁልፍ ይጫኑ</p>
+            </div>
+        }
+
+        <!-- Table Footer with Summary -->
+        @if (Model.Any())
+        {
+            var grandTotalKebeles = Model.Sum(x => x.NumberOfAffectedKebeles);
+            @* var grandTotalMales = Model.Sum(x => x.TotalMales);
+            var grandTotalFemales = Model.Sum(x => x.TotalFemales);
+            var grandTotalPopulation = Model.Sum(x => x.TotalAffectedPopulation); *@
+
+            
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Search functionality
+            $("#searchInput").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $("#diseaseTable tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+
+            // Row click to go to details
+            $('.table tbody tr').click(function(e) {
+                if ($(e.target).closest('.action-buttons').length) {
+                    return;
+                }
+                var detailsUrl = $(this).find('.btn-info').attr('href');
+                if (detailsUrl) {
+                    window.location.href = detailsUrl;
+                }
+            });
+        });
+
+        // Apply filter
+        function applyFilter() {
+            var startDate = $('#filterStartDate').val();
+            var endDate = $('#filterEndDate').val();
+            var woredaId = $('#filterWoreda').val();
+            var hasEpidemic = $('#filterHasEpidemic').val();
+
+            var url = '@Url.Action("Index", "EpidemicDisease")';
+            var params = [];
+            if (startDate) params.push('startDate=' + startDate);
+            if (endDate) params.push('endDate=' + endDate);
+            if (woredaId) params.push('woredaId=' + woredaId);
+            if (hasEpidemic) params.push('hasEpidemic=' + hasEpidemic);
+
+            if (params.length > 0) {
+                window.location.href = url + '?' + params.join('&');
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        // Reset filter
+        function resetFilter() {
+            window.location.href = '@Url.Action("Index", "EpidemicDisease")';
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            var table = document.getElementById('epidemicTable');
+            if (!table) return;
+
+            var html = table.outerHTML;
+            var url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+            var downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = 'EpidemicReport_' + new Date().toISOString().slice(0,19) + '.xls';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // Export to PDF using browser print
+        function exportToPDF() {
+            printReport();
+        }
+
+        // Print report - Improved version
+        function printReport() {
+            var table = document.getElementById('epidemicTable');
+            var footer = document.querySelector('.table-footer');
+
+            if (!table) {
+                alert('ለማተም ምንም መረጃ የለም');
+                return;
+            }
+
+            // Clone the table for printing
+            var printWindow = window.open('', '_blank');
+            var title = document.querySelector('.page-header h1')?.innerText || 'የወረርሽኝ በሽታ ሪፖርት';
+            var reportDate = new Date().toLocaleDateString('en-GB');
+
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${title}</title>
+                    <meta charset="utf-8" />
+                    <style>
+                        body {
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            margin: 20px;
+                            padding: 0;
+                        }
+                        .print-header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                            border-bottom: 2px solid #667eea;
+                            padding-bottom: 10px;
+                        }
+                        .print-header h1 {
+                            margin: 0;
+                            color: #667eea;
+                        }
+                        .print-date {
+                            text-align: right;
+                            margin-bottom: 15px;
+                            font-size: 12px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        th, td {
+                            border: 1px solid #ddd;
+                            padding: 8px;
+                            text-align: left;
+                        }
+                        th {
+                            background-color: #f2f2f2;
+                        }
+                        .badge-epidemic {
+                            background: #dc3545;
+                            color: white;
+                            padding: 3px 8px;
+                            border-radius: 15px;
+                            display: inline-block;
+                        }
+                        .badge-no-epidemic {
+                            background: #28a745;
+                            color: white;
+                            padding: 3px 8px;
+                            border-radius: 15px;
+                            display: inline-block;
+                        }
+                        .table-footer {
+                            background: #1e3c72;
+                            color: white;
+                            padding: 10px;
+                            margin-top: 20px;
+                        }
+                        .footer-stats {
+                            display: flex;
+                            justify-content: space-around;
+                            flex-wrap: wrap;
+                        }
+                        .footer-stat-item {
+                            text-align: center;
+                        }
+                        .footer-stat-number {
+                            font-size: 18px;
+                            font-weight: bold;
+                        }
+                        @@media print {
+                            body {
+                                margin: 0;
+                                padding: 10px;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-header">
+                        <h1>${title}</h1>
+                    </div>
+                    <div class="print-date">
+                        የታተመበት ቀን: ${reportDate}
+                    </div>
+                    ${table.outerHTML}
+                    ${footer ? footer.outerHTML : ''}
+                </body>
+                </html>
+            `);
+
+            printWindow.document.close();
+            
+        }
+    </script>
+}

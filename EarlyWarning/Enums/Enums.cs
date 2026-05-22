@@ -58,4 +58,8 @@ namespace EarlyWarning.Enums
         ወረዳ,
         ቀበሌ
     }
+    public enum Measurement
+    {
+        ኪሎ , ሊትር, ኩንታል, ሌላ 
+    }
 }

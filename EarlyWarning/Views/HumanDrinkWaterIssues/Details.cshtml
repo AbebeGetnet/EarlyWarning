@@ -1,0 +1,173 @@
+﻿@model EarlyWarning.Models.HumanDrinkWaterIssue.HumanDrinkWaterIssue
+@{
+    ViewData["Title"] = "ዝርዝር መረጃ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg,#1e3c72,#2a5298);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 3px 6px rgba(0,0,0,.1);
+        margin-bottom: 25px;
+    }
+
+    .card-title {
+        font-weight: 700;
+        color: #1e3c72;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .stat-box {
+        background: linear-gradient(135deg,#667eea,#764ba2);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 30px;
+        font-weight: bold;
+    }
+
+    .label-title {
+        font-weight: 600;
+        color: #666;
+    }
+</style>
+
+<div class="container-fluid">
+
+    <!-- Header -->
+    <div class="page-header">
+        <h3><i class="fas fa-tint"></i> የሰው መጠጥ ውሃ ችግር ሪፖርት ዝርዝር</h3>
+        <small>Report Period: @Model.StartDate.ToShortDateString() - @Model.EndDate.ToShortDateString()</small>
+    </div>
+
+    <!-- BASIC INFO -->
+    <div class="info-card">
+        <h5 class="card-title"><i class="fas fa-info-circle"></i> መሰረታዊ መረጃ</h5>
+        <div class="row">
+            <div class="col-md-4"><span class="label-title">ወረዳ:</span> @Model.Woreda?.LocationAmharicName</div>
+            <div class="col-md-4"><span class="label-title">ሪፖርት ቀን:</span> @Model.ReportDate</div>
+            <div class="col-md-4"><span class="label-title">ሪፖርት አዘጋጅ:</span> @Model.ReportedBy</div>
+        </div>
+    </div>
+
+    <!-- PROBLEM STATUS -->
+    <div class="info-card text-center">
+        @if (Model.HasWaterProblem)
+        {
+            <div class="alert alert-danger">
+                <h4>⚠ የመጠጥ ውሃ ችግር አለ</h4>
+                <b>የተጎዱ ቀበሌዎች: @Model.NumberOfAffectedKebeles</b>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-success">
+                <h4>✔ የመጠጥ ውሃ ችግር የለም</h4>
+            </div>
+        }
+    </div>
+    @if (Model.HasWaterProblem && Model.HumanDrinkWaterKebeles.Any())
+    {
+        <div class="info-card">
+            <h5 class="card-title">
+                <i class="fas fa-map-marker-alt"></i>
+                የተጎዱ ቀበሌዎች ዝርዝር
+            </h5>
+
+            <div class="row">
+                @foreach (var item in Model.HumanDrinkWaterKebeles)
+                {
+                    <div class="col-md-3 mb-3">
+                        <div class="alert alert-warning text-center">
+                            <i class="fas fa-map"></i><br />
+                            <b>@item.Kebele.LocationAmharicName</b>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    <!-- POPULATION SUMMARY -->
+    @{
+        var totalMale =
+        Model.MaleHouseholdHeads + Model.MaleFamilyMembers + Model.MaleChildren +
+        Model.MaleYouth + Model.MaleElderly + Model.MaleDisabled;
+
+        var totalFemale =
+        Model.FemaleHouseholdHeads + Model.FemaleFamilyMembers + Model.FemaleChildren +
+        Model.FemaleYouth + Model.FemaleElderly + Model.FemaleDisabled;
+
+        var totalPopulation = totalMale + totalFemale;
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-box">
+                <div class="stat-number">@totalMale</div>
+                <div>አጠቃላይ ወንዶች</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-box">
+                <div class="stat-number">@totalFemale</div>
+                <div>አጠቃላይ ሴቶች</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-box">
+                <div class="stat-number">@totalPopulation</div>
+                <div>አጠቃላይ ተጎጂዎች</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY BREAKDOWN -->
+    <div class="info-card">
+        <h5 class="card-title"><i class="fas fa-users"></i> በምድብ ዝርዝር</h5>
+
+        <table class="table table-bordered table-striped text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>ምድብ</th>
+                    <th>ወንድ</th>
+                    <th>ሴት</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>አባወራ</td><td>@Model.MaleHouseholdHeads</td><td>@Model.FemaleHouseholdHeads</td></tr>
+                <tr><td>ቤተሰብ</td><td>@Model.MaleFamilyMembers</td><td>@Model.FemaleFamilyMembers</td></tr>
+                <tr><td>ህጻናት</td><td>@Model.MaleChildren</td><td>@Model.FemaleChildren</td></tr>
+                <tr><td>ወጣት</td><td>@Model.MaleYouth</td><td>@Model.FemaleYouth</td></tr>
+                <tr><td>አረጋውያን</td><td>@Model.MaleElderly</td><td>@Model.FemaleElderly</td></tr>
+                <tr><td>አካል ጉዳተኛ</td><td>@Model.MaleDisabled</td><td>@Model.FemaleDisabled</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="text-end">
+        <a asp-action="Edit" asp-route-id="@Model.HumanDrinkWaterIssueId" class="btn btn-warning btn-lg">
+            <i class="fas fa-edit"></i> አስተካክል
+        </a>
+        <a asp-action="Index" class="btn btn-secondary btn-lg">
+            <i class="fas fa-arrow-left"></i> ተመለስ
+        </a>
+    </div>
+
+</div>

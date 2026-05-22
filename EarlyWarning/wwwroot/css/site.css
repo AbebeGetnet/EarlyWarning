@@ -45,6 +45,317 @@ body {
     .card-text {
         font-size: 16px;
     }
+}
+/* Wizard Styles */
+.wizard-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.wizard-header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 20px 30px;
+}
+
+    .wizard-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .wizard-header p {
+        margin: 5px 0 0;
+        opacity: 0.9;
+    }
+
+.progress-steps {
+    background: #f8f9fa;
+    padding: 15px 30px;
+    border-bottom: 1px solid #e0e0e0;
+    overflow-x: auto;
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    min-width: 600px;
+}
+
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #e0e0e0;
+        z-index: 1;
+    }
+
+.step {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    flex: 1;
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border: 3px solid #e0e0e0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-circle {
+    border-color: #1e3c72;
+    background: #1e3c72;
+    color: white;
+}
+
+.step.completed .step-circle {
+    border-color: #28a745;
+    background: #28a745;
+    color: white;
+}
+
+.step-label {
+    display: block;
+    font-size: 0.7rem;
+    margin-top: 8px;
+    color: #666;
+}
+
+.step.active .step-label {
+    color: #1e3c72;
+    font-weight: bold;
+}
+
+.wizard-content {
+    padding: 30px;
+    min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.step-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+    .step-content.active-step {
+        display: block;
+    }
+
+.wizard-buttons {
+    padding: 20px 30px;
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn-wizard {
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-next {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+}
+
+.btn-prev {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-submit-wizard {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.form-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+    .form-section h4 {
+        color: #1e3c72;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #1e3c72;
+    }
+
+.field-group {
+    margin-bottom: 15px;
+}
+
+    .field-group label {
+        font-weight: 600;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .field-group .required-star {
+        color: red;
+    }
+
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+        .field-group input:focus,
+        .field-group select:focus,
+        .field-group textarea:focus {
+            border-color: #1e3c72;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(30,60,114,0.1);
+        }
+
+        .field-group input.is-invalid,
+        .field-group select.is-invalid,
+        .field-group textarea.is-invalid {
+            border-color: #dc3545;
+        }
+
+.radio-group {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+    .radio-option:hover {
+        background: #e9ecef;
+    }
+
+    .radio-option.selected {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+    }
+
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+    .checkbox-item:hover {
+        background: #e9ecef;
+    }
+
+.repeating-group-container {
+    margin-top: 20px;
+}
+
+.repeating-item {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.btn-add-item {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+    .btn-add-item:hover {
+        background: #218838;
+    }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .step-label {
+        display: none;
+    }
+
+    .step-circle {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    .wizard-content {
+        padding: 15px;
+    }
+
+    .wizard-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-wizard {
+        width: 100%;
+        text-align: center;
+    }
+
+    .radio-group {
+        flex-direction: column;
+    }
+
+    .checkbox-group {
+        flex-direction: column;
     .waving-header {
         background: linear-gradient(135deg, #0d47a1, #1976d2, #42a5f5, #64b5f6, #1e88e5);
         background-size: 200% 200%;

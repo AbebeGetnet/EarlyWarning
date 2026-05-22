@@ -1,0 +1,788 @@
+﻿@using EarlyWarning.Enums
+@using EarlyWarning.Models.PriceofGrain
+@using EarlyWarning.ViewModels.GrainViewModel
+@model IEnumerable<AnimalPriceReportViewModel>
+
+@{
+    ViewData["Title"] = "የእንስሳት ዋጋ ሪፖርቶች";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+    .btn-create {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+    .stat-header {
+        padding: 12px 15px;
+        text-align: center;
+        color: white;
+    }
+
+        .stat-header.total {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .stat-header.increase {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .stat-header.decrease {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-header.same {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+    .stat-body {
+        padding: 15px;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .filter-header {
+        background: #f8f9fa;
+        padding: 12px 20px;
+        border-bottom: 1px solid #e0e0e0;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .filter-header:hover {
+            background: #e9ecef;
+        }
+
+    .filter-body {
+        padding: 20px;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table thead th {
+            background: #f8f9fa;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+            .table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        .table tbody td {
+            padding: 10px 12px;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+    .badge-increase {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        padding: 5px 12px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+
+    .badge-decrease {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 5px 12px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+
+    .badge-same {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 5px 12px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+
+    .badge-draft {
+        background: #6c757d;
+        padding: 3px 8px;
+        border-radius: 15px;
+        color: white;
+        font-size: 0.7rem;
+    }
+
+    .badge-submitted {
+        background: #17a2b8;
+        padding: 3px 8px;
+        border-radius: 15px;
+        color: white;
+        font-size: 0.7rem;
+    }
+
+    .badge-approved {
+        background: #28a745;
+        padding: 3px 8px;
+        border-radius: 15px;
+        color: white;
+        font-size: 0.7rem;
+    }
+
+    .badge-rejected {
+        background: #dc3545;
+        padding: 3px 8px;
+        border-radius: 15px;
+        color: white;
+        font-size: 0.7rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+    .search-box {
+        margin-bottom: 20px;
+    }
+
+        .search-box input {
+            border-radius: 25px;
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+            .search-box input:focus {
+                border-color: #fa709a;
+                box-shadow: 0 0 0 0.2rem rgba(250, 112, 154, 0.25);
+                outline: none;
+            }
+
+    .export-buttons {
+        margin-bottom: 15px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-export {
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-size: 0.8rem;
+    }
+
+    .table-footer {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        color: #333;
+        padding: 12px 20px;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .footer-stats {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .footer-stat-item {
+        text-align: center;
+        flex: 1;
+        min-width: 80px;
+    }
+
+    .footer-stat-number {
+        font-size: 1.3rem;
+        font-weight: bold;
+    }
+
+    .footer-stat-label {
+        font-size: 0.7rem;
+        opacity: 0.9;
+    }
+
+    .trend-up {
+        color: #28a745;
+    }
+
+    .trend-down {
+        color: #dc3545;
+    }
+
+    .trend-same {
+        color: #6c757d;
+    }
+
+    @@media (max-width: 768px) {
+        .stat-number {
+            font-size: 1.3rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .search-box input {
+            width: 100%;
+        }
+
+        .table thead th {
+            font-size: 0.7rem;
+            padding: 8px;
+        }
+
+        .table tbody td {
+            padding: 6px 8px;
+            font-size: 0.75rem;
+        }
+
+        .export-buttons {
+            justify-content: center;
+        }
+
+        .footer-stat-number {
+            font-size: 1rem;
+        }
+    }
+
+    /* Animation */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .table-container {
+        animation: fadeIn 0.5s ease-out;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1>
+                    <i class="fas fa-chart-line"></i> @ViewData["Title"]
+                </h1>
+                <p>የእንስሳት ዋጋ ሪፖርቶችን ይመልከቱ፣ ያስተዳድሩ እና አዲስ ሪፖርት ይመዝግቡ</p>
+            </div>
+            <div>
+                <a asp-action="Create" class="btn-create">
+                    <i class="fas fa-plus-circle"></i> አዲስ ሪፖርት
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @{
+        var totalReports = Model.Count();
+        var increasedCount = Model.Count(x => x.AnimalPricePerUnit?.WeeklyMarketStatus == WeeklyStatus.Increased);
+        var decreasedCount = Model.Count(x => x.AnimalPricePerUnit?.WeeklyMarketStatus == WeeklyStatus.Decreased);
+        var sameCount = Model.Count(x => x.AnimalPricePerUnit?.WeeklyMarketStatus == WeeklyStatus.Same);
+        var avgPrice = Model.Any() ? Model.Average(x => x.AnimalPricePerUnit?.WeeklyPrice ?? 0) : 0;
+    }
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header total">
+                    <i class="fas fa-chart-line fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@totalReports</div>
+                    <div class="stat-label">ጠቅላላ ሪፖርቶች</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header increase">
+                    <i class="fas fa-arrow-up fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@increasedCount</div>
+                    <div class="stat-label">ጨምሯል</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header decrease">
+                    <i class="fas fa-arrow-down fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@decreasedCount</div>
+                    <div class="stat-label">ቀንሷል</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header same">
+                    <i class="fas fa-equals fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@sameCount</div>
+                    <div class="stat-label">ተመሳሳይ ነው</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="filter-card">
+        <div class="filter-header" onclick="$('#filterBody').slideToggle()">
+            <i class="fas fa-filter"></i> ማጣሪያ
+            <i class="fas fa-chevron-down float-right"></i>
+        </div>
+        <div class="filter-body" id="filterBody" style="display: none;">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">ከቀን</label>
+                    <input type="date" id="filterStartDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">እስከ ቀን</label>
+                    <input type="date" id="filterEndDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">ወረዳ</label>
+                    <select id="filterWoreda" class="form-control">
+                        <option value="">-- ሁሉም --</option>
+                        @if (ViewBag.Woredas != null)
+                        {
+                            foreach (var woreda in ViewBag.Woredas)
+                            {
+                                <option value="@woreda.Id">@woreda.LocationAmharicName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">የእንስሳት ዓይነት</label>
+                    <select id="filterAnimalType" class="form-control">
+                        <option value="">-- ሁሉም --</option>
+                        @if (ViewBag.AnimalTypes != null)
+                        {
+                            foreach (var animalType in ViewBag.AnimalTypes)
+                            {
+                                <option value="@animalType.AnimalTypeId">@animalType.AnimalTypeName</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button class="btn btn-primary" onclick="applyFilter()">
+                        <i class="fas fa-search"></i> ፈልግ
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetFilter()">
+                        <i class="fas fa-undo"></i> ዳግም አስጀምር
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Export -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="search-box">
+                <div class="input-group">
+                    <input type="text" id="searchInput" class="form-control" placeholder="🔍 ሪፖርት ፈልግ..." />
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="export-buttons">
+                <button class="btn btn-success btn-export" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i> Excel
+                </button>
+                <button class="btn btn-danger btn-export" onclick="exportToPDF()">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </button>
+                <button class="btn btn-info btn-export" onclick="printReport()">
+                    <i class="fas fa-print"></i> አትም
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table table-hover" id="animalPriceTable">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-calendar-alt"></i> መነሻ ቀን</th>
+                        <th><i class="fas fa-calendar-check"></i> መጨረሻ ቀን</th>
+                        <th><i class="fas fa-paw"></i> የእንስሳት ዓይነት</th>
+                        <th><i class="fas fa-map-marker-alt"></i> ወረዳ</th>
+                        <th><i class="fas fa-coins"></i> የአሁን ዋጋ</th>
+                        <th><i class="fas fa-history"></i> ቀዳሚ ዋጋ</th>
+                        <th><i class="fas fa-chart-line"></i> ሁኔታ</th>
+                        <th><i class="fas fa-percent"></i> ልዩነት</th>
+                        <th><i class="fas fa-calendar-day"></i> የሪፖርት ቀን</th>
+                        <th><i class="fas fa-user"></i> አዘጋጅ</th>
+                        <th><i class="fas fa-check-circle"></i> ሁኔታ</th>
+                        <th><i class="fas fa-cogs"></i> ድርጊቶች</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var report = item.AnimalPricePerUnit;
+                        if (report == null) continue;
+
+                        <tr>
+                            <td>@report.StartDate.ToString("yyyy-MM-dd")</td>
+                            <td>@report.EndDate.ToString("yyyy-MM-dd")</td>
+                            <td><strong>@(report.AnimalType?.AnimalTypeName ?? "-")</strong></td>
+                            <td>@(report.Woreda?.LocationAmharicName ?? "-")</td>
+                            <td class="text-end fw-bold text-primary">@report.WeeklyPrice.ToString("N2")</td>
+                            <td class="text-end text-muted">
+                                @if (item.PreviousPrice.HasValue && item.PreviousPrice.Value > 0)
+                                {
+                                    @item.PreviousPrice.Value.ToString("N2")
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (report.WeeklyMarketStatus == WeeklyStatus.Increased)
+                                {
+                                    <span class="badge-increase">
+                                        <i class="fas fa-arrow-up"></i> ጨምሯል
+                                    </span>
+                                }
+                                else if (report.WeeklyMarketStatus == WeeklyStatus.Decreased)
+                                {
+                                    <span class="badge-decrease">
+                                        <i class="fas fa-arrow-down"></i> ቀንሷል
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge-same">
+                                        <i class="fas fa-equals"></i> ተመሳሳይ
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <div>
+                                    <span class="@item.TrendClass fw-bold">
+                                        @item.TrendIcon @item.PercentageDisplay
+                                    </span>
+                                    <br />
+                                    <small class="text-muted">
+                                        @item.DifferenceDisplay
+                                    </small>
+                                </div>
+                            </td>
+                            <td class="text-center">@report.ReportDate.ToString("yyyy-MM-dd")</td>
+                            <td class="text-center">@(report.ReportedBy ?? "-")</td>
+                            <td class="text-center">
+                                @if (report.ApprovalStatus == ApprovalStatus.በሂደት_ላይ)
+                                {
+                                    <span class="badge-draft">በሂደት ላይ</span>
+                                }
+                                else if (report.ApprovalStatus == ApprovalStatus.የተፈቀደ)
+                                {
+                                    <span class="badge-submitted">የተፈቀደ</span>
+                                }
+                                else if (report.ApprovalStatus == ApprovalStatus.የተከለከለ)
+                                {
+                                    <span class="badge-approved">የተከለከለ</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-rejected">ውድቅ ተደርጓል</span>
+                                }
+                            </td>
+                            <td class="action-buttons">
+                                <a asp-action="Edit" asp-route-id="@report.AnimalPricePerUnitId" class="btn btn-sm btn-warning btn-action" title="አርትዕ">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@report.AnimalPricePerUnitId" class="btn btn-sm btn-info btn-action" title="ዝርዝር">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@report.AnimalPricePerUnitId" class="btn btn-sm btn-danger btn-action" title="ሰርዝ" onclick="return confirm('እርግጠኛ ነዎት? ይህን ሪፖርት መሰረዝ ይፈልጋሉ?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">ምንም ሪፖርት አልተገኘም</h4>
+                <p>እባክዎ አዲስ ሪፖርት ለመመዝገብ ከላይ ያለውን ቁልፍ ይጫኑ</p>
+            </div>
+        }
+
+        <!-- Table Footer -->
+        @if (Model.Any())
+        {
+            <div class="table-footer">
+                <div class="footer-stats">
+                    <div class="footer-stat-item">
+                        <div class="footer-stat-number">@totalReports</div>
+                        <div class="footer-stat-label">ጠቅላላ ሪፖርቶች</div>
+                    </div>
+                    <div class="footer-stat-item">
+                        <div class="footer-stat-number">@increasedCount</div>
+                        <div class="footer-stat-label">
+                            <i class="fas fa-arrow-up"></i> ጨምሯል
+                        </div>
+                    </div>
+                    <div class="footer-stat-item">
+                        <div class="footer-stat-number">@decreasedCount</div>
+                        <div class="footer-stat-label">
+                            <i class="fas fa-arrow-down"></i> ቀንሷል
+                        </div>
+                    </div>
+                    <div class="footer-stat-item">
+                        <div class="footer-stat-number">@sameCount</div>
+                        <div class="footer-stat-label">
+                            <i class="fas fa-equals"></i> ተመሳሳይ
+                        </div>
+                    </div>
+                    <div class="footer-stat-item">
+                        <div class="footer-stat-number">@avgPrice.ToString("N2")</div>
+                        <div class="footer-stat-label">
+                            <i class="fas fa-coins"></i> አማካይ ዋጋ
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Search functionality
+            $("#searchInput").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $("#animalPriceTable tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+
+            // Row click to go to details
+            $('.table tbody tr').click(function(e) {
+                if ($(e.target).closest('.action-buttons').length) {
+                    return;
+                }
+                var detailsUrl = $(this).find('.btn-info').attr('href');
+                if (detailsUrl) {
+                    window.location.href = detailsUrl;
+                }
+            });
+        });
+
+        // Apply filter
+        function applyFilter() {
+            var startDate = $('#filterStartDate').val();
+            var endDate = $('#filterEndDate').val();
+            var woredaId = $('#filterWoreda').val();
+            var animalTypeId = $('#filterAnimalType').val();
+
+            window.location.href = '@Url.Action("Index")' +
+                '?startDate=' + startDate +
+                '&endDate=' + endDate +
+                '&woredaId=' + woredaId +
+                '&animalTypeId=' + animalTypeId;
+        }
+
+        // Reset filter
+        function resetFilter() {
+            $('#filterStartDate').val('');
+            $('#filterEndDate').val('');
+            $('#filterWoreda').val('');
+            $('#filterAnimalType').val('');
+            window.location.href = '@Url.Action("Index")';
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            var table = document.getElementById('animalPriceTable');
+            var html = table.outerHTML;
+            var url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+            var downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = 'AnimalPriceReport.xls';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // Export to PDF
+        function exportToPDF() {
+            var printContents = document.getElementById('animalPriceTable').outerHTML;
+            var footerContents = document.querySelector('.table-footer')?.outerHTML || '';
+            var originalContents = document.body.innerHTML;
+
+            document.body.innerHTML = '<html><head><title>Animal Price Report</title>';
+            document.body.innerHTML += '<style>';
+            document.body.innerHTML += 'table { border-collapse: collapse; width: 100%; }';
+            document.body.innerHTML += 'th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }';
+            document.body.innerHTML += 'th { background-color: #f2f2f2; }';
+            document.body.innerHTML += '.badge-increase { background: #28a745; color: white; padding: 3px 8px; border-radius: 15px; }';
+            document.body.innerHTML += '.badge-decrease { background: #dc3545; color: white; padding: 3px 8px; border-radius: 15px; }';
+            document.body.innerHTML += '.badge-same { background: #6c757d; color: white; padding: 3px 8px; border-radius: 15px; }';
+            document.body.innerHTML += '.trend-up { color: #28a745; }';
+            document.body.innerHTML += '.trend-down { color: #dc3545; }';
+            document.body.innerHTML += '.table-footer { background: #fa709a; color: #333; padding: 10px; margin-top: 20px; }';
+            document.body.innerHTML += '.footer-stats { display: flex; justify-content: space-around; }';
+            document.body.innerHTML += '.footer-stat-item { text-align: center; }';
+            document.body.innerHTML += '</style></head><body>';
+            document.body.innerHTML += '<h2>Animal Price Report</h2>';
+            document.body.innerHTML += printContents;
+            document.body.innerHTML += footerContents;
+            document.body.innerHTML += '</body></html>';
+
+            window.print();
+        }
+
+        
+    </script>
+}

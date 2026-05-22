@@ -1,0 +1,529 @@
+﻿@model IEnumerable<EarlyWarning.Models.HumanDrinkWaterIssue.HumanDrinkWaterIssue>
+
+@{
+    ViewData["Title"] = "የሰው መጠጥ ውሃ ችግር ሪፖርቶች";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom Styles */
+    .page-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .page-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+        }
+
+    .btn-create {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 25px;
+        overflow: hidden;
+    }
+
+    .filter-header {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-bottom: 1px solid #e0e0e0;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .filter-body {
+        padding: 20px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 25px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+    .stat-header {
+        padding: 15px 20px;
+        color: white;
+    }
+
+        .stat-header.blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-header.green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .stat-header.orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-header.red {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+    .stat-body {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table thead th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.3s ease;
+        }
+
+            .table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+    .badge-water {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+
+    .badge-no-water {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+
+    .action-buttons {
+        white-space: nowrap;
+    }
+
+        .action-buttons .btn {
+            margin: 0 2px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+        }
+
+    .pagination-container {
+        padding: 20px;
+        background: #f8f9fa;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .export-buttons {
+        margin-bottom: 15px;
+    }
+
+    .btn-export {
+        margin-right: 10px;
+        border-radius: 8px;
+    }
+
+    @@media (max-width: 768px) {
+        .stat-number {
+            font-size: 1.5rem;
+        }
+
+        .table thead th {
+            font-size: 0.7rem;
+        }
+
+        .btn-create {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Tooltip Styles */
+    .tooltip-inner {
+        background-color: #1e3c72;
+        border-radius: 8px;
+        padding: 8px 12px;
+    }
+
+    .bs-tooltip-auto[x-placement^=top] .arrow::before,
+    .bs-tooltip-top .arrow::before {
+        border-top-color: #1e3c72;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1>
+                    <i class="fas fa-tint"></i> @ViewData["Title"]
+                </h1>
+                <p>በሳምንቱ የተከሰተውን የሰው መጠጥ ውሃ ችግር ሪፖርቶችን ይመልከቱ እና ያስተዳድሩ</p>
+            </div>
+            <div>
+                <a asp-action="Create" class="btn btn-create">
+                    <i class="fas fa-plus-circle"></i> አዲስ ሪፖርት
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    @{
+        var totalReports = Model.Count();
+        var reportsWithProblem = Model.Count(x => x.HasWaterProblem);
+        //var totalAffectedPopulation = Model.Sum(x => x.TotalAffectedPopulation);
+        var totalAffectedKebeles = Model.Sum(x => x.NumberOfAffectedKebeles);
+    }
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header blue">
+                    <i class="fas fa-file-alt fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@totalReports</div>
+                    <div class="stat-label">ጠቅላላ ሪፖርቶች</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header orange">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@reportsWithProblem</div>
+                    <div class="stat-label">ችግር ያለባቸው ሪፖርቶች</div>
+                </div>
+            </div>
+        </div>
+        @* <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header green">
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                     <div class="stat-number">@totalAffectedPopulation.ToString("N0")</div> 
+                    <div class="stat-label">አጠቃላይ ተጎጆች</div>
+                    <div class="stat-label">አጠቃላይ ተጎጆች</div>
+                </div>
+            </div>
+        </div> *@
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-header red">
+                    <i class="fas fa-map-marked-alt fa-2x"></i>
+                </div>
+                <div class="stat-body">
+                    <div class="stat-number">@totalAffectedKebeles.ToString("N0")</div>
+                    <div class="stat-label">የተጎዱ ቀበሌዎች</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="filter-card">
+        <div class="filter-header" onclick="$('#filterBody').slideToggle()">
+            <i class="fas fa-filter"></i> ማጣሪያ
+            <i class="fas fa-chevron-down float-right"></i>
+        </div>
+        <div class="filter-body" id="filterBody" style="display: none;">
+            <div class="row">
+                <div class="col-md-3">
+                    <label>ከቀን</label>
+                    <input type="date" id="filterStartDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label>እስከ ቀን</label>
+                    <input type="date" id="filterEndDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label>ወረዳ</label>
+                    <select id="filterWoreda" class="form-control">
+                        <option value="">-- ሁሉም --</option>
+                        @if (ViewBag.Woredas != null)
+                        {
+                            foreach (var woreda in ViewBag.Woredas)
+                            {
+                                <option value="@woreda.WoredaId">@woreda.LocationAmharicName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>የውሃ ችግር</label>
+                    <select id="filterHasProblem" class="form-control">
+                        <option value="">-- ሁሉም --</option>
+                        <option value="true">አለ</option>
+                        <option value="false">የለም</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button class="btn btn-primary" onclick="applyFilter()">
+                        <i class="fas fa-search"></i> ፈልግ
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetFilter()">
+                        <i class="fas fa-undo"></i> ዳግም አስጀምር
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="export-buttons">
+        <button class="btn btn-success btn-export" onclick="exportToExcel()">
+            <i class="fas fa-file-excel"></i> ወደ Excel ላክ
+        </button>
+        <button class="btn btn-danger btn-export" onclick="exportToPDF()">
+            <i class="fas fa-file-pdf"></i> ወደ PDF ላክ
+        </button>
+        <button class="btn btn-info btn-export" onclick="printReport()">
+            <i class="fas fa-print"></i> አትም
+        </button>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table table-hover" id="reportTable">
+                <thead>
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.StartDate)</th>
+                        <th>@Html.DisplayNameFor(model => model.EndDate)</th>
+                        <th>@Html.DisplayNameFor(model => model.Woreda)</th>
+                        <th>ሁኔታ</th>
+                        <th>@Html.DisplayNameFor(model => model.NumberOfAffectedKebeles)</th>
+                        <th>ወንዶች</th>
+                        <th>ሴቶች</th>
+                        <th>አጠቃላይ</th>
+                        <th>@Html.DisplayNameFor(model => model.ReportDate)</th>
+                        <th>@Html.DisplayNameFor(model => model.ReportedBy)</th>
+                        <th>ድርጊቶች</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var totalMales = item.MaleHouseholdHeads + item.MaleFamilyMembers + item.MaleChildren + item.MaleYouth + item.MaleElderly + item.MaleDisabled;
+                        var totalFemales = item.FemaleHouseholdHeads + item.FemaleFamilyMembers + item.FemaleChildren + item.FemaleYouth + item.FemaleElderly + item.FemaleDisabled;
+                        var totalPopulation = totalMales + totalFemales;
+                        var userName = item.ReportedBy;
+                        if (!string.IsNullOrEmpty(item.ReportedBy) && ViewBag.UserNames != null && ViewBag.UserNames.ContainsKey(item.ReportedBy))
+                        {
+                            userName = ViewBag.UserNames[item.ReportedBy];
+                        }
+
+                        <tr>
+                            <td>@item.StartDate.ToString("yyyy-MM-dd")</td>
+                            <td>@item.EndDate.ToString("yyyy-MM-dd")</td>
+                            <td>@item.Woreda?.LocationAmharicName</td>
+                            <td>
+                                @if (item.HasWaterProblem)
+                                {
+                                    <span class="badge badge-water">
+                                        <i class="fas fa-exclamation-circle"></i> ችግር አለ
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-no-water">
+                                        <i class="fas fa-check-circle"></i> ችግር የለም
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-center">@item.NumberOfAffectedKebeles</td>
+                            <td class="text-center">@totalMales.ToString("N0")</td>
+                            <td class="text-center">@totalFemales.ToString("N0")</td>
+                            <td class="text-center fw-bold">@totalPopulation.ToString("N0")</td>
+                            <td>@item.ReportDate.ToString("yyyy-MM-dd")</td>
+                            <td>@userName</td>
+                            <td class="action-buttons">
+                                <a asp-action="Details" asp-route-id="@item.HumanDrinkWaterIssueId" class="btn btn-sm btn-info" title="ዝርዝር">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@item.HumanDrinkWaterIssueId" class="btn btn-sm btn-warning" title="አስተካክል">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.HumanDrinkWaterIssueId" class="btn btn-sm btn-danger" title="ሰርዝ" onclick="return confirm('እርግጠኛ ነዎት?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-active">
+                        <td colspan="4"><strong>ጠቅላላ</strong></td>
+                        <td class="text-center"><strong>@Model.Sum(x => x.NumberOfAffectedKebeles).ToString("N0")</strong></td>
+                        @* <td class="text-center"><strong>@Model.Sum(x => x.TotalMales).ToString("N0")</strong></td>
+                        <td class="text-center"><strong>@Model.Sum(x => x.TotalFemales).ToString("N0")</strong></td>
+                        <td class="text-center"><strong>@Model.Sum(x => x.TotalAffectedPopulation).ToString("N0")</strong></td> *@
+                        <td colspan="3"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function applyFilter() {
+            var startDate = $('#filterStartDate').val();
+            var endDate = $('#filterEndDate').val();
+            var woredaId = $('#filterWoreda').val();
+            var hasProblem = $('#filterHasProblem').val();
+
+            window.location.href = '@Url.Action("Index")'
+                + '?startDate=' + startDate
+                + '&endDate=' + endDate
+                + '&woredaId=' + woredaId
+                + '&hasProblem=' + hasProblem;
+        }
+
+        function resetFilter() {
+            $('#filterStartDate').val('');
+            $('#filterEndDate').val('');
+            $('#filterWoreda').val('');
+            $('#filterHasProblem').val('');
+            window.location.href = '@Url.Action("Index")';
+        }
+
+        function exportToExcel() {
+            var table = document.getElementById('reportTable');
+            var html = table.outerHTML;
+            var url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = 'WaterIssueReport.xls';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportToPDF() {
+            window.print();
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        // JQuery Ready
+        $(function () {
+
+            $('[title]').tooltip();
+
+            // Table Sorting
+            $('th').on('click', function () {
+                var table = $(this).closest('table');
+                var index = $(this).index();
+                var rows = table.find('tbody tr').toArray().sort(compareRows(index));
+                this.asc = !this.asc;
+                if (!this.asc) rows = rows.reverse();
+                table.append(rows);
+            });
+
+            function compareRows(index) {
+                return function (a, b) {
+                    var valA = getCellValue(a, index);
+                    var valB = getCellValue(b, index);
+                    return $.isNumeric(valA) && $.isNumeric(valB)
+                        ? valA - valB
+                        : valA.localeCompare(valB);
+                }
+            }
+
+            function getCellValue(row, index) {
+                return $(row).children('td').eq(index).text();
+            }
+
+        });
+    </script>
+}
+
+<style>
+    @@media print {
+        .page-header, .stat-card, .filter-card, .export-buttons, .action-buttons, .btn-create {
+            display: none !important;
+        }
+
+        .table-container {
+            box-shadow: none;
+        }
+
+        .table thead th {
+            background-color: #f2f2f2 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+
+    .badge-water, .badge-no-water {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+</style>
