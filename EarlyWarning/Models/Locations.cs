@@ -5,12 +5,15 @@ using EarlyWarning.Enums;
 
 namespace EarlyWarning.Models
 {
-    public class Locations : CommonAttribute
+    public class Locations
     {
         public Locations()
         {
             IsActive= true;
         }
+        [Key]
+        public Guid Id { get; set; }
+
         [DisplayName("Location Name")]
         [Required]
         public string? LocationName { get; set; }

@@ -3,6 +3,7 @@ using EarlyWarning.Enums;
 using EarlyWarning.Extensions;
 using EarlyWarning.Models;
 using EarlyWarning.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,6 +12,7 @@ using System.Security.Claims;
 
 namespace EarlyWarning.Controllers
 {
+    [Authorize]
     public class RegisterationWizardController : Controller
     {
         private readonly EarlyWarningDbContext _context; // Consider changing to your exact ApplicationDbContext type later
@@ -26,20 +28,36 @@ namespace EarlyWarning.Controllers
         public async Task<IActionResult> Index()
         {
             var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Challenge();
+            }
+
+            var kebeles = await _context.Locations
+                .Where(l => l.ParentId == currentUser.LocationId &&
+                            l.Level == LocationLevel.ቀበሌ &&
+                            l.IsActive)
+                .AsNoTracking()
+                .ToListAsync();
 
             var model = new RegistrationWithardViewModel
             {
+                WoredaId = currentUser.LocationId,
+                UserId = currentUser.Id,
                 StartDate = DateTime.Today.AddDays(-7),
                 EndDate = DateTime.Today,
                 RainfallReport = new RainfallReport(),
                 FarmingActivity = new FarmingActivity(),
                 CropPestAndDeseaseReport = new CropPestAndDeseaseReport(),
+                PastureStatus = new PastureStatus(),
                 AnimalWaterSupplyStatus = new AnimalWaterSupplyStatus(),
-                AnimalHealthStatus = new AnimalHealthStatus()
+                AnimalHealthStatus = new AnimalHealthStatus(),
+                Kebelies = kebeles,
+                AnimalDiseases = await _context.AnimalDisease.AsNoTracking().ToListAsync(),
+                CropPestAndDeseases = await _context.CropPestAndDesease.AsNoTracking().ToListAsync()
             };
 
-            var woredaQuery = _context.Locations.Where(l => l.ParentId == currentUser.LocationId && l.Level == LocationLevel.ቀበሌ).AsNoTracking();
-            ViewBag.TotalKebeles = woredaQuery.Count();
+            ViewBag.TotalKebeles = kebeles.Count;
             return View(model);        
         }
 

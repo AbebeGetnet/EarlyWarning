@@ -23,596 +23,6 @@ namespace EarlyWarning.Migrations
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("EarlyWarning.Models.Aid.AssistanceRecipient", b =>
-            modelBuilder.Entity("EarlyWarning.Models.AnimalDisease", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AnimalDisease");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.AnimalHealthStatus", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AnimalDiseaseJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ChildFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ChildhMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DisabledFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DisabledMale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ElderlyFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ElderlyMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Enough")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("FemaleFamily")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FemaleHouseHold")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("LasModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MaleFamily")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaleHouseHold")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NoOfKebeliesWithWaterSupply")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("RegionApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RegionRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RegionRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SubmittedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WoredaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("YouthFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("YouthMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ZoneApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ZoneRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ZoneRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WoredaId");
-
-                    b.ToTable("AnimalHealthStatuses");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.AnimalWaterSupplyStatus", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("ChildFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ChildhMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DisabledFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DisabledMale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ElderlyFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ElderlyMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Enough")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("FemaleFamily")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FemaleHouseHold")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("LasModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MaleFamily")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaleHouseHold")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NoOfKebeliesWithPastureShortage")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NoOfKebeliesWithWaterSupply")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("RegionApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RegionRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RegionRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SubmittedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WoredaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("YouthFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("YouthMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ZoneApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ZoneRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ZoneRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WoredaId");
-
-                    b.ToTable("AnimalWaterSupplyStatuses");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.CropGrowth", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<float>("AtFruitStage")
-                        .HasColumnType("real");
-
-                    b.Property<float>("AtGerminationStage")
-                        .HasColumnType("real");
-
-                    b.Property<float>("AtGrowthStage")
-                        .HasColumnType("real");
-
-                    b.Property<float>("AtHarvestingStage")
-                        .HasColumnType("real");
-
-                    b.Property<float>("AtSeedStage")
-                        .HasColumnType("real");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("LasModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("RegionApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RegionRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RegionRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SubmittedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WoredaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("ZoneApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ZoneRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ZoneRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WoredaId");
-
-                    b.ToTable("CropGrowths");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.CropPestAndDesease", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("CPDType")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CropPestAndDesease");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.CropPestAndDeseaseReport", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<float?>("AffectedLandInHectar")
-                        .HasColumnType("real");
-
-                    b.Property<int>("ChildFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ChildhMale")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CropDiseasesJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DisabledFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DisabledMale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ElderlyFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ElderlyMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("FemaleFamily")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FemaleHouseHold")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("HasPestAndDeseasOccured")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("LasModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MaleFamily")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaleHouseHold")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("RegionApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RegionRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RegionRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SubmittedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TypeOfCropAffected")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WoredaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("YouthFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("YouthMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ZoneApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ZoneRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ZoneRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WoredaId");
-
-                    b.ToTable("CropPestAndDeseaseReports");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.FarmingActivity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<float>("AutumnFarmPlan")
-                        .HasColumnType("real");
-
-                    b.Property<float>("AutumnHarvestingHHarvesting")
-                        .HasColumnType("real");
-
-                    b.Property<float>("AutumnPloughed")
-                        .HasColumnType("real");
-
-                    b.Property<float>("AutumnSown")
-                        .HasColumnType("real");
-
-                    b.Property<float>("AutumnSownWithResidualMoisture")
-                        .HasColumnType("real");
-
-                    b.Property<int>("CropGrowth")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("LasModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<float>("MeherFarmPlan")
-                        .HasColumnType("real");
-
-                    b.Property<float>("MeherHarvestingHHarvesting")
-                        .HasColumnType("real");
-
-                    b.Property<float>("MeherPloughed")
-                        .HasColumnType("real");
-
-                    b.Property<float>("MeherSown")
-                        .HasColumnType("real");
-
-                    b.Property<float>("MeherSownWithResidualMoisture")
-                        .HasColumnType("real");
-
-                    b.Property<DateTime?>("RegionApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RegionRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RegionRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SubmittedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WoredaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("ZoneApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ZoneRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ZoneRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WoredaId");
-
-                    b.ToTable("FarmingActivities");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.Locations", b =>
                 {
                     b.Property<Guid>("AssistanceRecipientId")
                         .ValueGeneratedOnAdd()
@@ -693,7 +103,6 @@ namespace EarlyWarning.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("EndDate")
-                    b.Property<DateTime>("DeletedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("FemaleChildren")
@@ -860,6 +269,140 @@ namespace EarlyWarning.Migrations
                     b.HasIndex("WeeklyProvidedId");
 
                     b.ToTable("WeeklyProvidedDetails");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.AnimalDisease", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AnimalDisease");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.AnimalHealthStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AnimalDiseaseJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ChildFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChildhMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisabledFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DisabledMale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ElderlyFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ElderlyMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Enough")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("FemaleFamily")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleHouseHold")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LasModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MaleFamily")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleHouseHold")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NoOfKebeliesWithWaterSupply")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RegionApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RegionRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegionRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmittedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("YouthFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("YouthMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ZoneApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ZoneRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WoredaId");
+
+                    b.ToTable("AnimalHealthStatuses");
                 });
 
             modelBuilder.Entity("EarlyWarning.Models.AnimalPrice.AnimalPrice", b =>
@@ -1097,6 +640,444 @@ namespace EarlyWarning.Migrations
                     b.ToTable("AnimalSupplyDetails");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.AnimalWaterSupplyStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ChildFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChildhMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisabledFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DisabledMale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ElderlyFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ElderlyMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Enough")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("FemaleFamily")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleHouseHold")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LasModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MaleFamily")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleHouseHold")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NoOfKebeliesWithPastureShortage")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NoOfKebeliesWithWaterSupply")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RegionApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RegionRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegionRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmittedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("YouthFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("YouthMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ZoneApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ZoneRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WoredaId");
+
+                    b.ToTable("AnimalWaterSupplyStatuses");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.ApplicationUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("ProfilePicture")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Signature")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("UserLocationLevl")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("UsernameChangeLimit")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.CropGrowth", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float>("AtFruitStage")
+                        .HasColumnType("real");
+
+                    b.Property<float>("AtGerminationStage")
+                        .HasColumnType("real");
+
+                    b.Property<float>("AtGrowthStage")
+                        .HasColumnType("real");
+
+                    b.Property<float>("AtHarvestingStage")
+                        .HasColumnType("real");
+
+                    b.Property<float>("AtSeedStage")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LasModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RegionApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RegionRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegionRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmittedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ZoneApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ZoneRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WoredaId");
+
+                    b.ToTable("CropGrowths");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.CropPestAndDesease", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("CPDType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CropPestAndDesease");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.CropPestAndDeseaseReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float?>("AffectedLandInHectar")
+                        .HasColumnType("real");
+
+                    b.Property<int>("ChildFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChildhMale")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CropDiseasesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisabledFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DisabledMale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ElderlyFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ElderlyMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FemaleFamily")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleHouseHold")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("HasPestAndDeseasOccured")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LasModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MaleFamily")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleHouseHold")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RegionApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RegionRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegionRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmittedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TypeOfCropAffected")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("YouthFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("YouthMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ZoneApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ZoneRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WoredaId");
+
+                    b.ToTable("CropPestAndDeseaseReports");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.EpidemicDisease.EpidemicDisease", b =>
                 {
                     b.Property<Guid>("EpidemicDiseaseId")
@@ -1254,6 +1235,113 @@ namespace EarlyWarning.Migrations
                     b.ToTable("EpidemicDiseaseTypes");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.FarmingActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float>("AutumnFarmPlan")
+                        .HasColumnType("real");
+
+                    b.Property<float>("AutumnHarvestingHHarvesting")
+                        .HasColumnType("real");
+
+                    b.Property<float>("AutumnPloughed")
+                        .HasColumnType("real");
+
+                    b.Property<float>("AutumnSown")
+                        .HasColumnType("real");
+
+                    b.Property<float>("AutumnSownWithResidualMoisture")
+                        .HasColumnType("real");
+
+                    b.Property<int>("CropGrowth")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LasModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<float>("MeherFarmPlan")
+                        .HasColumnType("real");
+
+                    b.Property<float>("MeherHarvestingHHarvesting")
+                        .HasColumnType("real");
+
+                    b.Property<float>("MeherPloughed")
+                        .HasColumnType("real");
+
+                    b.Property<float>("MeherSown")
+                        .HasColumnType("real");
+
+                    b.Property<float>("MeherSownWithResidualMoisture")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime?>("RegionApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RegionRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegionRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmittedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ZoneApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ZoneRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WoredaId");
+
+                    b.ToTable("FarmingActivities");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.HumanDrinkWaterIssue.HumanDrinkWaterIssue", b =>
                 {
                     b.Property<Guid>("HumanDrinkWaterIssueId")
@@ -1384,23 +1472,11 @@ namespace EarlyWarning.Migrations
                     b.Property<string>("CardHeaderTitle")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<Guid?>("HumanDrinkWaterIssueId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
-
-                    b.Property<DateTime>("LasModifiedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("Level")
                         .HasColumnType("int");
@@ -1424,12 +1500,6 @@ namespace EarlyWarning.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("HumanDrinkWaterIssueId");
@@ -1443,10 +1513,7 @@ namespace EarlyWarning.Migrations
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
                             CardHeaderTitle = "National HQ",
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            DeletedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            LasModifiedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Level = 0,
                             LocationAmharicName = "ኢትዮጵያ",
                             LocationCode = "ETH",
@@ -1457,10 +1524,7 @@ namespace EarlyWarning.Migrations
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
                             CardHeaderTitle = "City Administration",
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            DeletedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            LasModifiedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Level = 1,
                             LocationAmharicName = "አዲስ አበባ",
                             LocationCode = "ETH-ADD",
@@ -1472,10 +1536,7 @@ namespace EarlyWarning.Migrations
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333333"),
                             CardHeaderTitle = "Kirkos District",
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            DeletedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            LasModifiedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Level = 3,
                             LocationAmharicName = "ቂርቆስ",
                             LocationCode = "ETH-ADD-KIR",
@@ -1701,6 +1762,122 @@ namespace EarlyWarning.Migrations
                     b.ToTable("PasswordResetKeys");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.PastureStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ChildFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChildhMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisabledFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DisabledMale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ElderlyFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ElderlyMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Enough")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("FemaleFamily")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleHouseHold")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LasModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MaleFamily")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleHouseHold")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumberOfAnimalsAffected")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RegionApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RegionRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegionRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmittedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("YouthFemale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("YouthMale")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ZoneApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ZoneRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WoredaId");
+
+                    b.ToTable("PastureStatuses");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.PriceofGrain.GrainPrice", b =>
                 {
                     b.Property<Guid>("GrainPriceId")
@@ -1852,6 +2029,125 @@ namespace EarlyWarning.Migrations
                     b.HasKey("GrainTypeId");
 
                     b.ToTable("GrainTypes");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.RainfallReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AffectedKebelesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DroughtAffectedKebelesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FullCoverageKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FullCoveredKebelieList")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HighAmountKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HighRainKebelieList")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LasModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LowAmountKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LowMediumAmountKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LowRainKebeliesList")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MediumAmountKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MediumHighAmountKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NoDataKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NoRainKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NoRainKebelieList")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PartialCoverageKebeles")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RegionApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RegionRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegionRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegionRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmittedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ZoneApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ZoneRejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ZoneRejectedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ZoneRejectionRemark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WoredaId");
+
+                    b.ToTable("RainfallReports");
                 });
 
             modelBuilder.Entity("EarlyWarning.Models.SupplyofGrain.GrainIncreaseDecrease", b =>
@@ -2037,88 +2333,12 @@ namespace EarlyWarning.Migrations
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
-                    b.Property<DateTime?>("RegionApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SubmittedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ZoneApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
 
                     b.Property<DateTime>("ReportDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ReportedBy")
                         .HasColumnType("nvarchar(max)");
-                    b.ToTable("Locations");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            CardHeaderTitle = "National HQ",
-                            DeletedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsActive = true,
-                            LasModifiedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Level = 0,
-                            LocationAmharicName = "ኢትዮጵያ",
-                            LocationCode = "ETH",
-                            LocationName = "Ethiopia",
-                            PhoneNumber = "+251-111-111111",
-                            Status = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            CardHeaderTitle = "City Administration",
-                            DeletedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsActive = true,
-                            LasModifiedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Level = 1,
-                            LocationAmharicName = "አዲስ አበባ",
-                            LocationCode = "ETH-ADD",
-                            LocationName = "Addis Ababa",
-                            ParentId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            PhoneNumber = "+251-111-222222",
-                            Status = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            CardHeaderTitle = "Kirkos District",
-                            DeletedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsActive = true,
-                            LasModifiedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Level = 3,
-                            LocationAmharicName = "ቂርቆስ",
-                            LocationCode = "ETH-ADD-KIR",
-                            LocationName = "Kirkos",
-                            ParentId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            PhoneNumber = "+251-111-333333",
-                            Status = 0
-                        });
-                });
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -2133,241 +2353,6 @@ namespace EarlyWarning.Migrations
                     b.HasIndex("WoredaId");
 
                     b.ToTable("WeeklyAccidents");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.PastureStatus", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("ChildFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ChildhMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DisabledFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DisabledMale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ElderlyFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ElderlyMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Enough")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("FemaleFamily")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FemaleHouseHold")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("LasModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MaleFamily")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaleHouseHold")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NumberOfAnimalsAffected")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("RegionApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RegionRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RegionRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SubmittedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WoredaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("YouthFemale")
-                        .HasColumnType("int");
-
-                    b.Property<int>("YouthMale")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ZoneApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ZoneRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ZoneRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WoredaId");
-
-                    b.ToTable("PastureStatuses");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.RainfallReport", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AffectedKebelesJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DroughtAffectedKebelesJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("FullCoverageKebeles")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FullCoveredKebelieList")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("HighAmountKebeles")
-                        .HasColumnType("int");
-
-                    b.Property<string>("HighRainKebelieList")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("LasModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("LowAmountKebeles")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LowMediumAmountKebeles")
-                        .HasColumnType("int");
-
-                    b.Property<string>("LowRainKebeliesList")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MediumAmountKebeles")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MediumHighAmountKebeles")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NoDataKebeles")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NoRainKebeles")
-                        .HasColumnType("int");
-
-                    b.Property<string>("NoRainKebelieList")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PartialCoverageKebeles")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("RegionApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RegionRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RegionRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RegionRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SubmittedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WoredaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("ZoneApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneApprovedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ZoneRejectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ZoneRejectedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ZoneRejectionRemark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WoredaId");
-
-                    b.ToTable("RainfallReports");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -2420,80 +2405,6 @@ namespace EarlyWarning.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetRoleClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(21)
-                        .HasColumnType("nvarchar(21)");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex")
-                        .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasDiscriminator().HasValue("IdentityUser");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -2577,38 +2488,6 @@ namespace EarlyWarning.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("EarlyWarning.Models.ApplicationUser", b =>
-                {
-                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("LocationId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<byte[]>("ProfilePicture")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("Signature")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserLocationLevl")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsernameChangeLimit")
-                        .HasColumnType("int");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasDiscriminator().HasValue("ApplicationUser");
-                });
-
             modelBuilder.Entity("EarlyWarning.Models.Aid.AssistanceRecipient", b =>
                 {
                     b.HasOne("EarlyWarning.Models.Locations", "Woreda")
@@ -2663,6 +2542,17 @@ namespace EarlyWarning.Migrations
                     b.Navigation("SupplyType");
 
                     b.Navigation("WeeklyProvided");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.AnimalHealthStatus", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Woreda");
                 });
 
             modelBuilder.Entity("EarlyWarning.Models.AnimalPrice.AnimalPrice", b =>
@@ -2744,6 +2634,50 @@ namespace EarlyWarning.Migrations
                     b.Navigation("AnimalSupply");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.AnimalWaterSupplyStatus", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Woreda");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.CropGrowth", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Woreda");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.CropPestAndDeseaseReport", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Woreda");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.EpidemicDisease.EpidemicDisease", b =>
                 {
                     b.HasOne("EarlyWarning.Models.Locations", "Woreda")
@@ -2795,6 +2729,17 @@ namespace EarlyWarning.Migrations
                     b.Navigation("EpidemicDisease");
 
                     b.Navigation("EpidemicDiseaseType");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.FarmingActivity", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Woreda");
                 });
 
             modelBuilder.Entity("EarlyWarning.Models.HumanDrinkWaterIssue.HumanDrinkWaterIssue", b =>
@@ -2893,6 +2838,17 @@ namespace EarlyWarning.Migrations
                     b.Navigation("OriginLocation");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.PastureStatus", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Woreda");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.PriceofGrain.GrainPrice", b =>
                 {
                     b.HasOne("EarlyWarning.Models.Locations", "Woreda")
@@ -2938,6 +2894,17 @@ namespace EarlyWarning.Migrations
                         .IsRequired();
 
                     b.Navigation("GrainType");
+
+                    b.Navigation("Woreda");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.RainfallReport", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Woreda");
                 });
@@ -2996,90 +2963,7 @@ namespace EarlyWarning.Migrations
                     b.HasOne("EarlyWarning.Models.WeeklyAccidents.AccidentType", null)
                         .WithMany("WeeklyAccidents")
                         .HasForeignKey("AccidentTypeId");
-            modelBuilder.Entity("EarlyWarning.Models.AnimalHealthStatus", b =>
-                {
-                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
-                        .WithMany()
-                        .HasForeignKey("WoredaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
-                    b.Navigation("Woreda");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.AnimalWaterSupplyStatus", b =>
-                {
-                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
-                        .WithMany()
-                        .HasForeignKey("WoredaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Woreda");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.CropGrowth", b =>
-                {
-                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
-                        .WithMany()
-                        .HasForeignKey("WoredaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Woreda");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.CropPestAndDeseaseReport", b =>
-                {
-                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
-                        .WithMany()
-                        .HasForeignKey("WoredaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Woreda");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.FarmingActivity", b =>
-                {
-                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
-                        .WithMany()
-                        .HasForeignKey("WoredaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Woreda");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.Locations", b =>
-                {
-                    b.HasOne("EarlyWarning.Models.Locations", "Parent")
-                        .WithMany("Children")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
-                        .WithMany()
-                        .HasForeignKey("WoredaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Woreda");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.PastureStatus", b =>
-                {
-                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
-                        .WithMany()
-                        .HasForeignKey("WoredaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Woreda");
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.RainfallReport", b =>
-                {
                     b.HasOne("EarlyWarning.Models.Locations", "Woreda")
                         .WithMany()
                         .HasForeignKey("WoredaId")
@@ -3100,7 +2984,7 @@ namespace EarlyWarning.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("EarlyWarning.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -3109,7 +2993,7 @@ namespace EarlyWarning.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("EarlyWarning.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -3124,7 +3008,7 @@ namespace EarlyWarning.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("EarlyWarning.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -3133,22 +3017,11 @@ namespace EarlyWarning.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("EarlyWarning.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("EarlyWarning.Models.ApplicationUser", b =>
-                {
-                    b.HasOne("EarlyWarning.Models.Locations", "Location")
-                        .WithMany()
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("EarlyWarning.Models.Aid.SupplyType", b =>

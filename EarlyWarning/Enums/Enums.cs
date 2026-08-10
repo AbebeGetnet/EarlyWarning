@@ -4,6 +4,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EarlyWarning.Enums
 {
+    public enum ApprovalStatus
+    {
+        በሂደት_ላይ,
+        የተፈቀደ,
+        የተከለከለ
+    }
+
     public enum CropGrowthType
     {
         SeedLevel,          

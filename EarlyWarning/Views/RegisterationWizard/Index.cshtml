@@ -30,6 +30,7 @@
                 <div asp-validation-summary="All" class="text-danger mb-3 card p-2 bg-white d-none" id="errorSummaryBox"></div>
 
                 <input type="hidden" asp-for="UserId" />
+                <input type="hidden" asp-for="WoredaId" />
                 <input type="hidden" id="RecordId" name="RecordId" value="0" />
 
                 <div class="wizard-step" id="step1">
@@ -581,7 +582,12 @@
 
                 // API QUERY INTEGRATION
                 try {
-                    let response = await fetch(`/EarlyWarning/GetExistingWizardData?woredaId=${woredaSelect.value}&startDate=${startDateInput.value}&endDate=${document.getElementById("EndDate").value}`);
+                    const query = new URLSearchParams({
+                        woredaId: woredaSelect.value,
+                        startDate: startDateInput.value,
+                        endDate: document.getElementById("EndDate").value
+                    });
+                    let response = await fetch(`@Url.Action("GetExistingWizardData", "RegisterationWizard")?${query}`);
                     if (response.ok) {
                         let data = await response.json();
                         if (data.exists) {
@@ -680,7 +686,8 @@
                 document.getElementById("rainPartial").value = data.rainfall.partial;
                 document.getElementById("rainNone").value = data.rainfall.none;
                 document.getElementById("rainHigh").value = data.rainfall.high;
-                document.querySelectorAll(".kebele-checkbox").forEach(cb => cb.checked = data.rainfall.kebeleIds.includes(parseInt(cb.value)));
+                const kebeleIds = data.rainfall.kebeleIds || [];
+                document.querySelectorAll(".kebele-checkbox").forEach(cb => cb.checked = kebeleIds.includes(cb.value));
             }
 
             if (data.farming) {
@@ -700,7 +707,8 @@
                 document.getElementById(`hasPest${data.pest.hasOccured ? 'Yes' : 'No'}`).checked = true;
                 document.getElementById("pestHectars").value = data.pest.hectars;
                 document.getElementById("pestCropType").value = data.pest.cropType || "";
-                document.querySelectorAll(".pest-checkbox").forEach(cb => cb.checked = data.pest.pestIds.includes(parseInt(cb.value)));
+                const pestIds = data.pest.pestIds || [];
+                document.querySelectorAll(".pest-checkbox").forEach(cb => cb.checked = pestIds.includes(cb.value));
                 const rows = document.getElementById("pestTable").querySelectorAll("tbody tr");
                 mapDemographicInputs(rows[0], data.pest.mHH, data.pest.fHH);
                 mapDemographicInputs(rows[1], data.pest.mFam, data.pest.fFam);
@@ -741,7 +749,8 @@
                 document.getElementById(`healthEnough${data.health.enough ? 'Yes' : 'No'}`).checked = true;
                 document.getElementById("healthAnimalsMale").value = data.health.infectedMale;
                 document.getElementById("healthAnimalsFemale").value = data.health.infectedFemale;
-                document.querySelectorAll(".health-checkbox").forEach(cb => cb.checked = data.health.diseaseIds.includes(parseInt(cb.value)));
+                const diseaseIds = data.health.diseaseIds || [];
+                document.querySelectorAll(".health-checkbox").forEach(cb => cb.checked = diseaseIds.includes(cb.value));
                 const rows = document.getElementById("healthTable").querySelectorAll("tbody tr");
                 mapDemographicInputs(rows[0], data.health.mHH, data.health.fHH);
                 mapDemographicInputs(rows[1], data.health.mFam, data.health.fFam);

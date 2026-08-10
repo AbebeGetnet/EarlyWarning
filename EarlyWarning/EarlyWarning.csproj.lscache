@@ -89,63 +89,145 @@ Areas/Identity/Pages/Account/
  ResetPassword.cshtml.cs
  ResetPasswordConfirmation.cshtml.cs
 Areas/Identity/Pages/Error.cshtml.cs
+Controllers/AidController/
+ AssistanceRecipientsController.cs
+ OtherProblemsController.cs
+ SupplyTypesController.cs
+ WeeklyProvidedsController.cs
 Controllers/
  AnimalDiseasesController.cs
  AnimalHealthStatusController.cs
+ AnimalPriceController/
+  AnimalPriceIncreaseDecreasesController.cs
+  AnimalPricePerUnitsController.cs
+  AnimalPricesController.cs
+  AnimalTypesController.cs
+ AnimalSupplyController/
+  AnimalIncreaseDecreasesController.cs
+  AnimalSuppliesController.cs
  AnimalWaterSupplyStatusController.cs
  CropGrowthsController.cs
  CropPestAndDeseaseReportsController.cs
  CropPestAndDeseasesController.cs
+ EpidemicDiseaseController/
+  EpidemicDiseasesController.cs
+  EpidemicDiseaseTypesController.cs
  FarmingActivitiesController.cs
+ GrainPriceController/
+  GrainPriceIncreaseDecreasesController.cs
+  GrainPricePerQuintalsController.cs
+  GrainPricesController.cs
+  GrainTypesController.cs
+ GrainSupplyController/
+  GrainIncreaseDecreasesController.cs
+  GrainSuppliesController.cs
  HomeController.cs
+ HumanDrinkWaterIssueController/HumanDrinkWaterIssuesController.cs
  LocationsController.cs
+ MigrationController/
+  DeathsController.cs
+  MigrationsController.cs
  PastureStatusController.cs
  RainfallReportsController.cs
  RegistrationWizardController.cs
  RoleManagerController.cs
  RolesController.cs
  UserRolesController.cs
+ WeeklyAccidentsController/
+  AccidentTypesController.cs
+  WeeklyAccidentsController.cs
  WizardController.cs
 Data/EarlyWarningDbContext.cs
 Enums/Enums.cs
+Extensions/DisplayNameExtensions.cs
 Migrations/
  20260509064211_RedignAndInitializer.cs
  20260509064211_RedignAndInitializer.Designer.cs
+ 20260509085318_FirstMigration.cs
+ 20260509085318_FirstMigration.Designer.cs
  20260509104026_addAttributesAffectedKebelie.cs
  20260509104026_addAttributesAffectedKebelie.Designer.cs
  20260509104743_addAffectedKebelieListJson.cs
  20260509104743_addAffectedKebelieListJson.Designer.cs
+ 20260509111532_UpdateAttirbuteMigration.cs
+ 20260509111532_UpdateAttirbuteMigration.Designer.cs
  20260509114815_UpdateNullability.cs
  20260509114815_UpdateNullability.Designer.cs
+ 20260509121102_UpdateAttirbuteKebeleIdOnWater.cs
+ 20260509121102_UpdateAttirbuteKebeleIdOnWater.Designer.cs
+ 20260509144949_UpdateEpidemicDiseaseSelections.cs
+ 20260509144949_UpdateEpidemicDiseaseSelections.Designer.cs
+ 20260509150326_UpdateEpidemicDiseaseSelections1.cs
+ 20260509150326_UpdateEpidemicDiseaseSelections1.Designer.cs
  20260509150551_AddDroughtAffectedKebelies.cs
  20260509150551_AddDroughtAffectedKebelies.Designer.cs
+ 20260509152009_UpdateEpidemicDiseaseSelections12.cs
+ 20260509152009_UpdateEpidemicDiseaseSelections12.Designer.cs
+ 20260509181923_UpdateEpidemicDiseaseSelections123.cs
+ 20260509181923_UpdateEpidemicDiseaseSelections123.Designer.cs
  20260509202907_AddRejection.cs
  20260509202907_AddRejection.Designer.cs
  20260509230055_AddCropFarm.cs
  20260509230055_AddCropFarm.Designer.cs
+ 20260509235434_grainPriceModel.cs
+ 20260509235434_grainPriceModel.Designer.cs
  20260510010530_addcroppestdesease.cs
  20260510010530_addcroppestdesease.Designer.cs
+ 20260510195630_updateModel.cs
+ 20260510195630_updateModel.Designer.cs
+ 20260510204223_updateModelAnimalModel.cs
+ 20260510204223_updateModelAnimalModel.Designer.cs
+ 20260510215831_updateMigrationModel.cs
+ 20260510215831_updateMigrationModel.Designer.cs
  20260510223019_AddRemark.cs
  20260510223019_AddRemark.Designer.cs
+ 20260510235200_updateMigrationModel1.cs
+ 20260510235200_updateMigrationModel1.Designer.cs
  20260510235555_AddPasture.cs
  20260510235555_AddPasture.Designer.cs
  20260511001508_removeremarks.cs
  20260511001508_removeremarks.Designer.cs
+ 20260511002332_updateMigrationModelProvided.cs
+ 20260511002332_updateMigrationModelProvided.Designer.cs
+ 20260511003458_updateMigrationModelProvided1.cs
+ 20260511003458_updateMigrationModelProvided1.Designer.cs
  20260511004859_removenotenough.cs
  20260511004859_removenotenough.Designer.cs
  20260511012503_AnimalWaterSupply.cs
  20260511012503_AnimalWaterSupply.Designer.cs
  20260511050425_AddAnimalHealth.cs
  20260511050425_AddAnimalHealth.Designer.cs
+ 20260511064801_updateMigrationModelMigrationRelation.cs
+ 20260511064801_updateMigrationModelMigrationRelation.Designer.cs
  20260516165346_addCropGrowth.cs
  20260516165346_addCropGrowth.Designer.cs
  20260517180625_NoOfKebeliesWithWaterSupplyError.cs
  20260517180625_NoOfKebeliesWithWaterSupplyError.Designer.cs
+ 20260809210605_RedesignUpdate.cs
+ 20260809210605_RedesignUpdate.Designer.cs
+ 20260809212506_RedesignErrorUpdate.cs
+ 20260809212506_RedesignErrorUpdate.Designer.cs
  EarlyWarningDbContextModelSnapshot.cs
+Models/Aid/
+ AssistanceRecipient.cs
+ OtherProblem.cs
+ SupplyType.cs
+ WeeklyProvided.cs
+ WeeklyProvidedDetail.cs
 Models/
  AnimalDisease.cs
  AnimalHealthStatus.cs
  AnimalPhysicality.cs
+ AnimalPrice/
+  AnimalPrice.cs
+  AnimalPriceDetail.cs
+  AnimalPriceIncreaseDecrease.cs
+  AnimalPricePerUnit.cs
+  AnimalType.cs
+ AnimalSupply/
+  AnimalIncreaseDecrease.cs
+  AnimalSupply.cs
+  AnimalSupplyDetail.cs
  AnimalWaterSupplyStatus.cs
  ApplicationUser.cs
  CommonAttribute.cs
@@ -153,13 +235,41 @@ Models/
  CropPestAndDesease.cs
  CropPestAndDeseaseReport.cs
  EarlyWarningExtensions.cs
+ EpidemicDisease/
+  EpidemicDisease.cs
+  EpidemicDiseaseKebele.cs
+  EpidemicDiseaseSelection.cs
+  EpidemicDiseaseType.cs
  ErrorViewModel.cs
  ExtendedSelectListItem.cs
  FarmingActivity.cs
+ HumanDrinkWaterIssue/
+  HumanDrinkWaterIssue.cs
+  HumanDrinkWaterKebele.cs
  Locations.cs
+ Migration/
+  Death.cs
+  DeathDetail.cs
+  Migration.cs
+  MigrationDetail.cs
  PasswordResetKey.cs
  PastureStatus.cs
+ PriceofGrain/
+  GrainPrice.cs
+  GrainPriceDetail.cs
+  GrainPriceIncreaseDecrease.cs
+  GrainPriceItem.cs
+  GrainPricePerQuintal.cs
+  GrainType.cs
  RainFallReport.cs
+ SupplyofGrain/
+  GrainIncreaseDecrease.cs
+  GrainSupply.cs
+  GrainSupplyDetail.cs
+ WeeklyAccidents/
+  AccidentDetail.cs
+  AccidentType.cs
+  WeeklyAccidents.cs
 obj/Debug/net8.0/
  .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
  EarlyWarning.AssemblyInfo.cs
@@ -182,6 +292,9 @@ Repositories/
  IRainfallReportRepository.cs
  PastureStatusRepository.cs
  RainfallReportRepository.cs
+Service/
+ IReportFlowService.cs
+ ReportFlowService.cs
 Services/
  AnimalHealthStatusService.cs
  AnimalWaterSupplyStatusService.cs
@@ -193,7 +306,12 @@ Services/
 Static files/SD.cs
 ViewModels/
  AddressViewModel.cs
+ GrainViewModel/
+  AnimalPriceReportViewModel.cs
+  GrainPriceReportViewModel.cs
+  MigrationDetailViewModel.cs
  LocationViewModel.cs
+ PendingViewModel/PendingReportData.cs
  RegistrationWithardViewModel.cs
  RegistrationWizardIndexViewModel.cs
  UserManagementViewModel/
@@ -204,7 +322,7 @@ ViewModels/
  WizardViewModel.cs
 
 [metadataReferences]
-<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/8.0.26/ref/net8.0/
+<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/8.0.28/ref/net8.0/
  Microsoft.AspNetCore.Antiforgery.dll
  Microsoft.AspNetCore.Authentication.Abstractions.dll
  Microsoft.AspNetCore.Authentication.BearerToken.dll
@@ -343,7 +461,7 @@ ViewModels/
  System.IO.Pipelines.dll
  System.Security.Cryptography.Xml.dll
  System.Threading.RateLimiting.dll
-<DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.26/ref/net8.0/
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.28/ref/net8.0/
  Microsoft.CSharp.dll
  Microsoft.VisualBasic.Core.dll
  Microsoft.VisualBasic.dll
@@ -585,28 +703,28 @@ ViewModels/
  system.security.cryptography.protecteddata/8.0.0/lib/net8.0/System.Security.Cryptography.ProtectedData.dll
 
 [analyzerReferences]
-<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/8.0.26/analyzers/dotnet/cs/
+<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/8.0.28/analyzers/dotnet/cs/
  Microsoft.AspNetCore.App.Analyzers.dll
  Microsoft.AspNetCore.App.CodeFixes.dll
  Microsoft.AspNetCore.Components.Analyzers.dll
-<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/8.0.26/analyzers/dotnet/roslyn4.4/cs/
+<DOTNET>/packs/Microsoft.AspNetCore.App.Ref/8.0.28/analyzers/dotnet/roslyn4.4/cs/
  Microsoft.Extensions.Logging.Generators.dll
  Microsoft.Extensions.Options.SourceGeneration.dll
-<DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.26/analyzers/dotnet/cs/
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.28/analyzers/dotnet/cs/
  Microsoft.Interop.ComInterfaceGenerator.dll
  Microsoft.Interop.JavaScript.JSImportGenerator.dll
  Microsoft.Interop.LibraryImportGenerator.dll
  Microsoft.Interop.SourceGeneration.dll
  System.Text.Json.SourceGeneration.dll
  System.Text.RegularExpressions.Generator.dll
-<DOTNET>/sdk/10.0.203/Sdks/Microsoft.NET.Sdk.Razor/source-generators/
+<DOTNET>/sdk/10.0.301/Sdks/Microsoft.NET.Sdk.Razor/source-generators/
  Microsoft.AspNetCore.Razor.Utilities.Shared.dll
  Microsoft.CodeAnalysis.Razor.Compiler.dll
  Microsoft.Extensions.ObjectPool.dll
-<DOTNET>/sdk/10.0.203/Sdks/Microsoft.NET.Sdk.Web/analyzers/cs/
+<DOTNET>/sdk/10.0.301/Sdks/Microsoft.NET.Sdk.Web/analyzers/cs/
  Microsoft.AspNetCore.Analyzers.dll
  Microsoft.AspNetCore.Mvc.Analyzers.dll
-<DOTNET>/sdk/10.0.203/Sdks/Microsoft.NET.Sdk/analyzers/
+<DOTNET>/sdk/10.0.301/Sdks/Microsoft.NET.Sdk/analyzers/
  Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
  Microsoft.CodeAnalysis.NetAnalyzers.dll
 <NUGET>/microsoft.codeanalysis.analyzers/3.3.4/analyzers/dotnet/cs/
@@ -615,7 +733,7 @@ ViewModels/
 <NUGET>/microsoft.entityframeworkcore.analyzers/8.0.23/analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll
 
 [analyzerConfigFiles]
-<DOTNET>/sdk/10.0.203/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_8_default.globalconfig
+<DOTNET>/sdk/10.0.301/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_8_default.globalconfig
 obj/Debug/net8.0/EarlyWarning.GeneratedMSBuildEditorConfig.editorconfig
 
 [additionalFiles]
@@ -662,6 +780,12 @@ Areas/Identity/Pages/
  _ValidationScriptsPartial.cshtml
  _ViewImports.cshtml
  _ViewStart.cshtml
+Views/AccidentTypes/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/AnimalDiseases/
  Create.cshtml
  Delete.cshtml
@@ -673,8 +797,50 @@ Views/AnimalHealthStatus/
  Details.cshtml
  Edit.cshtml
  Index.cshtml
+Views/AnimalIncreaseDecreases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalPriceIncreaseDecreases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalPricePerUnits/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalPrices/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalSupplies/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalTypes/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/AnimalWaterSupplyStatus/
  Create.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AssistanceRecipients/
+ Create.cshtml
+ Delete.cshtml
  Details.cshtml
  Edit.cshtml
  Index.cshtml
@@ -695,16 +861,76 @@ Views/CropPestAndDeseasReports/
  Details.cshtml
  Edit.cshtml
  Index.cshtml
+Views/Deaths/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/EpidemicDiseases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/EpidemicDiseaseTypes/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/FarmingActivities/
  Create.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainIncreaseDecreases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainPriceIncreaseDecreases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainPricePerQuintals/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainPrices/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainSupplies/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainTypes/
+ Create.cshtml
+ Delete.cshtml
  Details.cshtml
  Edit.cshtml
  Index.cshtml
 Views/Home/
  Index.cshtml
  Privacy.cshtml
+Views/HumanDrinkWaterIssues/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/Locations/
- AddNewKebelie.cshtml
+ AddnewKebelie.cshtml
  AddNewWoreda.cshtml
  AddNewZone.cshtml
  CategorizedLocationList.cshtml
@@ -718,6 +944,19 @@ Views/Locations/
  UserBasedLocationList.cshtml
  WoredaIndex.cshtml
  ZoneIndex.cshtml
+Views/Migrations/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+ WCreate.cshtml
+Views/OtherProblems/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/PastureStatus/
  Create.cshtml
  Delete.cshtml
@@ -743,6 +982,12 @@ Views/
   _Notifications.cshtml
   _ReportDetails.cshtml
   _ValidationScriptsPartial.cshtml
+ SupplyTypes/
+  Create.cshtml
+  Delete.cshtml
+  Details.cshtml
+  Edit.cshtml
+  Index.cshtml
  UserRoles/
   AddPasswordResetKey.cshtml
   ChangePassword.cshtml
@@ -755,6 +1000,18 @@ Views/
   PasswordResetKeyIndex.cshtml
   UserIndex.cshtml
   UserRoleIndex.cshtml
+ WeeklyAccidents/
+  Create.cshtml
+  Delete.cshtml
+  Details.cshtml
+  Edit.cshtml
+  Index.cshtml
+ WeeklyProvideds/
+  Create.cshtml
+  Delete.cshtml
+  Details.cshtml
+  Edit.cshtml
+  Index.cshtml
  Wizard/
   Index.cshtml
   Wizard.cshtml
@@ -810,6 +1067,12 @@ Areas/Identity/Pages/
  _ValidationScriptsPartial.cshtml
  _ViewImports.cshtml
  _ViewStart.cshtml
+Views/AccidentTypes/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/AnimalDiseases/
  Create.cshtml
  Delete.cshtml
@@ -821,8 +1084,50 @@ Views/AnimalHealthStatus/
  Details.cshtml
  Edit.cshtml
  Index.cshtml
+Views/AnimalIncreaseDecreases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalPriceIncreaseDecreases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalPricePerUnits/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalPrices/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalSupplies/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AnimalTypes/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/AnimalWaterSupplyStatus/
  Create.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/AssistanceRecipients/
+ Create.cshtml
+ Delete.cshtml
  Details.cshtml
  Edit.cshtml
  Index.cshtml
@@ -843,16 +1148,76 @@ Views/CropPestAndDeseasReports/
  Details.cshtml
  Edit.cshtml
  Index.cshtml
+Views/Deaths/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/EpidemicDiseases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/EpidemicDiseaseTypes/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/FarmingActivities/
  Create.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainIncreaseDecreases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainPriceIncreaseDecreases/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainPricePerQuintals/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainPrices/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainSupplies/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/GrainTypes/
+ Create.cshtml
+ Delete.cshtml
  Details.cshtml
  Edit.cshtml
  Index.cshtml
 Views/Home/
  Index.cshtml
  Privacy.cshtml
+Views/HumanDrinkWaterIssues/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/Locations/
- AddNewKebelie.cshtml
+ AddnewKebelie.cshtml
  AddNewWoreda.cshtml
  AddNewZone.cshtml
  CategorizedLocationList.cshtml
@@ -866,6 +1231,19 @@ Views/Locations/
  UserBasedLocationList.cshtml
  WoredaIndex.cshtml
  ZoneIndex.cshtml
+Views/Migrations/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+ WCreate.cshtml
+Views/OtherProblems/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
 Views/PastureStatus/
  Create.cshtml
  Delete.cshtml
@@ -891,6 +1269,12 @@ Views/
   _Notifications.cshtml
   _ReportDetails.cshtml
   _ValidationScriptsPartial.cshtml
+ SupplyTypes/
+  Create.cshtml
+  Delete.cshtml
+  Details.cshtml
+  Edit.cshtml
+  Index.cshtml
  UserRoles/
   AddPasswordResetKey.cshtml
   ChangePassword.cshtml
@@ -903,6 +1287,18 @@ Views/
   PasswordResetKeyIndex.cshtml
   UserIndex.cshtml
   UserRoleIndex.cshtml
+ WeeklyAccidents/
+  Create.cshtml
+  Delete.cshtml
+  Details.cshtml
+  Edit.cshtml
+  Index.cshtml
+ WeeklyProvideds/
+  Create.cshtml
+  Delete.cshtml
+  Details.cshtml
+  Edit.cshtml
+  Index.cshtml
  Wizard/
   Index.cshtml
   Wizard.cshtml
