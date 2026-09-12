@@ -73,6 +73,13 @@ namespace EarlyWarning.Data
         public DbSet<PastureStatus> PastureStatuses { get; set; } = default!;
         public DbSet<AnimalWaterSupplyStatus> AnimalWaterSupplyStatuses { get; set; } = default!;
         public DbSet<AnimalHealthStatus> AnimalHealthStatuses { get; set; } = default!;
+        public DbSet<CropPestImpactDetail> CropPestImpactDetails { get; set; } = default!;
+        public DbSet<AnimalDiseaseImpactDetail> AnimalDiseaseImpactDetails { get; set; } = default!;
+        public DbSet<WeeklyReportSubmission> WeeklyReportSubmissions { get; set; } = default!;
+        public DbSet<WeeklyReportWorkflowHistory> WeeklyReportWorkflowHistories { get; set; } = default!;
+        public DbSet<AnimalMigrationRecord> AnimalMigrationRecords { get; set; } = default!;
+        public DbSet<WeeklyAggregateSnapshot> WeeklyAggregateSnapshots { get; set; } = default!;
+        public DbSet<SchoolReport> SchoolReports { get; set; } = default!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -133,8 +140,33 @@ namespace EarlyWarning.Data
 
             modelBuilder.Entity<EpidemicDiseaseSelection>()
                 .HasOne(e => e.EpidemicDiseaseType)
-                .WithMany()
+                .WithMany(e => e.EpidemicDiseaseSelections)
                 .HasForeignKey(e => e.EpidemicDiseaseTypeId);
+
+            modelBuilder.Entity<CropPestImpactDetail>().HasIndex(x => new { x.CropPestAndDeseaseReportId, x.CropPestAndDeseaseId }).IsUnique();
+            modelBuilder.Entity<AnimalDiseaseImpactDetail>().HasIndex(x => new { x.AnimalHealthStatusId, x.AnimalDiseaseId }).IsUnique();
+            modelBuilder.Entity<WeeklyReportSubmission>().HasIndex(x => new { x.WoredaId, x.StartDate, x.EndDate }).IsUnique();
+            modelBuilder.Entity<WeeklyReportSubmission>().HasIndex(x => new { x.WoredaId, x.ReportingWeekStart }).IsUnique();
+            modelBuilder.Entity<WeeklyReportSubmission>().Property(x => x.RowVersion).IsRowVersion();
+            modelBuilder.Entity<WeeklyReportSubmission>().HasOne(x => x.Woreda).WithMany()
+                .HasForeignKey(x => x.WoredaId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<WeeklyReportSubmission>().HasOne(x => x.CreatedBy).WithMany()
+                .HasForeignKey(x => x.CreatedById).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<WeeklyReportWorkflowHistory>().HasOne(x => x.Submission).WithMany(x => x.History)
+                .HasForeignKey(x => x.WeeklyReportSubmissionId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<WeeklyReportWorkflowHistory>().HasOne(x => x.User).WithMany()
+                .HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<AnimalMigrationRecord>().HasOne(x => x.Submission).WithMany()
+                .HasForeignKey(x => x.WeeklyReportSubmissionId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AnimalMigrationRecord>().HasOne(x => x.Woreda).WithMany().HasForeignKey(x => x.WoredaId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<AnimalMigrationRecord>().HasOne(x => x.OriginLocation).WithMany().HasForeignKey(x => x.OriginLocationId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<AnimalMigrationRecord>().HasOne(x => x.DestinationLocation).WithMany().HasForeignKey(x => x.DestinationLocationId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<AnimalMigrationRecord>().HasIndex(x => new { x.WeeklyReportSubmissionId, x.Direction, x.OriginLocationId, x.DestinationLocationId, x.AnimalType }).IsUnique();
+            modelBuilder.Entity<WeeklyAggregateSnapshot>()
+                .HasIndex(x => new { x.ScopeLocationId, x.ScopeLevel, x.StartDate, x.EndDate, x.ApprovalStatus })
+                .IsUnique();
+            modelBuilder.Entity<SchoolReport>().HasIndex(x => new { x.WoredaId, x.StartDate, x.EndDate }).IsUnique();
+            modelBuilder.Entity<SchoolReport>().HasOne(x => x.Woreda).WithMany().HasForeignKey(x => x.WoredaId).OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<AnimalDisease> AnimalDisease { get; set; } = default!;
     }
@@ -221,6 +253,30 @@ namespace EarlyWarning.Data
                 Guid.Parse("33333333-3333-3333-3333-333333333333"),
                 "ETH-AM-CG-DT", "Dembiya", "ደምቢያ", LocationLevel.ወረዳ,
                 "+251-58-200-0000", "Dembiya Woreda Administration", zone.Id);
+
+            await UpsertLocationAsync(context, Guid.Parse("66666666-6666-6666-6666-666666666661"),
+                "ETH-AM-CG-AL", "Alefa", "አለፋ", LocationLevel.ወረዳ,
+                "+251-58-210-0000", "Alefa Woreda Administration", zone.Id);
+            await UpsertLocationAsync(context, Guid.Parse("66666666-6666-6666-6666-666666666662"),
+                "ETH-AM-CG-TK", "Takusa", "ጣቁሳ", LocationLevel.ወረዳ,
+                "+251-58-220-0000", "Takusa Woreda Administration", zone.Id);
+
+            // Operational Kebele records for the seeded Woreda encoder and Wizard.
+            await UpsertLocationAsync(context, Guid.Parse("55555555-5555-5555-5555-555555555551"),
+                "ETH-AM-CG-DT-01", "Aymba", "አይምባ", LocationLevel.ቀበሌ,
+                "+251-58-200-0101", "Aymba Kebele", woreda.Id);
+            await UpsertLocationAsync(context, Guid.Parse("55555555-5555-5555-5555-555555555552"),
+                "ETH-AM-CG-DT-02", "Chuahit", "ጭዋሂት", LocationLevel.ቀበሌ,
+                "+251-58-200-0102", "Chuahit Kebele", woreda.Id);
+            await UpsertLocationAsync(context, Guid.Parse("55555555-5555-5555-5555-555555555553"),
+                "ETH-AM-CG-DT-03", "Gorgora", "ጎርጎራ", LocationLevel.ቀበሌ,
+                "+251-58-200-0103", "Gorgora Kebele", woreda.Id);
+            await UpsertLocationAsync(context, Guid.Parse("55555555-5555-5555-5555-555555555554"),
+                "ETH-AM-CG-DT-04", "Kola Diba", "ኮላ ድባ", LocationLevel.ቀበሌ,
+                "+251-58-200-0104", "Kola Diba Kebele", woreda.Id);
+            await UpsertLocationAsync(context, Guid.Parse("55555555-5555-5555-5555-555555555555"),
+                "ETH-AM-CG-DT-05", "Seraba", "ሰራባ", LocationLevel.ቀበሌ,
+                "+251-58-200-0105", "Seraba Kebele", woreda.Id);
 
             return (country, region, zone, woreda);
         }

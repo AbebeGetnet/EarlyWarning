@@ -29,6 +29,9 @@ namespace EarlyWarning.Models.PriceofGrain
         [Range(0, 100000, ErrorMessage = "ዋጋ ከ0 እስከ 100,000 ብር መሆን አለበት")]
         [DataType(DataType.Currency)]
         public decimal WeeklyPrice { get; set; }
+        [NotMapped]
+        [Display(Name = "ያለፈው ሳምንት ዋጋ")]
+        public decimal? PreviousWeekPrice { get; set; }
 
         [Display(Name = "የሳምንቱ የዋጋ ሁኔታ")]
         [Required(ErrorMessage = "የዋጋ ሁኔታ መምረጥ ያስፈልጋል")]

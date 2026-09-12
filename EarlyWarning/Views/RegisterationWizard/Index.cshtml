@@ -1,11 +1,130 @@
 ﻿@model EarlyWarning.ViewModels.RegistrationWithardViewModel
 @using EarlyWarning.Enums
+@using EarlyWarning.Models
+@{
+    var serverErrorFields = ViewData.ModelState.Where(x => x.Value?.Errors.Count > 0)
+        .Select(x => x.Key).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+    var zoneReviewSubmission = ViewBag.ReviewSubmission as WeeklyReportSubmission;
+}
+
+@section Styles {
+    <style>
+        #earlyWarningForm .d-flex > .form-check,
+        #earlyWarningForm .d-flex > label:has(input[type="radio"]) {
+            margin-right: 2.25rem !important;
+            margin-bottom: .75rem;
+        }
+        #earlyWarningForm input[type="radio"] {
+            margin-right: .55rem;
+            transform: scale(1.15);
+            accent-color: #0d6efd;
+        }
+        #earlyWarningForm label:has(input[type="radio"]),
+        #earlyWarningForm .form-check-label {
+            line-height: 1.65;
+            cursor: pointer;
+        }
+        #earlyWarningForm label:has(input[type="radio"]),
+        #earlyWarningForm .form-check:has(input[type="radio"]) {
+            padding: .3rem .75rem;
+            border: 1px solid currentColor;
+            border-radius: .4rem;
+            font-weight: 700;
+            transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+        }
+        #earlyWarningForm label:has(input[type="radio"][value="true"]),
+        #earlyWarningForm .form-check:has(input[type="radio"][value="true"]) { color: #198754; }
+        #earlyWarningForm label:has(input[type="radio"][value="false"]),
+        #earlyWarningForm .form-check:has(input[type="radio"][value="false"]) { color: #dc3545; }
+        #earlyWarningForm label:has(input[type="radio"][value="true"]:checked),
+        #earlyWarningForm .form-check:has(input[type="radio"][value="true"]:checked) {
+            color: #fff;
+            background-color: #198754;
+            box-shadow: 0 0 0 .18rem rgba(25, 135, 84, .18);
+        }
+        #earlyWarningForm label:has(input[type="radio"][value="false"]:checked),
+        #earlyWarningForm .form-check:has(input[type="radio"][value="false"]:checked) {
+            color: #fff;
+            background-color: #dc3545;
+            box-shadow: 0 0 0 .18rem rgba(220, 53, 69, .18);
+        }
+        #earlyWarningForm label:has(input[type="radio"]:checked):not(:has(input[value="true"])):not(:has(input[value="false"])),
+        #earlyWarningForm .form-check:has(input[type="radio"]:checked):not(:has(input[value="true"])):not(:has(input[value="false"])) {
+            color: #fff;
+            background-color: #0d6efd;
+            box-shadow: 0 0 0 .18rem rgba(13, 110, 253, .18);
+        }
+        #earlyWarningForm .form-check:has(input[type="radio"]:checked) > label,
+        #earlyWarningForm .form-check:has(input[type="radio"]:checked) > .form-check-label,
+        #earlyWarningForm label:has(input[type="radio"]:checked) {
+            color: #fff !important;
+        }
+        #earlyWarningForm .form-check:has(input[type="radio"]:not(:checked)) > label,
+        #earlyWarningForm .form-check:has(input[type="radio"]:not(:checked)) > .form-check-label {
+            color: inherit !important;
+        }
+        #earlyWarningForm .bool-radio[value="true"] { accent-color: #198754; }
+        #earlyWarningForm .bool-radio[value="false"] { accent-color: #dc3545; }
+        #earlyWarningForm select.form-select,
+        #earlyWarningForm select.form-control {
+            display: block;
+            width: 100%;
+            min-height: 44px;
+            margin-top: .45rem;
+            margin-bottom: 1rem;
+            padding: .55rem 2.35rem .55rem .85rem;
+            color: #212529;
+            background-color: #fff;
+            border: 1px solid #9ca8b4;
+            border-radius: .375rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+        }
+        #earlyWarningForm select.form-select:focus,
+        #earlyWarningForm select.form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .18);
+            outline: 0;
+        }
+        #earlyWarningForm td select.form-select,
+        #earlyWarningForm td select.form-control {
+            margin-top: .15rem;
+            margin-bottom: .15rem;
+        }
+        #earlyWarningForm .conditional-section > label,
+        #earlyWarningForm .row > div > label:not(.form-check-label) {
+            display: inline-block;
+            margin-top: .55rem;
+            margin-bottom: .3rem;
+            font-weight: 600;
+        }
+        #earlyWarningForm .row-total,
+        #earlyWarningForm .total-male,
+        #earlyWarningForm .total-female,
+        #earlyWarningForm .grand-total,
+        #earlyWarningForm table tfoot td,
+        #previewContainer table tfoot td {
+            font-weight: 800 !important;
+            font-size: 1.05rem;
+        }
+        #earlyWarningForm .row-total,
+        #earlyWarningForm .total-male,
+        #earlyWarningForm .total-female {
+            color: #172b4d;
+            background-color: #eef3f8 !important;
+        }
+        #earlyWarningForm table tfoot { border-top: 2px solid #536273; }
+        @@media (max-width: 576px) {
+            #earlyWarningForm .d-flex > .form-check,
+            #earlyWarningForm .d-flex > label:has(input[type="radio"]) { margin-right: 1.25rem !important; }
+        }
+    </style>
+}
 
 <div class="container-fluid mt-4">
     <div class="card shadow border-0 rounded-lg">
         <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="fas fa-magic me-2"></i>የተቀናጀ የሳምንታዊ መረጃ መሰብሰቢያ ዊዛርድ (Early Warning Data Wizard)</h4>
-            <span class="badge bg-info p-2" id="stepIndicator">ደረጃ 1 ከ 8</span>
+            <h4 class="mb-0"><i class="fas fa-magic me-2"></i>@(ViewBag.IsReviewMode == true ? "የወረዳ ሳምንታዊ ሪፖርት ግምገማ (Review Mode)" : "የተቀናጀ የሳምንታዊ መረጃ መሰብሰቢያ ዊዛርድ (Early Warning Data Wizard)")</h4>
+            <span class="badge bg-info p-2" id="stepIndicator">ደረጃ 1 ከ 18</span>
         </div>
         
         <div class="progress rounded-0" style="height: 6px;">
@@ -20,14 +139,39 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
+            @if (ViewBag.SubmissionFailed == true)
+            {
+                <div class="alert alert-danger shadow-sm" id="submissionFailedAlert" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-exclamation-circle me-2"></i>መረጃው አልተላከም</h5>
+                    <p class="mb-2">ከታች ያለውን ስህተት ያስተካክሉና እንደገና ይላኩ።</p>
+                    <ul class="mb-0">
+                        @foreach (string error in ViewBag.SubmissionErrors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </div>
+            }
+            @if (ViewBag.InitialDuplicateMessage != null)
+            {
+                <div class="alert alert-warning shadow-sm"><i class="fas fa-exclamation-triangle me-2"></i>@ViewBag.InitialDuplicateMessage</div>
+            }
 
             <div id="wizardModeBanner" class="alert alert-info py-2 d-none shadow-sm animate-fade-in">
                 <i class="fas fa-info-circle me-2"></i><span id="wizardModeText">አዲስ መረጃ በመፍጠር ላይ...</span>
             </div>
 
+            @if (ViewBag.IsReviewMode == true)
+            {
+                <div class="alert alert-primary shadow-sm">
+                    <i class="fas fa-eye me-2"></i><strong>Review Mode:</strong>
+                    የ@ViewBag.WoredaName የተላከ መረጃ በንባብ ብቻ ሁኔታ ተከፍቷል። ሁሉንም 17 ደረጃዎች በመመልከት ያረጋግጡ።
+                </div>
+            }
+
             <form asp-action="SubmitWizard" method="post" id="earlyWarningForm">
                 @Html.AntiForgeryToken()
-                <div asp-validation-summary="All" class="text-danger mb-3 card p-2 bg-white d-none" id="errorSummaryBox"></div>
+                <div asp-validation-summary="All" class="text-danger mb-3 card p-2 bg-white @(ViewData.ModelState.IsValid ? "d-none" : "")" id="errorSummaryBox"></div>
 
                 <input type="hidden" asp-for="UserId" />
                 <input type="hidden" asp-for="WoredaId" />
@@ -40,19 +184,20 @@
                             <i class="fas fa-exclamation-triangle me-2"></i><strong>የቀን ስህተት፡</strong> እባክዎ ካለፉት 8 ቀናት እስከ ዛሬ ያለውን ቀን ብቻ ያስገቡ (የወደፊት ቀን ወይም ከ8 ቀን የበለሰ መረጃ ማስገባት አይቻልም)።
                         </div>
                         <hr />
+                        <div class="alert alert-secondary"><strong>የመረጃ ባለቤት ወረዳ፡</strong> @ViewBag.WoredaName <span class="ms-2 text-muted">(በተጠቃሚው መለያ የተወሰነ፤ መቀየር አይቻልም)</span></div>
                         <div class="row">                            
                             <div class="col-md-4">
                                 <label class="fw-bold">በወረዳ ያሉ ቀበሌዎች ብዛት</label>
                                 <input id="totalWoredaKebeles" class="form-control text-center bg-light fw-bold text-primary" value="@ViewBag.TotalKebeles" readonly disabled />
                             </div>
                             <div class="col-md-4">
-                                <label asp-for="StartDate" class="form-label fw-bold">የመነሻ ቀን (ከ)</label>
+                                <label asp-for="StartDate" class="form-label fw-bold">የሪፖርት መነሻ ቀን (ሰኞ)</label>
                                 <input asp-for="StartDate" id="StartDate" type="date" class="form-control" />
                                 <span asp-validation-for="StartDate" class="text-danger"></span>
                             </div>
                             <div class="col-md-4">
-                                <label asp-for="EndDate" class="form-label fw-bold">የማጠናቀቂያ ቀን (እስከ)</label>
-                                <input asp-for="EndDate" id="EndDate" type="date" class="form-control" />
+                                <label asp-for="EndDate" class="form-label fw-bold">የሪፖርት ማጠናቀቂያ ቀን (ረቡዕ)</label>
+                                <input asp-for="EndDate" id="EndDate" type="date" class="form-control" readonly />
                                 <span asp-validation-for="EndDate" class="text-danger"></span>
                             </div>
                         </div>
@@ -178,8 +323,9 @@
                                 </div>
                             </div>
 
-                            <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በተባይ/በሽታ ምክንያት የተጎዱ አርሶ አደሮች ስብጥር</h5>
-                            <div class="table-responsive bg-white rounded shadow-sm">
+                            <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በእያንዳንዱ ተባይ/በሽታ የተጎዱ አርሶ አደሮች ስብጥር</h5>
+                            <div id="cropImpactCards">@for (var i = 0; i < Model.CropPestImpactDetails.Count; i++) { var item = Model.CropPestImpactDetails[i]; var type = Model.CropPestAndDeseases.First(x => x.Id == item.CropPestAndDeseaseId); <input type="hidden" name="CropPestImpactDetails[@i].CropPestAndDeseaseId" value="@item.CropPestAndDeseaseId" /><partial name="_PerTypeDemographicCard" model='($"CropPestImpactDetails[{i}]", type.Name, item.CropPestAndDeseaseId.ToString(), (object)item)' /> }</div>
+                            <div class="table-responsive bg-white rounded shadow-sm d-none">
                                 <table class="table table-bordered text-center align-middle m-0 calc-table" id="pestTable">
                                     <thead class="table-warning text-dark">
                                         <tr>
@@ -234,8 +380,9 @@
 
                         <div id="pastureFields" class="d-none">
                             <div class="mb-3 col-md-4">
-                                <label asp-for="PastureStatus.NumberOfAnimalsAffected" class="form-label fw-bold text-danger"></label>
-                                <input asp-for="PastureStatus.NumberOfAnimalsAffected" id="pastureAnimalsAffected" class="form-for-int form-control border-danger" type="number" min="0" value="0" />
+                                <label asp-for="PastureStatus.NumberOfAnimalsAffected" class="form-label fw-bold"></label>
+                                <input asp-for="PastureStatus.NumberOfAnimalsAffected" id="pastureAnimalsAffected" class="form-for-int form-control" type="number" min="0" />
+                                <span asp-validation-for="PastureStatus.NumberOfAnimalsAffected" class="text-danger"></span>
                             </div>
 
                             <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በመኖ እጥረት ምክንያት የተጎዱ አርብቶ አደሮች ስብጥር</h5>
@@ -337,7 +484,7 @@
                         
                         <div class="card p-3 bg-light mb-3">
                             <label class="form-label fw-bold mb-2">የእንስሳት ጤና ሁኔታ እንዴት ነው?</label>
-                            <div class="d-fl ex gap-4">
+                            <div class="d-flex flex-row flex-wrap align-items-center gap-4">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="healthEnoughRadio" id="healthEnoughYes" value="true" onchange="toggleAnimalHealthFields()" checked>
                                     <label class="form-check-label fw-bold text-success" for="healthEnoughYes">አጥጋቢ / ጤናማ ነው</label>
@@ -373,8 +520,9 @@
                                 </div>
                             </div>
 
-                            <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በእንስሳት በሽታ ምክንያት የተጎዱ አርብቶ አደሮች ስብጥር</h5>
-                            <div class="table-responsive bg-white rounded shadow-sm">
+                            <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በእያንዳንዱ የእንስሳት በሽታ የተጎዱ አርብቶ አደሮች ስብጥር</h5>
+                            <div id="animalImpactCards">@for (var i = 0; i < Model.AnimalDiseaseImpactDetails.Count; i++) { var item = Model.AnimalDiseaseImpactDetails[i]; var type = Model.AnimalDiseases.First(x => x.Id == item.AnimalDiseaseId); <input type="hidden" name="AnimalDiseaseImpactDetails[@i].AnimalDiseaseId" value="@item.AnimalDiseaseId" /><partial name="_PerTypeDemographicCard" model='($"AnimalDiseaseImpactDetails[{i}]", type.Name, item.AnimalDiseaseId.ToString(), (object)item)' /> }</div>
+                            <div class="table-responsive bg-white rounded shadow-sm d-none">
                                 <table class="table table-bordered text-center align-middle m-0 calc-table" id="healthTable">
                                     <thead class="table-danger text-dark">
                                         <tr>
@@ -411,15 +559,30 @@
                     </div>
                 </div>
 
-                <div class="wizard-step d-none" id="step8">
+                <partial name="_ExtendedReportSteps" model="Model" />
+
+                <div class="wizard-step d-none" id="step18">
                     <div class="p-4 bg-white rounded shadow-sm border-top border-dark border-4">
-                        <h4 class="text-dark mb-3"><i class="fas fa-eye me-2"></i>ደረጃ 8፡ የተመዘገቡ መረጃዎች ማጠቃለያ ቅድመ-ዕይታ (Master Review Dashboard)</h4>
+                        <h4 class="text-dark mb-3"><i class="fas fa-eye me-2"></i>ደረጃ 18፡ የተመዘገቡ መረጃዎች ማጠቃለያ ቅድመ-ዕይታ (Master Review Dashboard)</h4>
                         <div class="alert alert-warning py-2 shadow-sm"><i class="fas fa-exclamation-circle me-2"></i><strong>ማሳሰቢያ፡</strong> መረጃውን ወደ ዳታቤዝ ከመላክዎ በፊት ሁሉንም ክፍሎች እዚህ ማረጋገጥ ይችላሉ። ስህተት ካለ "ቀደመው ገጽ" በመጫን ማስተካከል ይቻላል።</div>
                         <hr />
 
                         <div id="previewContainer"></div>
                     </div>
                 </div>
+
+                @if (ViewBag.CanZoneDecision == true)
+                {
+                    <div class="card border-primary shadow-sm mt-4 mb-2">
+                        <div class="card-header fw-bold">የዞን ግምገማ ውሳኔ</div>
+                        <div class="card-body">
+                            <label for="zoneReviewComment" class="form-label">አስተያየት (ለውድቅ ግዴታ ነው)</label>
+                            <textarea id="zoneReviewComment" name="comment" form="zoneDecisionForm" class="form-control mb-3" rows="3" maxlength="2000"></textarea>
+                            <button type="submit" form="zoneDecisionForm" name="decision" value="Approve" class="btn btn-success me-2"><i class="fas fa-check me-1"></i>ፍቀድ</button>
+                            <button type="submit" form="zoneDecisionForm" name="decision" value="Reject" class="btn btn-danger"><i class="fas fa-times me-1"></i>ውድቅ አድርግ</button>
+                        </div>
+                    </div>
+                }
 
                 <div class="d-flex justify-content-between mt-4 p-3 bg-white rounded shadow-sm">
                     <button type="button" class="btn btn-secondary px-4 d-none" id="prevBtn" onclick="nextPrev(-1)">
@@ -430,6 +593,14 @@
                     </button>
                 </div>
             </form>
+            @if (ViewBag.CanZoneDecision == true && zoneReviewSubmission != null)
+            {
+                <form id="zoneDecisionForm" asp-controller="WeeklyWorkflow" asp-action="Act" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@zoneReviewSubmission.Id" />
+                    <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(zoneReviewSubmission.RowVersion)" />
+                </form>
+            }
         </div>
     </div>
 </div>
@@ -439,7 +610,130 @@
         let currentStep = 0;
         const steps = document.getElementsByClassName("wizard-step");
         const totalSteps = steps.length;
+        const schoolProblemSwitch = document.getElementById('schoolProblemSwitch');
+        const updateSchoolProblemVisibility = () => {
+            const active = schoolProblemSwitch?.querySelector('input[type="radio"]:checked')?.value === 'true';
+            document.querySelectorAll('.school-problem-detail').forEach(section => {
+                section.classList.toggle('d-none', !active);
+                section.querySelectorAll('input, select, textarea').forEach(control => control.disabled = !active);
+            });
+        };
+        schoolProblemSwitch?.querySelectorAll('input[type="radio"]').forEach(radio =>
+            radio.addEventListener('change', updateSchoolProblemVisibility));
+        updateSchoolProblemVisibility();
         let currentWoredaMaxKebeles = 0;
+        let serverDraftEnabled = false;
+        let serverDraftTimer = null;
+        let serverDraftRequest = null;
+        let isSubmittingWizard = false;
+        let isHydratingWeeklyData = false;
+        const isReviewMode = @((ViewBag.IsReviewMode == true).ToString().ToLowerInvariant());
+
+        // One delegated calculator covers every demographic table, including
+        // tables restored from drafts or revealed after the page initializes.
+        const wizardFormElement = document.getElementById('earlyWarningForm');
+        const recalculateChangedTable = event => {
+            if (event.target.matches?.('.val-male, .val-female')) {
+                const table = event.target.closest('.calc-table');
+                if (table) calculateGridTotals(table);
+            }
+            if (event.target.matches?.('.migration-count')) {
+                const table = event.target.closest('.migration-summary-table');
+                if (table) calculateMigrationTotals(table);
+            }
+        };
+        wizardFormElement?.addEventListener('input', recalculateChangedTable);
+        wizardFormElement?.addEventListener('change', recalculateChangedTable);
+
+        document.querySelectorAll('.section-toggle').forEach(toggle => {
+            const sync = () => document.querySelector(toggle.dataset.target)?.classList.toggle('d-none', !toggle.checked);
+            toggle.addEventListener('change', sync);
+            sync();
+        });
+        function syncAllBoolRadios() {
+            document.querySelectorAll('.bool-radio').forEach(radio => {
+                const hidden = document.getElementById(radio.dataset.field);
+                radio.checked = String(hidden.value).toLowerCase() === radio.value;
+                const section = document.querySelector(radio.dataset.section);
+                if (radio.checked && section) section.classList.toggle('d-none', radio.value !== 'true');
+            });
+        }
+        document.querySelectorAll('.bool-radio').forEach(radio => radio.addEventListener('change', () => {
+            if (!radio.checked) return;
+            document.getElementById(radio.dataset.field).value = radio.value;
+            document.querySelector(radio.dataset.section)?.classList.toggle('d-none', radio.value !== 'true');
+        }));
+        syncAllBoolRadios();
+        function syncMigrationDirection() {
+            const selected = document.querySelector('.migration-direction:checked');
+            if (!selected) return;
+            const inward = selected.value === 'true';
+            document.getElementById('migrationIsInward').value = inward;
+            document.getElementById('inwardMigration')?.classList.toggle('d-none', !inward);
+            document.getElementById('outwardMigration')?.classList.toggle('d-none', inward);
+        }
+        document.querySelectorAll('.migration-direction').forEach(x => x.addEventListener('change', syncMigrationDirection));
+        syncMigrationDirection();
+        function syncAnimalMigrationDirection() {
+            const selected = document.querySelector('.animal-migration-direction:checked');
+            const inward = selected?.value === 'Inward';
+            document.getElementById('animalMigrationInward')?.classList.toggle('d-none', !inward);
+            document.getElementById('animalMigrationOutward')?.classList.toggle('d-none', inward);
+            const title = document.getElementById('animalMigrationRouteTitle');
+            if (title) title.textContent = inward ? 'ወደ ወረዳው የሚገቡ እንስሳት መስመር' : 'ከወረዳው የሚወጡ እንስሳት መስመር';
+        }
+        document.querySelectorAll('.animal-migration-direction').forEach(x => x.addEventListener('change', syncAnimalMigrationDirection));
+        syncAnimalMigrationDirection();
+        document.querySelectorAll('.aid-provided, .aid-distributed').forEach(input => input.addEventListener('input', () => {
+            const row = input.closest('tr');
+            const provided = Number(row.querySelector('.aid-provided').value) || 0;
+            const distributed = Number(row.querySelector('.aid-distributed').value) || 0;
+            row.querySelector('.aid-percent').value = provided > 0 ? Math.min(100, distributed / provided * 100).toFixed(2) : '0';
+            const distributedInput = row.querySelector('.aid-distributed');
+            distributedInput.classList.toggle('is-invalid', distributed > provided);
+            distributedInput.setCustomValidity(distributed > provided ? 'የተሰራጨው መጠን ከቀረበው መጠን ሊበልጥ አይችልም።' : '');
+        }));
+        document.querySelectorAll('input[name$=".DamageRateInPercent"]').forEach(input => {
+            input.min = '0';
+            input.max = '100';
+            input.step = '0.01';
+
+            let feedback = input.parentElement?.querySelector('.damage-rate-feedback');
+            if (!feedback) {
+                feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback damage-rate-feedback';
+                feedback.textContent = 'የጉዳት መጠን (%) ከ0 እስከ 100 ብቻ መሆን አለበት።';
+                input.insertAdjacentElement('afterend', feedback);
+            }
+
+            const validateDamageRate = () => {
+                const hasValue = input.value.trim() !== '';
+                const value = Number(input.value);
+                const invalid = hasValue && (!Number.isFinite(value) || value < 0 || value > 100);
+                input.setCustomValidity(invalid ? feedback.textContent : '');
+                input.classList.toggle('is-invalid', invalid);
+                input.classList.toggle('is-valid', hasValue && !invalid);
+            };
+
+            input.addEventListener('input', validateDamageRate);
+            input.addEventListener('change', validateDamageRate);
+            validateDamageRate();
+        });
+        document.querySelectorAll('input[type="checkbox"][name^="Selected"]').forEach(box => {
+            const syncImpact = () => document.querySelectorAll(`.impact-card[data-impact-key="${box.value}"]`).forEach(card => card.classList.toggle('d-none', !box.checked));
+            box.addEventListener('change', syncImpact);
+            syncImpact();
+        });
+        document.querySelectorAll('.market-current-price').forEach(input => input.addEventListener('input', updateMarketComparison));
+        function updateMarketComparison(event) {
+            const row = event.target.closest('tr');
+            const current = Number(event.target.value) || 0;
+            const previous = Number(row.querySelector('.market-previous-price')?.value) || 0;
+            const status = current > previous ? 1 : current < previous ? 2 : 3;
+            row.querySelectorAll('.market-status').forEach(x => x.value = status);
+            row.querySelector('.market-difference').value = (current - previous).toFixed(2);
+            row.querySelector('.market-percentage').value = previous > 0 ? ((current - previous) / previous * 100).toFixed(2) : '0';
+        }
 
         function updateMaxKebeleLimit() {
             const totalKebelesInput = document.getElementById("totalWoredaKebeles");
@@ -455,12 +749,19 @@
 
         function showStep(n) {
             steps[n].classList.remove("d-none");
+            // Recalculate when a step becomes visible. This is especially
+            // important after a POST validation response restores Step 15.
+            steps[n].querySelectorAll('.calc-table').forEach(calculateGridTotals);
+            steps[n].querySelectorAll('.migration-summary-table').forEach(calculateMigrationTotals);
             document.getElementById("prevBtn").classList.toggle("d-none", n === 0);
 
             if (n === (totalSteps - 1)) {
+                document.querySelectorAll('.calc-table').forEach(calculateGridTotals);
                 buildDataPreviewEngine();
-                document.getElementById("nextBtn").className = "btn btn-success px-5 ms-auto";
-                document.getElementById("nextBtn").innerHTML = 'መረጃውን በአንድነት መዝግብ <i class="fas fa-cloud-upload-alt ms-2"></i>';
+                document.getElementById("nextBtn").className = isReviewMode ? "btn btn-outline-secondary px-5 ms-auto disabled" : "btn btn-success px-5 ms-auto";
+                document.getElementById("nextBtn").innerHTML = isReviewMode
+                    ? '<i class="fas fa-check-circle me-2"></i>ግምገማው ተጠናቋል'
+                    : 'መረጃውን በአንድነት መዝግብ <i class="fas fa-cloud-upload-alt ms-2"></i>';
             } else {
                 document.getElementById("nextBtn").className = "btn btn-primary px-5 ms-auto";
                 document.getElementById("nextBtn").innerHTML = 'ቀጣይ ገጽ <i class="fas fa-arrow-right ms-2"></i>';
@@ -470,17 +771,195 @@
             document.getElementById("wizardProgress").style.width = ((n + 1) / totalSteps) * 100 + "%";
         }
 
+        function navigateToField(field) {
+            if (!field) return false;
+            let container = field.parentElement;
+            while (container && !container.classList.contains('wizard-step')) {
+                if (container.classList.contains('conditional-section') || container.classList.contains('impact-card'))
+                    container.classList.remove('d-none');
+                container = container.parentElement;
+            }
+            const step = field.closest('.wizard-step');
+            if (step) {
+                const stepIndex = Array.from(steps).indexOf(step);
+                if (stepIndex >= 0) {
+                    Array.from(steps).forEach(x => x.classList.add('d-none'));
+                    currentStep = stepIndex;
+                    showStep(currentStep);
+                }
+            }
+            field.classList.add('is-invalid');
+            setTimeout(() => {
+                field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (!field.disabled && field.type !== 'hidden') field.focus({ preventScroll: true });
+            }, 100);
+            return true;
+        }
+
+        function navigateToServerValidationError() {
+            const errorKeys = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(serverErrorFields));
+            for (const key of errorKeys) {
+                const escaped = CSS.escape(key);
+                const candidates = [
+                    ...document.querySelectorAll(`[name="${escaped}"]`),
+                    ...document.querySelectorAll(`[name^="${escaped}["]`),
+                    ...document.querySelectorAll(`[name$=".${escaped}"]`)
+                ];
+                const field = candidates.find(x => x.type !== 'hidden' && !x.closest('.d-none'))
+                    || candidates.find(x => x.type !== 'hidden') || candidates[0];
+                if (navigateToField(field)) return;
+            }
+            const summary = document.getElementById('errorSummaryBox');
+            if (errorKeys.length && summary) {
+                summary.classList.remove('d-none');
+                summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function showWizardMessage(message, type = 'danger') {
+            const banner = document.getElementById('wizardModeBanner');
+            const text = document.getElementById('wizardModeText');
+            if (!banner || !text) return;
+            banner.className = `alert alert-${type} py-2 shadow-sm animate-fade-in`;
+            text.textContent = message;
+            banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        async function checkSelectedWeek() {
+            const startDate = document.getElementById('StartDate')?.value;
+            if (!startDate) return null;
+            try {
+                const response = await fetch(`@Url.Action("CheckWeeklySubmission", "RegisterationWizard")?startDate=${encodeURIComponent(startDate)}`, {
+                    headers: { 'Accept': 'application/json' }, cache: 'no-store'
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error('Weekly duplicate check failed:', error);
+                showWizardMessage('የሳምንቱን መዝገብ ማረጋገጥ አልተቻለም። እባክዎ ግንኙነቱን አረጋግጠው እንደገና ይሞክሩ።', 'warning');
+                return { checkFailed: true };
+            }
+        }
+
+        async function loadExistingWeeklyData(showMissingAsNew = false) {
+            const woredaSelect = document.getElementById('WoredaId');
+            const startDateInput = document.getElementById('StartDate');
+            const endDateInput = document.getElementById('EndDate');
+            if (!woredaSelect?.value || !startDateInput?.value || !endDateInput?.value) return false;
+
+            const query = new URLSearchParams({
+                woredaId: woredaSelect.value,
+                startDate: startDateInput.value,
+                endDate: endDateInput.value
+            });
+            const response = await fetch(`@Url.Action("GetExistingWizardData", "RegisterationWizard")?${query}`, {
+                headers: { 'Accept': 'application/json' }, cache: 'no-store'
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (!data.exists) {
+                if (showMissingAsNew) {
+                    document.getElementById('RecordId').value = '0';
+                    document.getElementById('wizardModeBanner').classList.remove('d-none', 'alert-warning');
+                    document.getElementById('wizardModeBanner').classList.add('alert-info');
+                    document.getElementById('wizardModeText').innerText = '✨ አዲስ ሳምንታዊ መረጃ ምዝገባ (Create Mode Active)...';
+                }
+                return false;
+            }
+
+            serverDraftEnabled = false;
+            document.getElementById('RecordId').value = '1';
+            document.getElementById('wizardModeBanner').classList.remove('d-none', 'alert-info');
+            document.getElementById('wizardModeBanner').classList.add('alert-warning');
+            document.getElementById('wizardModeText').innerText = data.workflowStatus === 'Draft'
+                ? 'የዚህ ሳምንት የተቀመጠው ረቂቅ መረጃ ተጭኗል፤ ከቆሙበት ቀጥለው ያጠናቅቁ።'
+                : data.canEdit ? `ሪፖርቱ በዞን ተመልሷል፤ ማስተካከልና እንደገና መላክ ይችላሉ። ${data.latestWorkflowComment ? 'ምክንያት፡ ' + data.latestWorkflowComment : ''}`
+                : `ሪፖርቱ ተልኳል እና ተቆልፏል (${data.workflowStatus || 'በግምገማ ላይ'})።`;
+            isHydratingWeeklyData = true;
+            try {
+                if (data.workflowStatus === 'Draft' && data.draftFields) {
+                    if (data.recordStartDate) document.getElementById('StartDate').value = data.recordStartDate;
+                    if (data.recordEndDate) document.getElementById('EndDate').value = data.recordEndDate;
+                    applyServerDraftFields(data.draftFields);
+                } else {
+                    hydrateWizardForm(data);
+                }
+            } finally {
+                isHydratingWeeklyData = false;
+            }
+            serverDraftEnabled = Boolean(data.canEdit);
+            if (!data.canEdit) {
+                document.querySelectorAll("#earlyWarningForm input, #earlyWarningForm select, #earlyWarningForm textarea, #earlyWarningForm button[type='submit']")
+                    .forEach(el => {
+                        if (el.type !== 'hidden' && el.getAttribute('form') !== 'zoneDecisionForm')
+                            el.disabled = true;
+                    });
+            }
+            return true;
+        }
+
+        async function saveServerDraft(showConfirmation = false) {
+            if (!serverDraftEnabled || isSubmittingWizard) return true;
+            const form = document.getElementById('earlyWarningForm');
+            const startDate = document.getElementById('StartDate')?.value;
+            const endDate = document.getElementById('EndDate')?.value;
+            if (!startDate || !endDate) return false;
+            try {
+                serverDraftRequest?.abort();
+                serverDraftRequest = new AbortController();
+                const response = await fetch('@Url.Action("SaveDraft", "RegisterationWizard")', {
+                    method: 'POST', body: new FormData(form), headers: { 'Accept': 'application/json' },
+                    signal: serverDraftRequest.signal
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    showWizardMessage(result.message || 'ረቂቅ መረጃውን ማስቀመጥ አልተቻለም።', 'danger');
+                    return false;
+                }
+                if (showConfirmation) showWizardMessage('ረቂቅ መረጃው በዳታቤዝ ተቀምጧል። በሌላ ጊዜ ተመልሰው መቀጠል ይችላሉ።', 'success');
+                return true;
+            } catch (error) {
+                if (error.name === 'AbortError') return true;
+                console.error('Draft save failed:', error);
+                showWizardMessage('ረቂቅ መረጃውን ማስቀመጥ አልተቻለም፤ ግንኙነቱን አረጋግጠው ይሞክሩ።', 'warning');
+                return false;
+            }
+        }
+
+        function scheduleServerDraftSave() {
+            if (!serverDraftEnabled || isSubmittingWizard) return;
+            clearTimeout(serverDraftTimer);
+            serverDraftTimer = setTimeout(() => saveServerDraft(false), 900);
+        }
+
         async function nextPrev(n) {
-            if (n === 1) {
+            if (n === 1 && !isReviewMode) {
                 let isStepValid = await validateCurrentStep();
                 if (!isStepValid) return false;
+            }
+            if (serverDraftEnabled && currentStep < totalSteps - 1) {
+                const saved = await saveServerDraft(false);
+                if (!saved) return false;
             }
 
             steps[currentStep].classList.add("d-none");
             currentStep += n;
 
             if (currentStep >= totalSteps) {
-                document.getElementById("earlyWarningForm").submit();
+                if (isReviewMode) {
+                    currentStep = totalSteps - 1;
+                    showStep(currentStep);
+                    return false;
+                }
+                const form = document.getElementById("earlyWarningForm");
+                document.querySelectorAll('#earlyWarningForm input[type="number"]').forEach(x => x.dispatchEvent(new Event('input')));
+                if (!form.checkValidity()) {
+                    const invalidField = form.querySelector(':invalid');
+                    navigateToField(invalidField);
+                    invalidField?.reportValidity();
+                    return false;
+                }
+                form.requestSubmit();
                 return false;
             }
             showStep(currentStep);
@@ -518,25 +997,29 @@
         // OVERRIDE TOGGLE HANDLERS TO WORK WITH RADIO ACTIONS
         // =======================================================
         function toggleCropPestFields() {
-            const value = document.querySelector('input[name="hasPestRadio"]:checked').value === "true";
+            const selected = document.querySelector('input[name="hasPestRadio"]:checked');
+            const value = selected ? selected.value === "true" : document.getElementById("hasPestSwitch").value === "true";
             document.getElementById("hasPestSwitch").value = value;
             document.getElementById("cropPestFields").classList.toggle("d-none", !value);
         }
 
         function togglePastureFields() {
-            const value = document.querySelector('input[name="pastureEnoughRadio"]:checked').value === "true";
+            const selected = document.querySelector('input[name="pastureEnoughRadio"]:checked');
+            const value = selected ? selected.value === "true" : document.getElementById("pastureEnoughSwitch").value === "true";
             document.getElementById("pastureEnoughSwitch").value = value;
             document.getElementById("pastureFields").classList.toggle("d-none", value);
         }
 
         function toggleWaterFields() {
-            const value = document.querySelector('input[name="waterEnoughRadio"]:checked').value === "true";
+            const selected = document.querySelector('input[name="waterEnoughRadio"]:checked');
+            const value = selected ? selected.value === "true" : document.getElementById("waterEnoughSwitch").value === "true";
             document.getElementById("waterEnoughSwitch").value = value;
             document.getElementById("waterFields").classList.toggle("d-none", value);
         }
 
         function toggleAnimalHealthFields() {
-            const value = document.querySelector('input[name="healthEnoughRadio"]:checked').value === "true";
+            const selected = document.querySelector('input[name="healthEnoughRadio"]:checked');
+            const value = selected ? selected.value === "true" : document.getElementById("animalHealthEnoughSwitch").value === "true";
             document.getElementById("animalHealthEnoughSwitch").value = value;
             document.getElementById("animalHealthFields").classList.toggle("d-none", value);
         }
@@ -547,6 +1030,13 @@
         async function validateCurrentStep() {
             let valid = true;
             updateMaxKebeleLimit();
+            const nativeInvalid = Array.from(steps[currentStep].querySelectorAll('input, select, textarea'))
+                .find(field => field.type !== 'hidden' && field.offsetParent !== null && !field.checkValidity());
+            if (nativeInvalid) {
+                navigateToField(nativeInvalid);
+                nativeInvalid.reportValidity();
+                return false;
+            }
             
             // STEP 1 CONTEXT CHECK
             if (currentStep === 0) {
@@ -580,30 +1070,17 @@
                     return false;
                 }
 
-                // API QUERY INTEGRATION
+                const duplicate = await checkSelectedWeek();
+                if (duplicate?.exists && !duplicate.editable) {
+                    showWizardMessage(duplicate.message, 'danger');
+                    navigateToField(startDateInput);
+                    return false;
+                }
+                serverDraftEnabled = true;
+                if (!duplicate?.exists && !await saveServerDraft(true)) return false;
+
                 try {
-                    const query = new URLSearchParams({
-                        woredaId: woredaSelect.value,
-                        startDate: startDateInput.value,
-                        endDate: document.getElementById("EndDate").value
-                    });
-                    let response = await fetch(`@Url.Action("GetExistingWizardData", "RegisterationWizard")?${query}`);
-                    if (response.ok) {
-                        let data = await response.json();
-                        if (data.exists) {
-                            document.getElementById("RecordId").value = "1";
-                            document.getElementById("wizardModeBanner").classList.remove("d-none", "alert-info");
-                            document.getElementById("wizardModeBanner").classList.add("alert-warning");
-                            document.getElementById("wizardModeText").innerText = `‼️ ማሳሰቢያ፡ ለተመረጠው ወረዳ እና ሳምንት ቀድሞ የተመዘገበ ሪፖርት ተገኝቷል። አሁን የሚሞላው መረጃ የድሮውን ይተካዋል (Edit Mode Active)።`;
-                            hydrateWizardForm(data);
-                        } else {
-                            document.getElementById("RecordId").value = "0";
-                            document.getElementById("wizardModeBanner").classList.remove("d-none", "alert-warning");
-                            document.getElementById("wizardModeBanner").classList.add("alert-info");
-                            document.getElementById("wizardModeText").innerText = "✨ አዲስ ሳምንታዊ መረጃ ምዝገባ (Create Mode Active)...";
-                            resetWizardForm();
-                        }
-                    }
+                    await loadExistingWeeklyData(true);
                 } catch (err) { console.error("Database graph API error:", err); }
             }
             
@@ -667,6 +1144,18 @@
                 }
             }
 
+            // Human drinking-water and human epidemic affected-kebele boundaries.
+            if (currentStep === 7 || currentStep === 8) {
+                const id = currentStep === 7 ? 'HumanDrinkWaterIssue_NumberOfAffectedKebeles' : 'EpidemicDisease_NumberOfAffectedKebeles';
+                const input = document.getElementById(id);
+                const count = Number(input?.value) || 0;
+                if (count > currentWoredaMaxKebeles) {
+                    input.classList.add('is-invalid');
+                    alert(`⚠️ የችግሩ ቀበሌዎች ቁጥር (${count}) ከወረዳው ጠቅላላ ቀበሌዎች (${currentWoredaMaxKebeles}) ሊበልጥ አይችልም።`);
+                    valid = false;
+                } else if (input) input.classList.remove('is-invalid');
+            }
+
             return valid;
         }
 
@@ -674,6 +1163,8 @@
         // HYDRATION AND DATA FLOW SCHEDULER
         // =======================================================
         function hydrateWizardForm(data) {
+            if (data.recordStartDate) document.getElementById('StartDate').value = data.recordStartDate;
+            if (data.recordEndDate) document.getElementById('EndDate').value = data.recordEndDate;
             document.getElementById("remarksInput").value = data.remarks || "";
 
             if (data.totalKebelesCount) {
@@ -687,7 +1178,7 @@
                 document.getElementById("rainNone").value = data.rainfall.none;
                 document.getElementById("rainHigh").value = data.rainfall.high;
                 const kebeleIds = data.rainfall.kebeleIds || [];
-                document.querySelectorAll(".kebele-checkbox").forEach(cb => cb.checked = kebeleIds.includes(cb.value));
+                document.querySelectorAll(".kebele-checkbox").forEach(cb => cb.checked = kebeleIds.map(String).includes(cb.value));
             }
 
             if (data.farming) {
@@ -708,7 +1199,7 @@
                 document.getElementById("pestHectars").value = data.pest.hectars;
                 document.getElementById("pestCropType").value = data.pest.cropType || "";
                 const pestIds = data.pest.pestIds || [];
-                document.querySelectorAll(".pest-checkbox").forEach(cb => cb.checked = pestIds.includes(cb.value));
+                document.querySelectorAll(".pest-checkbox").forEach(cb => { cb.checked = pestIds.map(String).includes(cb.value); cb.dispatchEvent(new Event('change')); });
                 const rows = document.getElementById("pestTable").querySelectorAll("tbody tr");
                 mapDemographicInputs(rows[0], data.pest.mHH, data.pest.fHH);
                 mapDemographicInputs(rows[1], data.pest.mFam, data.pest.fFam);
@@ -748,9 +1239,10 @@
             if (data.health) {
                 document.getElementById(`healthEnough${data.health.enough ? 'Yes' : 'No'}`).checked = true;
                 document.getElementById("healthAnimalsMale").value = data.health.infectedMale;
-                document.getElementById("healthAnimalsFemale").value = data.health.infectedFemale;
+                const healthFemale = document.getElementById("healthAnimalsFemale");
+                if (healthFemale) healthFemale.value = data.health.infectedFemale || 0;
                 const diseaseIds = data.health.diseaseIds || [];
-                document.querySelectorAll(".health-checkbox").forEach(cb => cb.checked = diseaseIds.includes(cb.value));
+                document.querySelectorAll(".health-checkbox").forEach(cb => { cb.checked = diseaseIds.map(String).includes(cb.value); cb.dispatchEvent(new Event('change')); });
                 const rows = document.getElementById("healthTable").querySelectorAll("tbody tr");
                 mapDemographicInputs(rows[0], data.health.mHH, data.health.fHH);
                 mapDemographicInputs(rows[1], data.health.mFam, data.health.fFam);
@@ -761,14 +1253,70 @@
                 toggleAnimalHealthFields();
             }
 
+            Object.entries(data.extendedFields || {}).forEach(([name, value]) => {
+                const field = document.querySelector(`[name="${name}"]`);
+                if (!field) return;
+                if (field.type === 'checkbox') field.checked = value === true;
+                else field.value = value ?? '';
+                if (field.classList.contains('section-toggle')) field.dispatchEvent(new Event('change'));
+            });
+            syncAllBoolRadios();
+            const storedInward = String(document.getElementById('migrationIsInward')?.value).toLowerCase() === 'true';
+            const directionRadio = document.querySelector(`.migration-direction[value="${storedInward}"]`);
+            if (directionRadio) directionRadio.checked = true;
+            syncMigrationDirection();
+            const checkIds = (name, ids) => document.querySelectorAll(`[name="${name}"]`).forEach(x => { x.checked = (ids || []).map(String).includes(x.value); x.dispatchEvent(new Event('change')); });
+            checkIds('SelectedHumanWaterKebeleIds', data.selectedHumanWaterKebeleIds);
+            checkIds('SelectedEpidemicDiseaseTypeIds', data.selectedEpidemicDiseaseTypeIds);
+            checkIds('SelectedAccidentTypeIds', data.selectedAccidentTypeIds);
+            hydrateCollectionRows('GrainPriceRows', 'GrainTypeId', data.grainPriceRows);
+            hydrateCollectionRows('AnimalPriceRows', 'AnimalTypeId', data.animalPriceRows);
+            hydrateCollectionRows('AidDistributionDetails', 'SupplyTypeId', data.aidDistributionDetails);
+            hydrateCollectionRows('CropPestImpactDetails', 'CropPestAndDeseaseId', data.cropPestImpactDetails);
+            hydrateCollectionRows('AnimalDiseaseImpactDetails', 'AnimalDiseaseId', data.animalDiseaseImpactDetails);
+            hydrateCollectionRows('EpidemicImpactDetails', 'EpidemicDiseaseTypeId', data.epidemicImpactDetails);
+            hydrateCollectionRows('AccidentDetails', 'AccidentTypeId', data.accidentImpactDetails);
+            if (data.inwardAnimalMigrationOriginId) document.querySelector('[name="InwardAnimalMigrationOriginId"]').value = data.inwardAnimalMigrationOriginId;
+            if (data.outwardAnimalMigrationDestinationId) document.querySelector('[name="OutwardAnimalMigrationDestinationId"]').value = data.outwardAnimalMigrationDestinationId;
+            const savedAnimalDirection = data.animalMigrationDirection || 'Inward';
+            const savedAnimalDirectionRadio = document.querySelector(`.animal-migration-direction[value="${savedAnimalDirection}"]`);
+            if (savedAnimalDirectionRadio) savedAnimalDirectionRadio.checked = true;
+            syncAnimalMigrationDirection();
+            (data.animalMigrationRows || []).forEach(saved => {
+                document.querySelectorAll('input[name$=".AnimalType"]').forEach(typeField => {
+                    const row = typeField.closest('tr');
+                    if (String(typeField?.value) !== String(saved.animalType)) return;
+                    row.querySelector('input[name$=".NumberOfAnimals"]').value = saved.numberOfAnimals || 0;
+                    row.querySelector('input[name$=".OtherAnimalType"]').value = saved.otherAnimalType || '';
+                });
+            });
+            if (data.draftFields) applyServerDraftFields(data.draftFields);
+            document.querySelectorAll('.market-current-price').forEach(x => updateMarketComparison({ target: x }));
             document.querySelectorAll('.calc-table').forEach(t => calculateGridTotals(t));
+            document.querySelectorAll('.migration-summary-table').forEach(calculateMigrationTotals);
+        }
+
+        function hydrateCollectionRows(prefix, key, rows) {
+            (rows || []).forEach(item => {
+                const hidden = [...document.querySelectorAll(`input[name^="${prefix}["][name$="].${key}"]`)].find(x => x.value.toLowerCase() === String(item[key.charAt(0).toLowerCase() + key.slice(1)]).toLowerCase());
+                const row = hidden?.closest('.impact-card') || hidden?.closest('tr') ||
+                    (hidden?.nextElementSibling?.classList.contains('impact-card') ? hidden.nextElementSibling : null);
+                if (!row) return;
+                Object.entries(item).forEach(([property, value]) => {
+                    const pascal = property.charAt(0).toUpperCase() + property.slice(1);
+                    const input = row.querySelector(`[name$="].${pascal}"]`);
+                    if (input) input.value = value ?? '';
+                });
+            });
         }
 
         function mapDemographicInputs(rowDOM, maleVal, femaleVal) {
             if(!rowDOM) return;
-            rowDOM.querySelector(".val-male").value = maleVal;
-            rowDOM.querySelector(".val-female").value = femaleVal;
-            rowDOM.querySelector(".row-total").innerText = (maleVal + femaleVal).toLocaleString();
+            const male = Number(maleVal) || 0;
+            const female = Number(femaleVal) || 0;
+            rowDOM.querySelector(".val-male").value = male;
+            rowDOM.querySelector(".val-female").value = female;
+            rowDOM.querySelector(".row-total").innerText = (male + female).toLocaleString();
         }
 
         function resetWizardForm() {
@@ -809,18 +1357,40 @@
                         femaleInput.addEventListener('input', calculateRow);
                     }
                 });
+                calculateGridTotals(table);
             });
         }
 
         function calculateGridTotals(table) {
             let totalMaleSum = 0, totalFemaleSum = 0;
             table.querySelectorAll('tbody tr').forEach(row => {
-                totalMaleSum += parseInt(row.querySelector('.val-male').value) || 0;
-                totalFemaleSum += parseInt(row.querySelector('.val-female').value) || 0;
+                const male = parseInt(row.querySelector('.val-male')?.value) || 0;
+                const female = parseInt(row.querySelector('.val-female')?.value) || 0;
+                totalMaleSum += male;
+                totalFemaleSum += female;
+                const rowTotal = row.querySelector('.row-total');
+                if (rowTotal) rowTotal.innerText = (male + female).toLocaleString();
             });
-            table.querySelector('.total-male').innerText = totalMaleSum.toLocaleString();
-            table.querySelector('.total-female').innerText = totalFemaleSum.toLocaleString();
-            table.querySelector('.grand-total').innerText = (totalMaleSum + totalFemaleSum).toLocaleString();
+            const maleTotal = table.querySelector('.total-male');
+            const femaleTotal = table.querySelector('.total-female');
+            const grandTotal = table.querySelector('.grand-total');
+            if (maleTotal) maleTotal.innerText = totalMaleSum.toLocaleString();
+            if (femaleTotal) femaleTotal.innerText = totalFemaleSum.toLocaleString();
+            if (grandTotal) grandTotal.innerText = (totalMaleSum + totalFemaleSum).toLocaleString();
+        }
+
+        function calculateMigrationTotals(table) {
+            let total = 0;
+            table.querySelectorAll('tbody tr').forEach(row => {
+                const count = parseInt(row.querySelector('.migration-count')?.value) || 0;
+                total += count;
+                const rowTotal = row.querySelector('.migration-row-total');
+                if (rowTotal) rowTotal.innerText = count.toLocaleString();
+            });
+            const columnTotal = table.querySelector('.migration-column-total');
+            const grandTotal = table.querySelector('.migration-grand-total');
+            if (columnTotal) columnTotal.innerText = total.toLocaleString();
+            if (grandTotal) grandTotal.innerText = total.toLocaleString();
         }
 
         // =======================================================
@@ -828,7 +1398,7 @@
         // =======================================================
         function buildDataPreviewEngine() {
             const woredaSelect = document.getElementById("WoredaId");
-            const woredaText = woredaSelect.selectedIndex >= 0 ? woredaSelect.options[woredaSelect.selectedIndex].text : "-";
+            const woredaText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.WoredaName as string ?? "-"));
             const sDate = document.getElementById("StartDate").value || "-";
             const eDate = document.getElementById("EndDate").value || "-";
 
@@ -841,10 +1411,14 @@
             let isWaterShort = document.getElementById("waterEnoughSwitch").value === "false";
             let isHealthIssues = document.getElementById("animalHealthEnoughSwitch").value === "false";
 
-            let hasPestData = isPestActive || parseFloat(document.getElementById("pestHectars").value) > 0 || selectedPests !== "ምንም አልተመረጠም";
-            let hasPastureShortage = isPastureShort || parseInt(document.getElementById("pastureAnimalsAffected").value) > 0;
-            let hasWaterShortage = isWaterShort || parseInt(document.getElementById("waterKebelesCount").value) > 0;
-            let hasHealthIssues = isHealthIssues || parseInt(document.getElementById("healthAnimalsMale").value) > 0 || parseInt(document.getElementById("healthAnimalsFemale").value) > 0 || selectedDiseases !== "ምንም አልተመረጠም";
+            const gridHasData = tableId => Array.from(document.querySelectorAll(`#${tableId} tbody tr`)).some(row =>
+                (parseInt(row.querySelector('.val-male')?.value) || 0) > 0 ||
+                (parseInt(row.querySelector('.val-female')?.value) || 0) > 0);
+
+            let hasPestData = isPestActive || parseFloat(document.getElementById("pestHectars").value) > 0 || selectedPests !== "ምንም አልተመረጠም" || gridHasData('pestTable');
+            let hasPastureShortage = isPastureShort || parseInt(document.getElementById("pastureAnimalsAffected").value) > 0 || gridHasData('pastureTable');
+            let hasWaterShortage = isWaterShort || parseInt(document.getElementById("waterKebelesCount").value) > 0 || gridHasData('waterTable');
+            let hasHealthIssues = isHealthIssues || parseInt(document.getElementById("healthAnimalsMale")?.value || 0) > 0 || selectedDiseases !== "ምንም አልተመረጠም" || gridHasData('healthTable');
 
             let html = `
                 <div class="row g-3 mb-4">
@@ -888,7 +1462,7 @@
                         ${hasPestData ? `
                             <p><strong>የተጎዳ መሬት (ሄክታር)፡</strong> <span class="fw-bold text-danger">${document.getElementById("pestHectars").value}</span> | <strong>የሰብል አይነት፡</strong> <span class="fw-bold">${document.getElementById("pestCropType").value || "-"}</span></p>
                             <p><strong>የበሽታ አይነቶች፡</strong> <span class="text-danger fw-bold">${selectedPests}</span></p>
-                            ${compileReviewGridHtml('pestTable', 'warning')}
+                            ${compileSelectedImpactTables('cropImpactCards', '.pest-checkbox:checked', 'warning')}
                         ` : ''}
                     </div>
                 </div>
@@ -920,9 +1494,9 @@
                     <div class="card-body bg-white">
                         <p><strong>የእንስሳት ጤና ሁኔታ አጥጋቢ ነው?</strong> ${!isHealthIssues ? '<span class="badge bg-success">አዎ አጥጋቢ ነው</span>' : '<span class="badge bg-danger">አጥጋቢ አይደለም (ችግር አለ)</span>'}</p>
                         ${hasHealthIssues ? `
-                            <p><strong>የሞቱ/የታመሙ እንስሳት፡</strong> ወንድ፦ <span class="fw-bold text-danger">${document.getElementById("healthAnimalsMale").value}</span> | ሴት፦ <span class="fw-bold text-danger">${document.getElementById("healthAnimalsFemale").value}</span></p>
+                            <p><strong>የታመሙ/የተጎዱ እንስሳት፡</strong> <span class="fw-bold text-danger">${document.getElementById("healthAnimalsMale")?.value || 0}</span></p>
                             <p><strong>የተከሰቱ በሽታዎች፡</strong> <span class="text-danger fw-bold">${selectedDiseases}</span></p>
-                            ${compileReviewGridHtml('healthTable', 'danger')}
+                            ${compileSelectedImpactTables('animalImpactCards', '.health-checkbox:checked', 'danger')}
                         ` : ''}
                         <div class="p-2 border rounded bg-light mt-3">
                             <strong>ተጨማሪ ማስታወሻ (Remarks)፦</strong> 
@@ -931,19 +1505,100 @@
                     </div>
                 </div>
             `;
+            html += buildCompleteWizardReviewHtml();
             document.getElementById("previewContainer").innerHTML = html;
+        }
+
+        function applyServerDraftFields(fields) {
+            Object.entries(fields || {}).forEach(([name, rawValues]) => {
+                const values = Array.isArray(rawValues) ? rawValues.map(String) : [String(rawValues ?? '')];
+                Array.from(document.getElementById('earlyWarningForm').elements).filter(x => x.name === name).forEach(field => {
+                    if (field.type === 'checkbox' || field.type === 'radio') field.checked = values.includes(field.value);
+                    else field.value = values[0] ?? '';
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            });
+            document.querySelectorAll('.calc-table').forEach(calculateGridTotals);
+        }
+
+        function buildCompleteWizardReviewHtml() {
+            const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            })[character]);
+            let sectionsHtml = '';
+            // Steps 2-7 have purpose-built summaries above. From Step 8 onward, clone
+            // the actual Wizard layout so Amharic labels, tables and totals stay intact.
+            Array.from(document.querySelectorAll('.wizard-step')).slice(7, -1).forEach(step => {
+                const clone = step.cloneNode(true);
+                clone.classList.remove('wizard-step', 'd-none');
+                clone.removeAttribute('id');
+                clone.querySelectorAll('.d-none').forEach(hidden => hidden.remove());
+                clone.querySelectorAll('button, .field-validation-error, .text-danger.field-validation-valid').forEach(x => x.remove());
+                clone.querySelectorAll('input, select, textarea').forEach(field => {
+                    if (field.type === 'hidden') { field.remove(); return; }
+                    if (field.type === 'radio' || field.type === 'checkbox') {
+                        if (!field.checked) {
+                            const label = field.closest('label');
+                            if (label) label.remove(); else field.remove();
+                            return;
+                        }
+                        const marker = document.createElement('span');
+                        marker.className = 'badge bg-primary ms-1';
+                        marker.textContent = 'ተመርጧል';
+                        field.replaceWith(marker);
+                        return;
+                    }
+                    let value = field.tagName === 'SELECT'
+                        ? field.options[field.selectedIndex]?.text
+                        : field.value;
+                    if (value == null || String(value).trim() === '') value = '-';
+                    const display = document.createElement(field.tagName === 'TEXTAREA' ? 'div' : 'span');
+                    display.className = 'd-block px-2 py-1 fw-semibold text-dark review-field-value';
+                    display.textContent = value;
+                    field.replaceWith(display);
+                });
+                clone.querySelectorAll('table').forEach(table => table.classList.add('table-striped'));
+                sectionsHtml += `<div class="card mb-4 shadow-sm border-0"><div class="card-body p-0">${clone.innerHTML}</div></div>`;
+            });
+            return `<div class="mt-4"><h4 class="border-bottom pb-2">ሁሉም የተሞሉ መረጃዎች — የመጨረሻ ማረጋገጫ</h4>${sectionsHtml}</div>`;
         }
 
         function compileReviewGridHtml(tableId, theme) {
             const table = document.getElementById(tableId);
             if (!table) return '';
+            return compileReviewTable(table, theme);
+        }
+
+        function compileSelectedImpactTables(containerId, selectedSelector, theme) {
+            const container = document.getElementById(containerId);
+            if (!container) return '';
+            const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            })[character]);
+
+            return Array.from(document.querySelectorAll(selectedSelector)).map(checkbox => {
+                const card = Array.from(container.querySelectorAll('.impact-card'))
+                    .find(item => item.dataset.impactKey === checkbox.value);
+                const table = card?.querySelector('.calc-table');
+                if (!table) return '';
+                calculateGridTotals(table);
+                const name = checkbox.dataset.name || card.querySelector('.card-header')?.textContent?.trim() || '-';
+                return `<div class="card mt-3 border-${theme}">
+                    <div class="card-header fw-bold bg-${theme} bg-opacity-10">${escapeHtml(name)}</div>
+                    <div class="card-body p-0">${compileReviewTable(table, theme)}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function compileReviewTable(table, theme) {
             let rowsHtml = '';
             table.querySelectorAll('tbody tr').forEach(row => {
                 let cell = row.querySelector('td[data-label]');
-                let category = cell ? cell.getAttribute('data-label') : 'ምድብ';
-                let male = row.querySelector('.val-male').value || 0;
-                let female = row.querySelector('.val-female').value || 0;
-                let total = row.querySelector('.row-total').innerText || 0;
+                let category = cell ? cell.getAttribute('data-label') : row.querySelector('td')?.textContent?.trim() || 'ምድብ';
+                let male = row.querySelector('.val-male')?.value || 0;
+                let female = row.querySelector('.val-female')?.value || 0;
+                let total = row.querySelector('.row-total')?.innerText || 0;
                 rowsHtml += `<tr><td class="bg-light fw-bold text-start ps-3">${category}</td><td>${male}</td><td>${female}</td><td class="fw-bold bg-light">${total}</td></tr>`;
             });
 
@@ -957,16 +1612,143 @@
                         <tfoot class="table-light fw-bold text-${theme}">
                             <tr>
                                 <td class="text-start ps-3">ጠቅላላ ድምር</td>
-                                <td>${table.querySelector('.total-male').innerText}</td>
-                                <td>${table.querySelector('.total-female').innerText}</td>
-                                <td class="bg-${theme} text-white">${table.querySelector('.grand-total').innerText}</td>
+                                <td>${table.querySelector('.total-male')?.innerText || 0}</td>
+                                <td>${table.querySelector('.total-female')?.innerText || 0}</td>
+                                <td class="bg-${theme} text-white">${table.querySelector('.grand-total')?.innerText || 0}</td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>`;
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", async function() {
+            const form = document.getElementById("earlyWarningForm");
+            const draftKey = `early-warning-wizard:${document.getElementById("WoredaId")?.value || "woreda"}:${document.getElementById("StartDate")?.value || "week"}`;
+
+            document.querySelectorAll('#earlyWarningForm input[type="number"]').forEach(input => {
+                const decimalName = /(hectare|price|quantity|percentage|rate|plan|ploughed|sown|harvest|residual)/i.test(input.name || '');
+                const integerField = input.step !== 'any' && input.step !== '0.01' && !decimalName && !input.classList.contains('market-current-price') && !input.classList.contains('aid-provided') && !input.classList.contains('aid-distributed');
+                input.min = input.min || '0';
+                input.max = input.max || (integerField ? '1000000000' : '999999999999.99');
+                input.inputMode = integerField ? 'numeric' : 'decimal';
+                input.setAttribute('pattern', integerField ? '[0-9]*' : '[0-9]+([.][0-9]+)?');
+                input.addEventListener('keydown', event => {
+                    if (['e', 'E', '+', '-', ','].includes(event.key) || (integerField && event.key === '.')) event.preventDefault();
+                });
+                input.addEventListener('beforeinput', event => {
+                    if (!event.data || event.inputType.startsWith('delete')) return;
+                    const proposed = `${input.value.slice(0, input.selectionStart ?? input.value.length)}${event.data}${input.value.slice(input.selectionEnd ?? input.value.length)}`;
+                    const allowed = integerField ? /^\d*$/.test(proposed) : /^\d*(\.\d{0,2})?$/.test(proposed);
+                    if (!allowed) event.preventDefault();
+                });
+                input.addEventListener('paste', event => {
+                    const pasted = event.clipboardData?.getData('text') ?? '';
+                    const allowed = integerField ? /^\d+$/.test(pasted) : /^\d+(\.\d{1,2})?$/.test(pasted);
+                    if (!allowed) event.preventDefault();
+                });
+                input.addEventListener('input', () => {
+                    const value = Number(input.value);
+                    const invalid = input.value !== '' && (!Number.isFinite(value) || value < Number(input.min) || value > Number(input.max) || (integerField && !Number.isInteger(value)));
+                    input.setCustomValidity(invalid ? `ቁጥሩ በ${input.min} እና ${input.max} መካከል መሆን አለበት።` : '');
+                    input.classList.toggle('is-invalid', invalid);
+                });
+            });
+
+            const saveDraft = () => {
+                const fields = Array.from(form.elements).filter(x => x.name && x.name !== '__RequestVerificationToken').map(x => ({
+                    name: x.name, type: x.type, value: x.value, checked: x.checked
+                }));
+                sessionStorage.setItem(draftKey, JSON.stringify({ step: currentStep, fields }));
+            };
+            const restoreDraft = () => {
+                if (@(TempData["SuccessMessage"] != null ? "true" : "false")) { sessionStorage.removeItem(draftKey); return; }
+                const raw = sessionStorage.getItem(draftKey); if (!raw) return;
+                try {
+                    const draft = JSON.parse(raw);
+                    draft.fields.forEach(saved => {
+                        const matches = Array.from(form.elements).filter(x => x.name === saved.name &&
+                            ((x.type === 'checkbox' || x.type === 'radio') ? x.value === saved.value : true));
+                        matches.forEach(field => {
+                            if (field.type === 'checkbox' || field.type === 'radio') field.checked = saved.checked;
+                            else field.value = saved.value;
+                            field.dispatchEvent(new Event('change', { bubbles: true }));
+                            field.dispatchEvent(new Event('input', { bubbles: true }));
+                        });
+                    });
+                    currentStep = Math.max(0, Math.min(Number(draft.step) || 0, totalSteps - 1));
+                    steps.forEach(x => x.classList.add('d-none'));
+                } catch { sessionStorage.removeItem(draftKey); }
+            };
+            form.addEventListener('input', saveDraft);
+            form.addEventListener('change', saveDraft);
+            form.addEventListener('input', scheduleServerDraftSave);
+            form.addEventListener('change', scheduleServerDraftSave);
+            form.addEventListener('invalid', event => {
+                if (event.target instanceof HTMLElement) navigateToField(event.target);
+            }, true);
+            document.getElementById('StartDate')?.addEventListener('change', async () => {
+                if (isHydratingWeeklyData) return;
+                const startInput = document.getElementById('StartDate');
+                const selected = startInput?.value ? new Date(`${startInput.value}T00:00:00`) : null;
+                if (selected && !Number.isNaN(selected.valueOf())) {
+                    const daysSinceMonday = (selected.getDay() + 6) % 7;
+                    selected.setDate(selected.getDate() - daysSinceMonday);
+                    const wednesday = new Date(selected);
+                    wednesday.setDate(wednesday.getDate() + 2);
+                    const localDate = value => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+                    startInput.value = localDate(selected);
+                    document.getElementById('EndDate').value = localDate(wednesday);
+                }
+                const duplicate = await checkSelectedWeek();
+                if (duplicate?.exists) {
+                    showWizardMessage(duplicate.message, duplicate.editable ? 'warning' : 'danger');
+                    try { await loadExistingWeeklyData(false); }
+                    catch (error) { console.error('Existing weekly data load failed:', error); }
+                } else {
+                    serverDraftEnabled = false;
+                    document.getElementById('RecordId').value = '0';
+                }
+            });
+            form.addEventListener('submit', async event => {
+                event.preventDefault();
+                document.querySelectorAll('#earlyWarningForm input[type="number"]').forEach(x => x.dispatchEvent(new Event('input')));
+                const invalidFields = Array.from(form.querySelectorAll('input, select, textarea')).filter(x => x.type !== 'hidden' && !x.checkValidity());
+                const invalidField = invalidFields.find(x => x.offsetParent !== null) || invalidFields[0];
+                if (invalidField) {
+                    navigateToField(invalidField);
+                    invalidField.reportValidity();
+                    return;
+                }
+                const duplicate = await checkSelectedWeek();
+                if (duplicate?.checkFailed) return;
+                if (duplicate?.exists && !duplicate.editable) {
+                    showWizardMessage(duplicate.message, 'danger');
+                    navigateToField(document.getElementById('StartDate'));
+                    return;
+                }
+                isSubmittingWizard = true;
+                serverDraftEnabled = false;
+                clearTimeout(serverDraftTimer);
+                serverDraftRequest?.abort();
+                saveDraft();
+                form.submit();
+            });
+            if (!isReviewMode) {
+                isHydratingWeeklyData = true;
+                try {
+                    restoreDraft();
+                } finally {
+                    isHydratingWeeklyData = false;
+                }
+            }
+            const initialWeeklyRecord = isReviewMode ? { exists: true } : await checkSelectedWeek();
+            if (initialWeeklyRecord?.exists) {
+                try { await loadExistingWeeklyData(false); }
+                catch (error) {
+                    console.error('Initial weekly data load failed:', error);
+                    showWizardMessage('የተቀመጠውን የሳምንት መረጃ መጫን አልተቻለም። ገጹን እንደገና ይጫኑ።', 'danger');
+                }
+            }
             showStep(currentStep);
             updateMaxKebeleLimit();
             toggleCropPestFields();
@@ -974,6 +1756,7 @@
             toggleWaterFields();
             toggleAnimalHealthFields();
             initMatrixCalculations();
+            navigateToServerValidationError();
         });
     </script>
 }

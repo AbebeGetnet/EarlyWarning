@@ -1,0 +1,24 @@
+@model EarlyWarning.ViewModels.ZoneWeeklyQueueViewModel
+@{ ViewData["Title"] = "የዞን ሳምንታዊ ሪፖርት ፍቃድ"; }
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>የዞን ሳምንታዊ ሪፖርት የፍቃድ ወረፋ — @Model.Region</h3>
+        <span class="badge bg-primary fs-6">@Model.Submissions.Count ዞን/ሳምንት</span>
+    </div>
+    @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+    @if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+    <div class="alert alert-info">እያንዳንዱ ረድፍ በዞኑ የጸደቁ የወረዳ ሪፖርቶችን የያዘ የአንድ ሳምንት የዞን ድምር ነው። ከመወሰንዎ በፊት “የዞን ድምር ይመልከቱ” የሚለውን ይጫኑ።</div>
+    <div class="card shadow-sm"><div class="table-responsive"><table class="table table-hover align-middle mb-0">
+        <thead class="table-light"><tr><th>ዞን</th><th>የሪፖርት ሳምንት</th><th>የወረዳዎች ብዛት</th><th>አጭር ድምር</th><th style="min-width:330px">ውሳኔ</th></tr></thead>
+        <tbody>
+        @foreach (var item in Model.Submissions) {
+            <tr>
+                <td class="fw-bold">@item.Zone</td><td>@item.StartDate.ToString("yyyy-MM-dd") — @item.EndDate.ToString("yyyy-MM-dd")</td><td>@item.WoredaCount</td>
+                <td><small>ሙሉ ዝናብ፡ @item.Aggregate.FullRainCoverageKebeles<br/>የተጎዳ መሬት፡ @item.Aggregate.AffectedCropLandHectares<br/>ከትምህርት የወጡ፡ @(item.Aggregate.Sections.FirstOrDefault(x => x.Name == "የትምህርት ቤት ሁኔታ")?.Metrics.FirstOrDefault(x => x.Name == "ጠቅላላ ከትምህርት የወጡ")?.Value ?? 0)</small><br/><a asp-action="ZoneDetails" asp-route-zoneId="@item.ZoneId" asp-route-startDate="@item.StartDate.ToString("yyyy-MM-dd")" asp-route-endDate="@item.EndDate.ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-primary mt-1">የዞን ድምርና ወረዳዎች ይመልከቱ</a></td>
+                <td><form asp-action="ActZone" method="post">@Html.AntiForgeryToken()<input type="hidden" name="zoneId" value="@item.ZoneId"/><input type="hidden" name="startDate" value="@item.StartDate.ToString("O")"/><input type="hidden" name="endDate" value="@item.EndDate.ToString("O")"/><textarea name="comment" class="form-control form-control-sm mb-2" rows="2" maxlength="2000" placeholder="አስተያየት (ለውድቅ ግዴታ)"></textarea><button name="decision" value="Approve" class="btn btn-sm btn-success me-1">የዞኑን ድምር ፍቀድ</button><button name="decision" value="Reject" class="btn btn-sm btn-danger">ወደ ዞን መልስ</button></form></td>
+            </tr>
+        }
+        @if (!Model.Submissions.Any()) { <tr><td colspan="5" class="text-center text-muted py-4">በክልል ፍቃድ የሚጠብቅ የዞን ሪፖርት የለም።</td></tr> }
+        </tbody>
+    </table></div></div>
+</div>

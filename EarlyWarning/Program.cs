@@ -5,6 +5,7 @@ using EarlyWarning.Repositories;
 using EarlyWarning.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,7 @@ builder.Services.AddScoped<FarmingActivityService>();
 builder.Services.AddScoped<ICropGrowthRepository, CropGrowthRepository>();
 builder.Services.AddScoped<CropGrowthService>();
 builder.Services.AddScoped<IReportSaveService, ReportSaveService>();
+builder.Services.AddScoped<IWeeklyAggregationService, WeeklyAggregationService>();
 builder.Services.AddHttpContextAccessor();
 
 // DbContext ???? ApplicationDbContext ????? ????
@@ -57,7 +59,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddJsonOptions(options =>
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 
 builder.Services.AddSession(options =>
@@ -100,6 +103,8 @@ using (var scope = app.Services.CreateScope())
 {
     try
     {
+        var database = scope.ServiceProvider.GetRequiredService<EarlyWarningDbContext>();
+        await database.Database.MigrateAsync();
         await DbInitializer.InitializeAsync(scope.ServiceProvider);
     }
     catch (Exception ex)

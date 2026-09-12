@@ -142,6 +142,7 @@ namespace EarlyWarning.Models
         //serialization for crop diseases and pests
         [DisplayName("የሰብል በሽታዎች / ተባዮች (JSON)")]
         public string? CropDiseasesJson { get; set; }
+        public ICollection<CropPestImpactDetail> ImpactDetails { get; set; } = new List<CropPestImpactDetail>();
 
         [NotMapped]
         public List<Guid> SelectedDiseaseIds { get; set; } = new List<Guid>();

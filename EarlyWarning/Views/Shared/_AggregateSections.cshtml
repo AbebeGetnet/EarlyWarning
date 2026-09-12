@@ -1,0 +1,114 @@
+@model EarlyWarning.ViewModels.WeeklyAggregateViewModel
+
+<div class="aggregate-review mt-4">
+    <h4 class="border-bottom pb-2 mb-3">ሁሉም የተጠቃለሉ መረጃዎች — የማጠቃለያ ግምገማ</h4>
+    @if (Model.RainfallZones.Any())
+    {
+        var fullTotal = Model.RainfallZones.Sum(x => x.FullRainWoredas);
+        var partialTotal = Model.RainfallZones.Sum(x => x.PartialRainWoredas);
+        var noRainTotal = Model.RainfallZones.Sum(x => x.NoRainWoredas);
+        var noDataTotal = Model.RainfallZones.Sum(x => x.NoDataWoredas);
+        <section class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3">1. የዝናብ ሁኔታ</div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered text-center align-middle mb-0">
+                    <thead class="table-light">
+                        <tr><th>ተ/ቁ</th><th class="text-start">ዞን</th><th>ሙሉ በሙሉ ዝናብ ያገኙ ወረዳዎች</th><th>በከፊል ዝናብ ያገኙ ወረዳዎች</th><th>ዝናብ ያላገኙ ወረዳዎች</th><th>መረጃ ያልተገኘላቸው ወረዳዎች</th><th>ድምር</th></tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.RainfallZones.Count; i++)
+                        {
+                            var row = Model.RainfallZones[i];
+                            <tr><td>@(i + 1)</td><td class="text-start">@row.Zone</td><td>@(row.FullRainWoredas == 0 ? "" : row.FullRainWoredas.ToString())</td><td>@(row.PartialRainWoredas == 0 ? "" : row.PartialRainWoredas.ToString())</td><td>@(row.NoRainWoredas == 0 ? "" : row.NoRainWoredas.ToString())</td><td>@(row.NoDataWoredas == 0 ? "" : row.NoDataWoredas.ToString())</td><td class="fw-bold">@row.TotalWoredas</td></tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light fw-bold"><tr><td></td><td class="text-start">ድምር</td><td>@fullTotal</td><td>@partialTotal</td><td>@noRainTotal</td><td>@noDataTotal</td><td>@(fullTotal + partialTotal + noRainTotal + noDataTotal)</td></tr></tfoot>
+                </table>
+            </div>
+        </section>
+    }
+
+    @if (Model.FarmingZones.Any())
+    {
+        var meherPlanTotal = Model.FarmingZones.Sum(x => x.MeherFarmPlan);
+        var meherPloughedTotal = Model.FarmingZones.Sum(x => x.MeherPloughed);
+        var meherSownTotal = Model.FarmingZones.Sum(x => x.MeherSown);
+        var autumnPlanTotal = Model.FarmingZones.Sum(x => x.AutumnFarmPlan);
+        var autumnSownTotal = Model.FarmingZones.Sum(x => x.AutumnSown);
+        <section class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3">2. የመኸር የእርሻ ሥራ እንቅስቃሴ</div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered text-center align-middle mb-0">
+                    <thead class="table-light">
+                        <tr><th>ተ/ቁ</th><th class="text-start">ዞን</th><th>ዕቅድ በሄ/ር</th><th>የታረሰ በሄ/ር</th><th>የተዘራ በሄ/ር</th><th>የበልግ ዕቅድ በሄ/ር</th><th>የበልግ የተዘራ በሄ/ር</th></tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.FarmingZones.Count; i++)
+                        {
+                            var row = Model.FarmingZones[i];
+                            <tr><td>@(i + 1)</td><td class="text-start">@row.Zone</td><td>@row.MeherFarmPlan.ToString("N2")</td><td>@row.MeherPloughed.ToString("N2")</td><td>@row.MeherSown.ToString("N2")</td><td>@row.AutumnFarmPlan.ToString("N2")</td><td>@row.AutumnSown.ToString("N2")</td></tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light fw-bold"><tr><td></td><td class="text-start">ድምር</td><td>@meherPlanTotal.ToString("N2")</td><td>@meherPloughedTotal.ToString("N2")</td><td>@meherSownTotal.ToString("N2")</td><td>@autumnPlanTotal.ToString("N2")</td><td>@autumnSownTotal.ToString("N2")</td></tr></tfoot>
+                </table>
+            </div>
+        </section>
+    }
+
+    @foreach (var aggregateSection in Model.Sections.Where(x => x.Metrics.Any()
+        && (x.Name != "1. የዝናብ ሁኔታ" || !Model.RainfallZones.Any())
+        && (x.Name != "2. የመኸር የእርሻ ሥራ እንቅስቃሴ" || !Model.FarmingZones.Any())))
+    {
+        <section class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3">@aggregateSection.Name</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @foreach (var metric in aggregateSection.Metrics)
+                    {
+                        <div class="col-12 col-md-6">
+                            <div class="h-100 border rounded-3 p-3 bg-light">
+                                <div class="small fw-semibold text-secondary mb-1">@metric.Name</div>
+                                <div class="d-flex align-items-end gap-2">
+                                    <span class="fs-5 fw-bold text-dark">@metric.Value.ToString("N2")</span>
+                                    @if (!string.IsNullOrWhiteSpace(metric.Unit))
+                                    {
+                                        <span class="text-muted">@metric.Unit</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+    }
+
+    @if (Model.TextEntries.Any())
+    {
+        <section class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3">የተጠቃለለ ጽሑፋዊ መረጃ</div>
+            <div class="card-body">
+                @foreach (var narrative in Model.TextEntries.GroupBy(x => x.Source))
+                {
+                    <div class="mb-3">
+                        <div class="fw-semibold mb-1">@narrative.Key</div>
+                        <p class="border rounded-3 bg-light p-3 mb-0">@string.Join("፤ ", narrative.Select(x => $"{x.Location}፡ {x.Text.Trim().TrimEnd('።', '.', '፤', ';')}"))።</p>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    @if (Model.AnimalMigrationRoutes.Any())
+    {
+        <section class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3">በተለያዩ ምክንያት ስደት — የእንስሳት ስደት</div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered text-center mb-0">
+                    <thead class="table-light"><tr><th>አቅጣጫ</th><th>ከየት ቦታ ተሰደዱ</th><th>ወደ የት ሄዱ / የሄዱበት ቦታ</th><th>የእንስሳት አይነት</th><th>ብዛት</th></tr></thead>
+                    <tbody>@foreach (var route in Model.AnimalMigrationRoutes) { <tr><td>@route.Direction</td><td>@route.Origin</td><td>@route.Destination</td><td>@route.AnimalType</td><td class="fw-bold">@route.NumberOfAnimals.ToString("N0")</td></tr> }</tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

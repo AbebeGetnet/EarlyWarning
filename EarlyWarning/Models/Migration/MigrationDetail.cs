@@ -21,6 +21,15 @@ namespace EarlyWarning.Models.Migration
         [ForeignKey("OriginLocationId")]
         public virtual Locations? OriginLocation { get; set; }
 
+        [Display(Name = "የስደት መድረሻ ቦታ (ወዴት)")]
+        public Guid? DestinationLocationId { get; set; }
+
+        [ForeignKey("DestinationLocationId")]
+        public virtual Locations? DestinationLocation { get; set; }
+
+        [Display(Name = "ወደ ወረዳው የገባ ስደት ነው?")]
+        public bool IsInward { get; set; }
+
         [Display(Name = "የስደት ምክንያት")]
         [StringLength(500)]
         public string? MigrationReason { get; set; }

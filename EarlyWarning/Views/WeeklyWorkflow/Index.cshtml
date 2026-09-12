@@ -1,0 +1,27 @@
+@model EarlyWarning.ViewModels.WeeklyWorkflowIndexViewModel
+@using EarlyWarning.Enums
+@{ var workflowMode = ViewBag.WorkflowMode as string; ViewData["Title"] = workflowMode == null ? "የተጠቃለለ ሪፖርት" : "የሪፖርት ግምገማ"; }
+<div class="container-fluid mt-4">
+ <div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>@(workflowMode == "approval" ? "የፍቃድ ወረፋ" : workflowMode == "details" ? "የሪፖርት ግምገማ" : "የተጠቃለለ ሪፖርት") — @Model.ScopeName</h3>
+  @if (workflowMode == null) { <div class="d-flex gap-2"><a asp-action="ReportPageTwo" class="btn btn-outline-secondary"><i class="fas fa-file-alt me-1"></i> የሪፖርት ገጽ 2</a><a asp-action="Index" asp-route-mode="details" class="btn btn-outline-primary"><i class="fas fa-search me-1"></i> የወረዳ ሪፖርቶችን ገምግም</a></div> }
+  else { <span class="badge bg-primary">@Model.Reports.Count ሪፖርቶች</span> }
+ </div>
+ @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+ @if (workflowMode == null)
+ {
+ <div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body"><small>የወረዳ ሪፖርቶች</small><h3>@Model.Aggregate.WoredaReports</h3></div></div></div>
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body"><small>በዞን የጸደቁና በድምር የተካተቱ</small><h3>@Model.Aggregate.ApprovedReports</h3></div></div></div>
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body"><small>በግምገማ ላይ</small><h3>@Model.Aggregate.PendingReports</h3></div></div></div>
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body"><small>የተጎዳ የሰብል መሬት (ሄ/ር)</small><h3>@Model.Aggregate.AffectedCropLandHectares</h3></div></div></div>
+ </div>
+ <partial name="_AggregateSections" model="Model.Aggregate" />
+ }
+ else
+ {
+ <div class="card shadow-sm mb-4"><div class="card-header fw-bold">የወረዳ ዝርዝር</div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>ዞን</th><th>ወረዳ</th><th>ሳምንት</th><th>ሁኔታ</th><th>ዝርዝር</th>@if(ViewBag.WorkflowMode == "approval" && User.IsInRole("ZoneAdmin")){<th style="min-width:330px">የዞን ውሳኔ</th>}</tr></thead><tbody>
+ @foreach (var r in Model.Reports) { <tr><td>@r.Zone</td><td class="fw-bold">@r.Woreda</td><td>@r.StartDate.ToString("yyyy-MM-dd") — @r.EndDate.ToString("yyyy-MM-dd")</td><td><span class="badge bg-secondary">@r.Status</span></td><td><a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-primary">ሙሉ ዝርዝር / ግምገማ</a></td>@if(ViewBag.WorkflowMode == "approval" && User.IsInRole("ZoneAdmin")){<td><form asp-action="Act" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@r.Id"/><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(r.RowVersion)"/><textarea name="comment" class="form-control form-control-sm mb-2" rows="2" maxlength="2000" placeholder="አስተያየት (ለውድቅ ግዴታ)"></textarea><button name="decision" value="Approve" class="btn btn-sm btn-success me-1">ፍቀድ</button><button name="decision" value="Reject" class="btn btn-sm btn-danger">ውድቅ አድርግ</button></form></td>}</tr> }
+ </tbody></table></div></div>
+ }
+</div>

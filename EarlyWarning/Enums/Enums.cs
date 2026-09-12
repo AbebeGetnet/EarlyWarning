@@ -27,6 +27,31 @@ namespace EarlyWarning.Enums
         RegionApproved,
         Rejected
     }
+
+    public enum WeeklySubmissionStatus
+    {
+        SubmittedToZone = 0,
+        ZoneApproved = 1,
+        RegionRejectedToZone = 2,
+        ZoneRejectedToWoreda = 3,
+        RegionApproved = 4,
+        Draft = 5
+    }
+
+    public enum WeeklyWorkflowAction
+    {
+        Submit,
+        Resubmit,
+        ZoneApprove,
+        ZoneReject,
+        ZoneResubmit,
+        RegionApprove,
+        RegionReject,
+        DraftSaved
+    }
+
+    public enum AnimalMigrationDirection { Inward, Outward }
+    public enum MigratingAnimalType { Sheep, Goat, የቀንድ_ከብት, የጋማ_ከብት, Other }
    
     public enum Gender
     {

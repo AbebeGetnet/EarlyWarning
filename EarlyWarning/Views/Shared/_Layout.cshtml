@@ -35,6 +35,29 @@
     <link rel="stylesheet" href="~/AdminLte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
     <link rel="stylesheet" href="~/css/site.css">
+    <style>
+        .preloader { background: rgba(241, 250, 247, .98) !important; }
+        .ew-loading-spinner {
+            width: 68px;
+            height: 68px;
+            border: 7px solid rgba(39, 102, 131, .18);
+            border-top-color: #276683;
+            border-right-color: #276683;
+            border-radius: 50%;
+            animation: ew-spinner-rotate .8s linear infinite;
+            box-shadow: 0 5px 18px rgba(39, 102, 131, .13);
+        }
+        .ew-loading-text {
+            margin-top: 15px;
+            color: #276683;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+        @@keyframes ew-spinner-rotate { to { transform: rotate(360deg); } }
+        @@media (prefers-reduced-motion: reduce) {
+            .ew-loading-spinner { animation-duration: 1.6s; }
+        }
+    </style>
 
     <!-- Theme style -->
     @RenderSection("Styles", required: false)
@@ -44,7 +67,8 @@
 
             <!-- Preloader -->
             <div class="preloader flex-column justify-content-center align-items-center">
-                <img class="animation__shake" src="~AdminLte/dist/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
+                <div class="ew-loading-spinner" role="status" aria-label="Loading"></div>
+                <div class="ew-loading-text">በመጫን ላይ...</div>
             </div>
 
             <!-- Navbar -->
@@ -81,7 +105,7 @@
             <!-- Main Sidebar Container -->
             @if (SignInManager.IsSignedIn(User))
             {
-                <aside class="main-sidebar sidebar-dark-primary elevation-4" style="background-color:#0059b3">
+                <aside class="main-sidebar sidebar-dark-primary elevation-4" style="background-color:#276683">
                     <!-- Brand Logo -->
 
                     <a href="#" class="brand-link">
@@ -92,7 +116,7 @@
                     </a>
 
                     <!-- Sidebar -->
-                <div class="sidebar" style="background-color:#0059b3">
+                <div class="sidebar" style="background-color:#276683">
                     <!-- Sidebar Menu -->
                     <nav class="mt-2">
                         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
@@ -175,6 +199,32 @@
 
                             @if (SignInManager.IsSignedIn(User))
                             {
+                                @if (User.IsInRole("Data Encoder"))
+                                {
+                                    <li class="nav-item">
+                                        <a asp-controller="RegisterationWizard" asp-action="Index" class="nav-link">
+                                            <i class="fas fa-magic nav-icon"></i>
+                                            <p>Register Wizard / መረጃ ምዝገባ</p>
+                                        </a>
+                                    </li>
+                                }
+                                @if (User.IsInRole("Data Encoder") || User.IsInRole("ZoneAdmin") || User.IsInRole("RegionAdmin"))
+                                {
+                                    <li class="nav-item">
+                                        <a href="#" class="nav-link">
+                                            <i class="fas fa-clipboard-check nav-icon"></i>
+                                            <p>የሪፖርት ሂደት <i class="fas fa-angle-left right"></i></p>
+                                        </a>
+                                        <ul class="nav nav-treeview">
+                                            <li class="nav-item"><a asp-controller="WeeklyWorkflow" asp-action="Index" class="nav-link"><i class="fas fa-chart-bar nav-icon"></i><p>የተጠቃለለ ሪፖርት</p></a></li>
+                                            <li class="nav-item"><a asp-controller="WeeklyWorkflow" asp-action="Index" asp-route-mode="details" class="nav-link"><i class="fas fa-search nav-icon"></i><p>የሪፖርት ግምገማ</p></a></li>
+                                            @if (User.IsInRole("ZoneAdmin") || User.IsInRole("RegionAdmin"))
+                                            {
+                                                <li class="nav-item"><a asp-controller="WeeklyWorkflow" asp-action="Index" asp-route-mode="approval" class="nav-link"><i class="fas fa-check-circle nav-icon"></i><p>የፍቃድ / ውድቅ ወረፋ</p></a></li>
+                                            }
+                                        </ul>
+                                    </li>
+                                }
                                 <li class="nav-item">
                                     <a href="#" class="nav-link">
                                         <i class="fa fa-regular fa-folder"></i>

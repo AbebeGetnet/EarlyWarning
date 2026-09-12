@@ -27,7 +27,7 @@ namespace EarlyWarning.Models.WeeklyAccidents
         public decimal? DamagedLandInHectares { get; set; }
 
         [Display(Name = "የጉዳት መጠን (%)")]
-        [Range(0, 100)]
+        [Range(typeof(decimal), "0", "100", ErrorMessage = "የጉዳት መጠን ከ0 እስከ 100 በመቶ መሆን አለበት።")]
         public decimal? DamageRateInPercent { get; set; }
 
         // የተጎዱ ቤተሰቦች

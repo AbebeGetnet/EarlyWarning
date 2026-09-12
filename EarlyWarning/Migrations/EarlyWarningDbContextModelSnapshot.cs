@@ -286,6 +286,71 @@ namespace EarlyWarning.Migrations
                     b.ToTable("AnimalDisease");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.AnimalDiseaseImpactDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AnimalDiseaseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AnimalHealthStatusId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("FemaleChildren")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleDisabled")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleElderly")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleFamilyMembers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleHouseholdHeads")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleYouth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleChildren")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleDisabled")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleElderly")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleFamilyMembers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleHouseholdHeads")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleYouth")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("NumberOfAffectedAnimals")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnimalDiseaseId");
+
+                    b.HasIndex("AnimalHealthStatusId", "AnimalDiseaseId")
+                        .IsUnique();
+
+                    b.ToTable("AnimalDiseaseImpactDetails");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.AnimalHealthStatus", b =>
                 {
                     b.Property<Guid>("Id")
@@ -403,6 +468,51 @@ namespace EarlyWarning.Migrations
                     b.HasIndex("WoredaId");
 
                     b.ToTable("AnimalHealthStatuses");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.AnimalMigrationRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AnimalType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("DestinationLocationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumberOfAnimals")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("OriginLocationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("OtherAnimalType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("WeeklyReportSubmissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DestinationLocationId");
+
+                    b.HasIndex("OriginLocationId");
+
+                    b.HasIndex("WoredaId");
+
+                    b.HasIndex("WeeklyReportSubmissionId", "Direction", "OriginLocationId", "DestinationLocationId", "AnimalType")
+                        .IsUnique();
+
+                    b.ToTable("AnimalMigrationRecords");
                 });
 
             modelBuilder.Entity("EarlyWarning.Models.AnimalPrice.AnimalPrice", b =>
@@ -1078,6 +1188,75 @@ namespace EarlyWarning.Migrations
                     b.ToTable("CropPestAndDeseaseReports");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.CropPestImpactDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AffectedCropType")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("AffectedLandInHectares")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("CropPestAndDeseaseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CropPestAndDeseaseReportId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("FemaleChildren")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleDisabled")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleElderly")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleFamilyMembers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleHouseholdHeads")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleYouth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleChildren")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleDisabled")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleElderly")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleFamilyMembers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleHouseholdHeads")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleYouth")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CropPestAndDeseaseId");
+
+                    b.HasIndex("CropPestAndDeseaseReportId", "CropPestAndDeseaseId")
+                        .IsUnique();
+
+                    b.ToTable("CropPestImpactDetails");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.EpidemicDisease.EpidemicDisease", b =>
                 {
                     b.Property<Guid>("EpidemicDiseaseId")
@@ -1194,20 +1373,57 @@ namespace EarlyWarning.Migrations
                     b.Property<Guid>("EpidemicDiseaseTypeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("EpidemicDiseaseTypeId1")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("FemaleChildren")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleDisabled")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleElderly")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleFamilyMembers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleHouseholdHeads")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FemaleYouth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LactatingMothers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleChildren")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleDisabled")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleElderly")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleFamilyMembers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleHouseholdHeads")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaleYouth")
+                        .HasColumnType("int");
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("PregnantWomen")
+                        .HasColumnType("int");
 
                     b.HasKey("EpidemicDiseaseSelectionId");
 
                     b.HasIndex("EpidemicDiseaseId");
 
                     b.HasIndex("EpidemicDiseaseTypeId");
-
-                    b.HasIndex("EpidemicDiseaseTypeId1");
 
                     b.ToTable("EpidemicDiseaseSelections");
                 });
@@ -1684,6 +1900,9 @@ namespace EarlyWarning.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("DestinationLocationId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("FemaleChildren")
                         .HasColumnType("int");
 
@@ -1701,6 +1920,9 @@ namespace EarlyWarning.Migrations
 
                     b.Property<int>("FemaleYouth")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsInward")
+                        .HasColumnType("bit");
 
                     b.Property<int>("MaleChildren")
                         .HasColumnType("int");
@@ -1736,6 +1958,8 @@ namespace EarlyWarning.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("MigrationDetailId");
+
+                    b.HasIndex("DestinationLocationId");
 
                     b.HasIndex("MigrationId");
 
@@ -2150,6 +2374,82 @@ namespace EarlyWarning.Migrations
                     b.ToTable("RainfallReports");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.SchoolReport", b =>
+                {
+                    b.Property<Guid>("SchoolReportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("AverageDropoutAge")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Cause")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("ClassroomMaterialsSolution")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ClosedSchools")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FemaleStudentDropouts")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("HasTeachingLearningProblem")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MajorSolutionOne")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("MajorSolutionThree")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("MajorSolutionTwo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("MaleStudentDropouts")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("OtherSolution")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtherSolutionDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("SchoolBuildingServiceSolution")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("StudentRelatedSolution")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("TeacherExpenseSolution")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("WasActionSatisfactory")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("SchoolReportId");
+
+                    b.HasIndex("WoredaId", "StartDate", "EndDate")
+                        .IsUnique();
+
+                    b.ToTable("SchoolReports");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.SupplyofGrain.GrainIncreaseDecrease", b =>
                 {
                     b.Property<Guid>("GrainIncreaseDecreaseId")
@@ -2355,6 +2655,146 @@ namespace EarlyWarning.Migrations
                     b.ToTable("WeeklyAccidents");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.WeeklyAggregateSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AggregateJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ApprovalStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GeneratedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ScopeLevel")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ScopeLocationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SourceReportCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScopeLocationId", "ScopeLevel", "StartDate", "EndDate", "ApprovalStatus")
+                        .IsUnique();
+
+                    b.ToTable("WeeklyAggregateSnapshots");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.WeeklyReportSubmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("DraftDataJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LastActionAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ReportingWeekStart")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("WoredaId", "ReportingWeekStart")
+                        .IsUnique();
+
+                    b.HasIndex("WoredaId", "StartDate", "EndDate")
+                        .IsUnique();
+
+                    b.ToTable("WeeklyReportSubmissions");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.WeeklyReportWorkflowHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Action")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ActorLocationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ActorLocationLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("NewStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PerformedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("PreviousStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("WeeklyReportSubmissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("WeeklyReportSubmissionId");
+
+                    b.ToTable("WeeklyReportWorkflowHistories");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -2544,6 +2984,25 @@ namespace EarlyWarning.Migrations
                     b.Navigation("WeeklyProvided");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.AnimalDiseaseImpactDetail", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.AnimalDisease", "Disease")
+                        .WithMany()
+                        .HasForeignKey("AnimalDiseaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EarlyWarning.Models.AnimalHealthStatus", "Report")
+                        .WithMany("ImpactDetails")
+                        .HasForeignKey("AnimalHealthStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Disease");
+
+                    b.Navigation("Report");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.AnimalHealthStatus", b =>
                 {
                     b.HasOne("EarlyWarning.Models.Locations", "Woreda")
@@ -2551,6 +3010,41 @@ namespace EarlyWarning.Migrations
                         .HasForeignKey("WoredaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Woreda");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.AnimalMigrationRecord", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "DestinationLocation")
+                        .WithMany()
+                        .HasForeignKey("DestinationLocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EarlyWarning.Models.Locations", "OriginLocation")
+                        .WithMany()
+                        .HasForeignKey("OriginLocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EarlyWarning.Models.WeeklyReportSubmission", "Submission")
+                        .WithMany()
+                        .HasForeignKey("WeeklyReportSubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DestinationLocation");
+
+                    b.Navigation("OriginLocation");
+
+                    b.Navigation("Submission");
 
                     b.Navigation("Woreda");
                 });
@@ -2678,6 +3172,25 @@ namespace EarlyWarning.Migrations
                     b.Navigation("Woreda");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.CropPestImpactDetail", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.CropPestAndDesease", "PestDisease")
+                        .WithMany()
+                        .HasForeignKey("CropPestAndDeseaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EarlyWarning.Models.CropPestAndDeseaseReport", "Report")
+                        .WithMany("ImpactDetails")
+                        .HasForeignKey("CropPestAndDeseaseReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PestDisease");
+
+                    b.Navigation("Report");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.EpidemicDisease.EpidemicDisease", b =>
                 {
                     b.HasOne("EarlyWarning.Models.Locations", "Woreda")
@@ -2717,14 +3230,10 @@ namespace EarlyWarning.Migrations
                         .IsRequired();
 
                     b.HasOne("EarlyWarning.Models.EpidemicDisease.EpidemicDiseaseType", "EpidemicDiseaseType")
-                        .WithMany()
+                        .WithMany("EpidemicDiseaseSelections")
                         .HasForeignKey("EpidemicDiseaseTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("EarlyWarning.Models.EpidemicDisease.EpidemicDiseaseType", null)
-                        .WithMany("EpidemicDiseaseSelections")
-                        .HasForeignKey("EpidemicDiseaseTypeId1");
 
                     b.Navigation("EpidemicDisease");
 
@@ -2821,6 +3330,10 @@ namespace EarlyWarning.Migrations
 
             modelBuilder.Entity("EarlyWarning.Models.Migration.MigrationDetail", b =>
                 {
+                    b.HasOne("EarlyWarning.Models.Locations", "DestinationLocation")
+                        .WithMany()
+                        .HasForeignKey("DestinationLocationId");
+
                     b.HasOne("EarlyWarning.Models.Migration.Migration", "Migration")
                         .WithMany("MigrationDetails")
                         .HasForeignKey("MigrationId")
@@ -2832,6 +3345,8 @@ namespace EarlyWarning.Migrations
                         .HasForeignKey("OriginLocationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("DestinationLocation");
 
                     b.Navigation("Migration");
 
@@ -2909,6 +3424,17 @@ namespace EarlyWarning.Migrations
                     b.Navigation("Woreda");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.SchoolReport", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Woreda");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.SupplyofGrain.GrainSupply", b =>
                 {
                     b.HasOne("EarlyWarning.Models.Locations", "Woreda")
@@ -2973,6 +3499,44 @@ namespace EarlyWarning.Migrations
                     b.Navigation("Woreda");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.WeeklyReportSubmission", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Woreda");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.WeeklyReportWorkflowHistory", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EarlyWarning.Models.WeeklyReportSubmission", "Submission")
+                        .WithMany("History")
+                        .HasForeignKey("WeeklyReportSubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Submission");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -3034,6 +3598,11 @@ namespace EarlyWarning.Migrations
                     b.Navigation("WeeklyProvidedDetail");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.AnimalHealthStatus", b =>
+                {
+                    b.Navigation("ImpactDetails");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.AnimalPrice.AnimalType", b =>
                 {
                     b.Navigation("AnimalPrices");
@@ -3042,6 +3611,11 @@ namespace EarlyWarning.Migrations
             modelBuilder.Entity("EarlyWarning.Models.AnimalSupply.AnimalSupply", b =>
                 {
                     b.Navigation("AnimalSupplyDetails");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.CropPestAndDeseaseReport", b =>
+                {
+                    b.Navigation("ImpactDetails");
                 });
 
             modelBuilder.Entity("EarlyWarning.Models.EpidemicDisease.EpidemicDisease", b =>
@@ -3101,6 +3675,11 @@ namespace EarlyWarning.Migrations
             modelBuilder.Entity("EarlyWarning.Models.WeeklyAccidents.WeeklyAccidents", b =>
                 {
                     b.Navigation("AccidentDetails");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.WeeklyReportSubmission", b =>
+                {
+                    b.Navigation("History");
                 });
 #pragma warning restore 612, 618
         }

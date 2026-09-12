@@ -1,0 +1,122 @@
+@model EarlyWarning.ViewModels.WeeklyReportPageTwoViewModel
+@{
+    ViewData["Title"] = "የቅድሚያ ማስጠንቀቂያና ምላሽ ሳምንታዊ ሪፖርት";
+    var sections = Model.Zones
+        .SelectMany(x => x.Aggregate.Sections)
+        .GroupBy(x => x.Name)
+        .Select(x => x.Key)
+        .ToList();
+}
+
+<style>
+    .weekly-matrix { font-size: .82rem; min-width: max-content; }
+    .weekly-matrix th, .weekly-matrix td { min-width: 155px; vertical-align: middle; }
+    .weekly-matrix .number-column { min-width: 64px; width: 64px; }
+    .weekly-matrix .activity-column { min-width: 285px; max-width: 360px; }
+    .weekly-matrix thead th { position: sticky; top: 0; z-index: 3; background: #e9f1fb; }
+    .weekly-matrix .number-column { position: sticky; left: 0; z-index: 2; background: #fff; }
+    .weekly-matrix .activity-column { position: sticky; left: 64px; z-index: 2; background: #fff; }
+    .weekly-matrix thead .number-column, .weekly-matrix thead .activity-column { z-index: 4; background: #e9f1fb; }
+    .weekly-matrix .section-row th { position: static; background: #dbeafe; }
+    .weekly-matrix .summary-column { background: #f8f9fa; font-weight: 700; }
+    @@media print {
+        .report-actions, nav, footer { display: none !important; }
+        .container-fluid { margin: 0 !important; padding: 0 !important; max-width: none !important; }
+        .weekly-matrix { font-size: 7pt; }
+        .weekly-matrix th, .weekly-matrix td { min-width: 85px; }
+        .weekly-matrix .activity-column { min-width: 180px; }
+        .weekly-matrix thead th, .weekly-matrix .number-column, .weekly-matrix .activity-column { position: static; }
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h3 class="mb-1">የቅድሚያ ማስጠንቀቂያና ምላሽ ሳምንታዊ ሪፖርት</h3>
+            @if (Model.StartDate.HasValue && Model.EndDate.HasValue)
+            {
+                <div class="text-muted">ከ @Model.StartDate.Value.ToString("dd/MM/yyyy") — @Model.EndDate.Value.ToString("dd/MM/yyyy")</div>
+            }
+        </div>
+        <div class="report-actions d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" onclick="window.print()">አትም</button>
+            <a asp-action="Index" class="btn btn-outline-primary">ወደ ገጽ 1 ተመለስ</a>
+        </div>
+    </div>
+
+    @if (!Model.Zones.Any())
+    {
+        <div class="alert alert-info">በመረጃ ቋቱ ውስጥ የሳምንት ሪፖርት አልተገኘም።</div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered text-center align-middle mb-0 weekly-matrix">
+                    <thead>
+                        <tr>
+                            <th class="number-column">ተ.ቁ</th>
+                            <th class="activity-column text-start">ዝርዝር ሥራዎች</th>
+                            @foreach (var zone in Model.Zones)
+                            {
+                                <th>@zone.Zone</th>
+                            }
+                            <th class="summary-column">ማጠቃለያ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for (var sectionIndex = 0; sectionIndex < sections.Count; sectionIndex++)
+                    {
+                        var sectionName = sections[sectionIndex];
+                        var metricNames = Model.Zones
+                            .SelectMany(z => z.Aggregate.Sections.Where(s => s.Name == sectionName).SelectMany(s => s.Metrics))
+                            .Select(m => m.Name)
+                            .Distinct()
+                            .ToList();
+                        <tr class="section-row">
+                            <th>@(sectionIndex + 1)</th>
+                            <th colspan="@(Model.Zones.Count + 2)" class="text-start">@sectionName</th>
+                        </tr>
+                        @for (var metricIndex = 0; metricIndex < metricNames.Count; metricIndex++)
+                        {
+                            var metricName = metricNames[metricIndex];
+                            var metrics = Model.Zones
+                                .Select(z => z.Aggregate.Sections.FirstOrDefault(s => s.Name == sectionName)?.Metrics.FirstOrDefault(m => m.Name == metricName))
+                                .Where(m => m != null)
+                                .ToList();
+                            var firstMetric = metrics.FirstOrDefault();
+                            var summary = firstMetric?.Method == "AVERAGE"
+                                ? (metrics.Any() ? metrics.Average(m => m!.Value) : 0)
+                                : metrics.Sum(m => m!.Value);
+                            <tr>
+                                <td class="number-column">@(sectionIndex + 1).@(metricIndex + 1)</td>
+                                <td class="activity-column text-start fw-semibold">@metricName</td>
+                                @foreach (var zone in Model.Zones)
+                                {
+                                    var metric = zone.Aggregate.Sections.FirstOrDefault(s => s.Name == sectionName)?.Metrics.FirstOrDefault(m => m.Name == metricName);
+                                    <td>@(metric == null ? "—" : $"{metric.Value:N2} {metric.Unit}".Trim())</td>
+                                }
+                                <td class="summary-column">@summary.ToString("N2")@if (!string.IsNullOrWhiteSpace(firstMetric?.Unit)) { <text> @firstMetric.Unit</text> }</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        var narratives = Model.Zones.SelectMany(z => z.Aggregate.TextEntries.Select(x => new { z.Zone, x.Source, x.Text })).ToList();
+        @if (narratives.Any())
+        {
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary bg-opacity-10 fw-bold">ጽሑፋዊ መረጃ</div>
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light"><tr><th>ዞን</th><th>የመረጃ ዓይነት</th><th>ዝርዝር</th></tr></thead>
+                        <tbody>@foreach (var item in narratives) { <tr><td>@item.Zone</td><td>@item.Source</td><td>@item.Text</td></tr> }</tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+</div>

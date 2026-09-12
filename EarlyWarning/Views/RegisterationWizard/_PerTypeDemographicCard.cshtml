@@ -1,0 +1,18 @@
+@model (string Prefix, string Name, string Key, object Values)
+@{
+  var rows = new[] { ("HouseholdHeads","አባወራ/እማወራ"), ("FamilyMembers","ቤተሰብ"), ("Children","ህጻናት"), ("Youth","ወጣቶች"), ("Elderly","አረጋውያን"), ("Disabled","አካል ጉዳተኞች") };
+  long maleTotal = 0;
+  long femaleTotal = 0;
+}
+<div class="card mb-3 border impact-card d-none" data-impact-key="@Model.Key">
+  <div class="card-header fw-bold bg-light">@Model.Name</div>
+  <div class="card-body p-2"><div class="table-responsive"><table class="table table-sm table-bordered mb-0 calc-table"><thead><tr><th>ምድብ</th><th>ወንድ</th><th>ሴት</th><th>ድምር</th></tr></thead><tbody>
+  @foreach (var row in rows) {
+    var male = Convert.ToInt64(Model.Values.GetType().GetProperty($"Male{row.Item1}")?.GetValue(Model.Values) ?? 0);
+    var female = Convert.ToInt64(Model.Values.GetType().GetProperty($"Female{row.Item1}")?.GetValue(Model.Values) ?? 0);
+    maleTotal += male;
+    femaleTotal += female;
+    <tr><td>@row.Item2</td><td><input name="@(Model.Prefix).Male@(row.Item1)" type="number" min="0" value="@male" class="form-control val-male" /></td><td><input name="@(Model.Prefix).Female@(row.Item1)" type="number" min="0" value="@female" class="form-control val-female" /></td><td class="row-total">@(male + female)</td></tr>
+  }
+  </tbody><tfoot class="table-light fw-bold"><tr><td>ጠቅላላ ድምር</td><td class="total-male">@maleTotal</td><td class="total-female">@femaleTotal</td><td class="grand-total bg-primary text-white">@(maleTotal + femaleTotal)</td></tr></tfoot></table></div></div>
+</div>

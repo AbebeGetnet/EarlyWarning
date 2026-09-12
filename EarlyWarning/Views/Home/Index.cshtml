@@ -1,8 +1,11 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@model EarlyWarning.ViewModels.WeeklyWorkflowIndexViewModel
+@{ ViewData["Title"] = "ዳሽቦርድ"; }
+<div class="container-fluid mt-4">
+ <div class="d-flex justify-content-between align-items-center mb-3"><h3>ዳሽቦርድ — @Model.ScopeName</h3><a asp-controller="WeeklyWorkflow" asp-action="Index" class="btn btn-outline-primary">ሙሉ የሪፖርት ዝርዝር</a></div>
+ @if (!Model.Reports.Any()) { <div class="alert alert-info">በዚህ ደረጃ የጸደቀ ሳምንታዊ መረጃ የለም።</div> }
+ else {
+ <div class="alert alert-light border">የቅርብ ሳምንት: <strong>@Model.Reports.First().StartDate.ToString("yyyy-MM-dd") — @Model.Reports.First().EndDate.ToString("yyyy-MM-dd")</strong> | የተካተቱ ሪፖርቶች: <strong>@Model.Reports.Count</strong></div>
+ <div class="row g-3 mb-4"><div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><small>የተካተቱ ወረዳዎች</small><h2>@Model.Aggregate.WoredaReports</h2></div></div></div><div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><small>የተጎዳ መሬት (ሄ/ር)</small><h2>@Model.Aggregate.AffectedCropLandHectares.ToString("N2")</h2></div></div></div><div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><small>የተሰደዱ እንስሳት</small><h2>@Model.Aggregate.AnimalMigrationRoutes.Sum(x=>x.NumberOfAnimals).ToString("N0")</h2></div></div></div></div>
+ <partial name="_AggregateSections" model="Model.Aggregate" />
+ }
 </div>

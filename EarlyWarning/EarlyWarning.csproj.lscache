@@ -136,6 +136,7 @@ Controllers/
  WeeklyAccidentsController/
   AccidentTypesController.cs
   WeeklyAccidentsController.cs
+ WeeklyWorkflowController.cs
  WizardController.cs
 Data/EarlyWarningDbContext.cs
 Enums/Enums.cs
@@ -207,6 +208,28 @@ Migrations/
  20260809210605_RedesignUpdate.Designer.cs
  20260809212506_RedesignErrorUpdate.cs
  20260809212506_RedesignErrorUpdate.Designer.cs
+ 20260810160000_RepairMissingWorkflowStatusColumns.cs
+ 20260810163000_RemoveLegacyRainfallReportStatus.cs
+ 20260810201000_AddPerTypeImpactDetails.cs
+ 20260810214046_ConsolidateWizardAndWeeklyWorkflow.cs
+ 20260810214046_ConsolidateWizardAndWeeklyWorkflow.Designer.cs
+ 20260810224951_AddMigrationDirectionAndDestination.cs
+ 20260810224951_AddMigrationDirectionAndDestination.Designer.cs
+ 20260810230521_AddAnimalMigrationRoutes.cs
+ 20260810230521_AddAnimalMigrationRoutes.Designer.cs
+ 20260810233000_AddWeeklySubmissionWorkflow.cs
+ 20260811000200_AddPersistentWizardDrafts.cs
+ 20260811000200_AddPersistentWizardDrafts.Designer.cs
+ 20260811003000_AddUniqueWoredaReportingWeek.cs
+ 20260811123000_RemoveLegacyFarmAndCropReportStatus.cs
+ 20260811124500_RemoveAllLegacyDuplicateReportStatusColumns.cs
+ 20260812140000_RepairMissingApprovalStatusColumns.cs
+ 20260812143000_RemoveLegacyRequiredReportStatusColumns.cs
+ 20260812164910_AddWeeklyAggregateSnapshots.cs
+ 20260812164910_AddWeeklyAggregateSnapshots.Designer.cs
+ 20260812165500_CreateWeeklyAggregateSnapshotStorage.cs
+ 20260812180033_AddSchoolReportTab.cs
+ 20260812180033_AddSchoolReportTab.Designer.cs
  EarlyWarningDbContextModelSnapshot.cs
 Models/Aid/
  AssistanceRecipient.cs
@@ -216,7 +239,9 @@ Models/Aid/
  WeeklyProvidedDetail.cs
 Models/
  AnimalDisease.cs
+ AnimalDiseaseImpactDetail.cs
  AnimalHealthStatus.cs
+ AnimalMigrationRecord.cs
  AnimalPhysicality.cs
  AnimalPrice/
   AnimalPrice.cs
@@ -234,6 +259,7 @@ Models/
  CropGrowth.cs
  CropPestAndDesease.cs
  CropPestAndDeseaseReport.cs
+ CropPestImpactDetail.cs
  EarlyWarningExtensions.cs
  EpidemicDisease/
   EpidemicDisease.cs
@@ -262,6 +288,7 @@ Models/
   GrainPricePerQuintal.cs
   GrainType.cs
  RainFallReport.cs
+ SchoolReport.cs
  SupplyofGrain/
   GrainIncreaseDecrease.cs
   GrainSupply.cs
@@ -270,6 +297,8 @@ Models/
   AccidentDetail.cs
   AccidentType.cs
   WeeklyAccidents.cs
+ WeeklyAggregateSnapshot.cs
+ WeeklyReportSubmission.cs
 obj/Debug/net8.0/
  .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
  EarlyWarning.AssemblyInfo.cs
@@ -303,6 +332,7 @@ Services/
  IReportSaveService.cs
  PastureStatusService.cs
  RainfallReportService.cs
+ WeeklyAggregationService.cs
 Static files/SD.cs
 ViewModels/
  AddressViewModel.cs
@@ -319,6 +349,7 @@ ViewModels/
   RolesViewModel.cs
   UserProfileViewModel.cs
   UserRolesViewModel.cs
+ WeeklyWorkflowViewModels.cs
  WizardViewModel.cs
 
 [metadataReferences]
@@ -968,58 +999,68 @@ Views/RainfallReports/
  Details.cshtml
  Edit.cshtml
  Index.cshtml
+Views/RegisterationWizard/
+ Index.cshtml
+ _AdvancedDemographics.cshtml
+ _ExtendedReportSteps.cshtml
+ _PerTypeDemographicCard.cshtml
+Views/Roles/
+ Index.cshtml
+ Upsert.cshtml
+Views/Shared/
+ Error.cshtml
+ _AggregateSections.cshtml
+ _CropGrowthDetails.cshtml
+ _FarmingActivityDetails.cshtml
+ _Layout.cshtml
+ _LoginPartial.cshtml
+ _Notifications.cshtml
+ _ReportDetails.cshtml
+ _ValidationScriptsPartial.cshtml
+Views/SupplyTypes/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/UserRoles/
+ AddPasswordResetKey.cshtml
+ ChangePassword.cshtml
+ ChangePasswordOwn.cshtml
+ DeleteUser.cshtml
+ Edit.cshtml
+ Index.cshtml
+ Manage.cshtml
+ ManageRole.cshtml
+ PasswordResetKeyIndex.cshtml
+ UserIndex.cshtml
+ UserRoleIndex.cshtml
+Views/WeeklyAccidents/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/WeeklyProvideds/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/WeeklyWorkflow/
+ Details.cshtml
+ Index.cshtml
+ RegionalQueue.cshtml
+ ZoneDetails.cshtml
+Views/Wizard/
+ Index.cshtml
+ Wizard.cshtml
+ _AnimalHealthStep.cshtml
+ _FarmingStep.cshtml
+ _PestDiseaseStep.cshtml
+ _PreviewStep.cshtml
+ _RainfallStep.cshtml
 Views/
- RegisterationWizard/Index.cshtml
- Roles/
-  Index.cshtml
-  Upsert.cshtml
- Shared/
-  Error.cshtml
-  _CropGrowthDetails.cshtml
-  _FarmingActivityDetails.cshtml
-  _Layout.cshtml
-  _LoginPartial.cshtml
-  _Notifications.cshtml
-  _ReportDetails.cshtml
-  _ValidationScriptsPartial.cshtml
- SupplyTypes/
-  Create.cshtml
-  Delete.cshtml
-  Details.cshtml
-  Edit.cshtml
-  Index.cshtml
- UserRoles/
-  AddPasswordResetKey.cshtml
-  ChangePassword.cshtml
-  ChangePasswordOwn.cshtml
-  DeleteUser.cshtml
-  Edit.cshtml
-  Index.cshtml
-  Manage.cshtml
-  ManageRole.cshtml
-  PasswordResetKeyIndex.cshtml
-  UserIndex.cshtml
-  UserRoleIndex.cshtml
- WeeklyAccidents/
-  Create.cshtml
-  Delete.cshtml
-  Details.cshtml
-  Edit.cshtml
-  Index.cshtml
- WeeklyProvideds/
-  Create.cshtml
-  Delete.cshtml
-  Details.cshtml
-  Edit.cshtml
-  Index.cshtml
- Wizard/
-  Index.cshtml
-  Wizard.cshtml
-  _AnimalHealthStep.cshtml
-  _FarmingStep.cshtml
-  _PestDiseaseStep.cshtml
-  _PreviewStep.cshtml
-  _RainfallStep.cshtml
  _ViewImports.cshtml
  _ViewStart.cshtml
 
@@ -1255,57 +1296,67 @@ Views/RainfallReports/
  Details.cshtml
  Edit.cshtml
  Index.cshtml
+Views/RegisterationWizard/
+ Index.cshtml
+ _AdvancedDemographics.cshtml
+ _ExtendedReportSteps.cshtml
+ _PerTypeDemographicCard.cshtml
+Views/Roles/
+ Index.cshtml
+ Upsert.cshtml
+Views/Shared/
+ Error.cshtml
+ _AggregateSections.cshtml
+ _CropGrowthDetails.cshtml
+ _FarmingActivityDetails.cshtml
+ _Layout.cshtml
+ _LoginPartial.cshtml
+ _Notifications.cshtml
+ _ReportDetails.cshtml
+ _ValidationScriptsPartial.cshtml
+Views/SupplyTypes/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/UserRoles/
+ AddPasswordResetKey.cshtml
+ ChangePassword.cshtml
+ ChangePasswordOwn.cshtml
+ DeleteUser.cshtml
+ Edit.cshtml
+ Index.cshtml
+ Manage.cshtml
+ ManageRole.cshtml
+ PasswordResetKeyIndex.cshtml
+ UserIndex.cshtml
+ UserRoleIndex.cshtml
+Views/WeeklyAccidents/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/WeeklyProvideds/
+ Create.cshtml
+ Delete.cshtml
+ Details.cshtml
+ Edit.cshtml
+ Index.cshtml
+Views/WeeklyWorkflow/
+ Details.cshtml
+ Index.cshtml
+ RegionalQueue.cshtml
+ ZoneDetails.cshtml
+Views/Wizard/
+ Index.cshtml
+ Wizard.cshtml
+ _AnimalHealthStep.cshtml
+ _FarmingStep.cshtml
+ _PestDiseaseStep.cshtml
+ _PreviewStep.cshtml
+ _RainfallStep.cshtml
 Views/
- RegisterationWizard/Index.cshtml
- Roles/
-  Index.cshtml
-  Upsert.cshtml
- Shared/
-  Error.cshtml
-  _CropGrowthDetails.cshtml
-  _FarmingActivityDetails.cshtml
-  _Layout.cshtml
-  _LoginPartial.cshtml
-  _Notifications.cshtml
-  _ReportDetails.cshtml
-  _ValidationScriptsPartial.cshtml
- SupplyTypes/
-  Create.cshtml
-  Delete.cshtml
-  Details.cshtml
-  Edit.cshtml
-  Index.cshtml
- UserRoles/
-  AddPasswordResetKey.cshtml
-  ChangePassword.cshtml
-  ChangePasswordOwn.cshtml
-  DeleteUser.cshtml
-  Edit.cshtml
-  Index.cshtml
-  Manage.cshtml
-  ManageRole.cshtml
-  PasswordResetKeyIndex.cshtml
-  UserIndex.cshtml
-  UserRoleIndex.cshtml
- WeeklyAccidents/
-  Create.cshtml
-  Delete.cshtml
-  Details.cshtml
-  Edit.cshtml
-  Index.cshtml
- WeeklyProvideds/
-  Create.cshtml
-  Delete.cshtml
-  Details.cshtml
-  Edit.cshtml
-  Index.cshtml
- Wizard/
-  Index.cshtml
-  Wizard.cshtml
-  _AnimalHealthStep.cshtml
-  _FarmingStep.cshtml
-  _PestDiseaseStep.cshtml
-  _PreviewStep.cshtml
-  _RainfallStep.cshtml
  _ViewImports.cshtml
  _ViewStart.cshtml
