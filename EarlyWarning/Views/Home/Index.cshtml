@@ -1,11 +1,354 @@
-@model EarlyWarning.ViewModels.WeeklyWorkflowIndexViewModel
-@{ ViewData["Title"] = "ዳሽቦርድ"; }
-<div class="container-fluid mt-4">
- <div class="d-flex justify-content-between align-items-center mb-3"><h3>ዳሽቦርድ — @Model.ScopeName</h3><a asp-controller="WeeklyWorkflow" asp-action="Index" class="btn btn-outline-primary">ሙሉ የሪፖርት ዝርዝር</a></div>
- @if (!Model.Reports.Any()) { <div class="alert alert-info">በዚህ ደረጃ የጸደቀ ሳምንታዊ መረጃ የለም።</div> }
- else {
- <div class="alert alert-light border">የቅርብ ሳምንት: <strong>@Model.Reports.First().StartDate.ToString("yyyy-MM-dd") — @Model.Reports.First().EndDate.ToString("yyyy-MM-dd")</strong> | የተካተቱ ሪፖርቶች: <strong>@Model.Reports.Count</strong></div>
- <div class="row g-3 mb-4"><div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><small>የተካተቱ ወረዳዎች</small><h2>@Model.Aggregate.WoredaReports</h2></div></div></div><div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><small>የተጎዳ መሬት (ሄ/ር)</small><h2>@Model.Aggregate.AffectedCropLandHectares.ToString("N2")</h2></div></div></div><div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><small>የተሰደዱ እንስሳት</small><h2>@Model.Aggregate.AnimalMigrationRoutes.Sum(x=>x.NumberOfAnimals).ToString("N0")</h2></div></div></div></div>
- <partial name="_AggregateSections" model="Model.Aggregate" />
- }
+@model EarlyWarning.ViewModels.DashboardViewModel
+@using EarlyWarning.Enums
+@{
+    ViewData["Title"] = "ዳሽቦርድ";
+    var agg = Model.Aggregate;
+    var hasData = Model.Reports.Any();
+    var week = hasData ? Model.Reports.First() : null;
+
+    decimal Metric(string sectionPrefix, string metricName) =>
+        agg.Sections.Where(s => s.Name.StartsWith(sectionPrefix)).SelectMany(s => s.Metrics)
+            .Where(m => m.Name == metricName).Sum(m => m.Value);
+    string N(decimal value) => value.ToString(value % 1 == 0 ? "#,0" : "#,0.##");
+
+    var meherPlan = agg.FarmingZones.Sum(x => x.MeherFarmPlan);
+    var meherSown = agg.FarmingZones.Sum(x => x.MeherSown);
+    var sownPercent = meherPlan == 0 ? (decimal?)null : Math.Round(meherSown / meherPlan * 100, 1);
+    var totalAffected = Model.AffectedByCause.Sum(x => x.People);
+    var migratedAnimals = agg.AnimalMigrationRoutes.Sum(x => x.NumberOfAnimals);
+
+    // Workflow states use the reserved status colours, always paired with an icon and a label.
+    (string Label, string Css, string Icon) Status(WeeklySubmissionStatus status) => status switch
+    {
+        WeeklySubmissionStatus.RegionApproved => ("በክልል ጸድቋል", "good", "fa-check-double"),
+        WeeklySubmissionStatus.ZoneApproved => ("በዞን ጸድቋል", "good", "fa-check"),
+        WeeklySubmissionStatus.SubmittedToZone => ("ለዞን ተልኳል", "warning", "fa-hourglass-half"),
+        WeeklySubmissionStatus.RegionRejectedToZone => ("በክልል ተመልሷል", "critical", "fa-undo"),
+        WeeklySubmissionStatus.ZoneRejectedToWoreda => ("ወደ ወረዳ ተመልሷል", "critical", "fa-undo"),
+        _ => ("ረቂቅ", "muted", "fa-pen")
+    };
+    var statusGroups = Model.Reports.GroupBy(x => Status(x.Status)).Select(g => (Info: g.Key, Count: g.Count()))
+        .OrderByDescending(x => x.Count).ToList();
+
+    var tiles = new List<(string Icon, string Accent, string Label, string Value, string Note)>
+    {
+        ("fa-file-alt", "blue", "ሪፖርት ያስገቡ ወረዳዎች", N(agg.WoredaReports), $"የጸደቁ {N(agg.ApprovedReports)}"),
+        ("fa-cloud-sun", "orange", "ዝናብ ያላገኙ ቀበሌዎች", N(agg.NoRainKebeles), $"ሙሉ ዝናብ ያገኙ {N(agg.FullRainCoverageKebeles)}"),
+        ("fa-seedling", "aqua", "የመኸር ዘር ሽፋን", sownPercent.HasValue ? $"{sownPercent}%" : "-", $"{N(meherSown)} ከ {N(meherPlan)} ሄ/ር"),
+        ("fa-bug", "yellow", "በተባይ የተጎዳ መሬት", N((decimal)agg.AffectedCropLandHectares), "ሄክታር"),
+        ("fa-users", "red", "ጠቅላላ የተጎዳ ማህበረሰብ", N(totalAffected), "በሁሉም ምክንያቶች"),
+        ("fa-tint", "blue", "የእንስሳት ውሃ ችግር ያለባቸው ቀበሌዎች", N(Metric("4.2", "በሳምንቱ የውሃ ችግር ያለባቸው ቀበሌዎች በቁጥር")), $"የሰው መጠጥ ውሃ ችግር {N(Metric("5.", "ችግር ያለባቸው ቀበሌዎች በቁጥር"))}"),
+        ("fa-hands-helping", "green", "የዕለት እርዳታ ተጠቃሚ", N(Metric("10.", "የዕለት እርዳታ ተጠቃሚ")), "ሰዎች"),
+        ("fa-horse", "violet", "የተሰደዱ እንስሳት", N(migratedAnimals), "በሳምንቱ")
+    };
+
+    var chartData = new
+    {
+        causes = Model.AffectedByCause.Select(x => new { label = x.Cause, value = x.People }),
+        rain = agg.RainfallZones.Select(x => new { zone = x.Zone, full = x.FullRainWoredas, partial = x.PartialRainWoredas, none = x.NoRainWoredas, noData = x.NoDataWoredas }),
+        meher = new[]
+        {
+            new { label = "ዕቅድ", value = meherPlan },
+            new { label = "የታረሰ", value = agg.FarmingZones.Sum(x => x.MeherPloughed) },
+            new { label = "የተዘራ", value = meherSown },
+            new { label = "የተሰበሰበ", value = agg.FarmingZones.Sum(x => x.MeherHarvested) },
+            new { label = "በቀሪ እርጥበት", value = agg.FarmingZones.Sum(x => x.MeherResidualMoistureSown) }
+        },
+        trend = Model.Trend.Select(x => new { label = x.WeekStart.ToString("dd/MM"), value = x.Woredas })
+    };
+}
+
+@section Styles {
+<style>
+    .ew-dash {
+        --surface: #fcfcfb; --plane: #f4f5f2; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+        --grid: #e1e0d9; --ring: rgba(11,11,11,.10);
+        --blue: #2a78d6; --orange: #eb6834; --aqua: #1baf7a; --yellow: #eda100; --green: #008300; --violet: #4a3aa7; --red: #e34948;
+        --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;
+        font-family: 'Nyala', 'Ebrima', 'Noto Sans Ethiopic', system-ui, 'Segoe UI', sans-serif;
+        color: var(--ink); padding: 1.25rem 1rem 2rem;
+    }
+    .ew-hero { background: linear-gradient(120deg, #0d366b 0%, #1c5cab 55%, #2a78d6 100%); color: #fff; border-radius: 14px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 6px 18px rgba(13,54,107,.18); }
+    .ew-hero h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 .25rem; color: #fff; }
+    .ew-hero .ew-sub { opacity: .88; font-size: .98rem; }
+    .ew-chip { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: .25rem .8rem; margin: .5rem .4rem 0 0; font-size: .9rem; }
+    .ew-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .ew-btn { display: inline-flex; align-items: center; gap: .45rem; padding: .5rem .95rem; border-radius: 8px; font-weight: 600; text-decoration: none !important; border: 1px solid rgba(255,255,255,.4); color: #fff !important; background: rgba(255,255,255,.08); transition: background .15s; }
+    .ew-btn:hover { background: rgba(255,255,255,.2); }
+    .ew-btn.primary { background: #fff; color: #0d366b !important; border-color: #fff; }
+    .ew-btn.primary:hover { background: #e8f0fb; }
+
+    .ew-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .9rem; margin-bottom: 1.25rem; }
+    .ew-tile { background: var(--surface); border-radius: 12px; box-shadow: 0 0 0 1px var(--ring); padding: 1rem 1.1rem; display: flex; gap: .9rem; align-items: flex-start; }
+    .ew-tile .ew-icon { width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center; flex: 0 0 42px; color: #fff; font-size: 1.05rem; }
+    .ew-tile .ew-label { color: var(--ink-2); font-size: .88rem; line-height: 1.3; }
+    .ew-tile .ew-value { font-size: 1.65rem; font-weight: 700; line-height: 1.2; margin-top: .15rem; }
+    .ew-tile .ew-note { color: var(--muted); font-size: .8rem; }
+    .ew-icon.blue { background: var(--blue); } .ew-icon.orange { background: var(--orange); } .ew-icon.aqua { background: var(--aqua); }
+    .ew-icon.yellow { background: var(--yellow); } .ew-icon.red { background: var(--red); } .ew-icon.green { background: var(--green); } .ew-icon.violet { background: var(--violet); }
+
+    .ew-card { background: var(--surface); border-radius: 12px; box-shadow: 0 0 0 1px var(--ring); padding: 1rem 1.15rem 1.1rem; margin-bottom: 1.1rem; height: calc(100% - 1.1rem); }
+    .ew-card h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 .15rem; }
+    .ew-card .ew-desc { color: var(--muted); font-size: .82rem; margin-bottom: .75rem; }
+    .ew-chart { position: relative; width: 100%; }
+    .ew-legend { display: flex; flex-wrap: wrap; gap: .35rem 1rem; font-size: .82rem; color: var(--ink-2); margin-bottom: .5rem; }
+    .ew-legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: .35rem; background: var(--sw); vertical-align: -1px; }
+    .ew-empty { color: var(--muted); text-align: center; padding: 2rem .5rem; font-size: .9rem; }
+
+    .ew-statusbar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 2px; background: var(--surface); margin: .4rem 0 .9rem; }
+    .ew-statusbar div { min-width: 4px; }
+    .ew-status-list { list-style: none; padding: 0; margin: 0; }
+    .ew-status-list li { display: flex; align-items: center; gap: .55rem; padding: .35rem 0; border-bottom: 1px solid var(--grid); font-size: .9rem; }
+    .ew-status-list li:last-child { border-bottom: 0; }
+    .ew-status-list .count { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .st-good { color: var(--good); } .st-warning { color: #b07a00; } .st-critical { color: var(--critical); } .st-muted { color: var(--muted); }
+    .bg-good { background: var(--good); } .bg-warning { background: var(--warning); } .bg-critical { background: var(--critical); } .bg-muted { background: #c3c2b7; }
+    .ew-pill { display: inline-flex; align-items: center; gap: .3rem; border-radius: 999px; padding: .1rem .55rem; font-size: .78rem; font-weight: 600; background: #f0efec; color: var(--ink-2); white-space: nowrap; }
+    .ew-pill i { font-size: .7rem; }
+
+    .ew-table { width: 100%; font-size: .88rem; border-collapse: collapse; }
+    .ew-table th { color: var(--muted); font-weight: 600; text-align: left; padding: .45rem .5rem; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+    .ew-table td { padding: .45rem .5rem; border-bottom: 1px solid var(--grid); text-align: left; }
+    .ew-table tr:hover td { background: #f6f7f4; }
+    .ew-table-wrap { max-height: 330px; overflow: auto; }
+
+    .ew-details { background: var(--surface); border-radius: 12px; box-shadow: 0 0 0 1px var(--ring); margin-top: .25rem; }
+    .ew-details summary { cursor: pointer; padding: .9rem 1.15rem; font-weight: 700; list-style: none; display: flex; align-items: center; gap: .5rem; }
+    .ew-details summary::-webkit-details-marker { display: none; }
+    .ew-details summary .fa-chevron-down { transition: transform .2s; margin-left: auto; color: var(--muted); }
+    .ew-details[open] summary .fa-chevron-down { transform: rotate(180deg); }
+    .ew-details .ew-details-body { padding: 0 1.15rem 1rem; }
+    @@media (max-width: 576px) { .ew-hero { padding: 1.1rem; } .ew-hero h1 { font-size: 1.3rem; } }
+</style>
+}
+
+<div class="ew-dash">
+    <div class="ew-hero">
+        <div>
+            <h1><i class="fas fa-satellite-dish mr-2"></i>የቅድመ ማስጠንቀቂያ ዳሽቦርድ</h1>
+            <div class="ew-sub">@(string.IsNullOrWhiteSpace(Model.ScopeName) ? "" : Model.ScopeName) @(string.IsNullOrWhiteSpace(Model.UserDisplayName) ? "" : $"· እንኳን ደህና መጡ፣ {Model.UserDisplayName}")</div>
+            @if (week != null)
+            {
+                <span class="ew-chip"><i class="far fa-calendar-alt"></i> የቅርብ ሳምንት፡ @week.StartDate.ToString("dd/MM/yyyy") – @week.EndDate.ToString("dd/MM/yyyy")</span>
+                <span class="ew-chip"><i class="fas fa-layer-group"></i> @Model.Reports.Count ሪፖርቶች</span>
+                @if (agg.IsSnapshot && agg.GeneratedAt.HasValue)
+                {
+                    <span class="ew-chip"><i class="fas fa-lock"></i> የጸደቀ ቅጂ · @agg.GeneratedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                }
+            }
+        </div>
+        <div class="ew-actions">
+            @if (User.IsInRole("Data Encoder"))
+            {
+                <a asp-controller="RegisterationWizard" asp-action="Index" class="ew-btn primary"><i class="fas fa-plus-circle"></i> አዲስ መረጃ ምዝገባ</a>
+            }
+            <a asp-controller="WeeklyWorkflow" asp-action="FormReport" class="ew-btn"><i class="fas fa-file-signature"></i> የቅጽ ሪፖርት</a>
+            <a asp-controller="WeeklyWorkflow" asp-action="Index" class="ew-btn"><i class="fas fa-list"></i> ሙሉ የሪፖርት ዝርዝር</a>
+        </div>
+    </div>
+
+    @if (!hasData)
+    {
+        <div class="ew-card" style="height:auto">
+            <div class="ew-empty">
+                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                በዚህ ደረጃ ለማሳየት የጸደቀ ሳምንታዊ መረጃ የለም። ሪፖርቶች ሲላኩና ሲጸድቁ እዚህ ይታያሉ።
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="ew-tiles">
+            @foreach (var tile in tiles)
+            {
+                <div class="ew-tile">
+                    <div class="ew-icon @tile.Accent"><i class="fas @tile.Icon"></i></div>
+                    <div>
+                        <div class="ew-label">@tile.Label</div>
+                        <div class="ew-value">@tile.Value</div>
+                        <div class="ew-note">@tile.Note</div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="ew-card">
+                    <h2>የተጎዳ ማህበረሰብ በምክንያት</h2>
+                    <div class="ew-desc">በዚህ ሳምንት በእያንዳንዱ ችግር የተጎዱ ሰዎች ብዛት</div>
+                    @if (Model.AffectedByCause.Any())
+                    {
+                        <div class="ew-chart" style="height:@(Math.Max(160, Model.AffectedByCause.Count * 38 + 40))px"><canvas id="causeChart" aria-label="የተጎዳ ማህበረሰብ በምክንያት" role="img"></canvas></div>
+                    }
+                    else
+                    {
+                        <div class="ew-empty"><i class="fas fa-shield-alt mr-1"></i> በዚህ ሳምንት የተመዘገበ የተጎዳ ማህበረሰብ የለም።</div>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="ew-card">
+                    <h2>የሪፖርት ሁኔታ</h2>
+                    <div class="ew-desc">የቅርብ ሳምንቱ ሪፖርቶች በሂደት ደረጃ</div>
+                    <div class="ew-statusbar" role="img" aria-label="የሪፖርት ሁኔታ ስርጭት">
+                        @foreach (var s in statusGroups)
+                        {
+                            <div class="bg-@s.Info.Css" style="flex:@s.Count" title="@s.Info.Label፡ @s.Count"></div>
+                        }
+                    </div>
+                    <ul class="ew-status-list">
+                        @foreach (var s in statusGroups)
+                        {
+                            <li><i class="fas @s.Info.Icon st-@s.Info.Css"></i><span>@s.Info.Label</span><span class="count">@s.Count</span></li>
+                        }
+                    </ul>
+                    <div class="ew-desc mt-3 mb-1">ሳምንታዊ የሪፖርት አዝማሚያ (ሪፖርት ያስገቡ ወረዳዎች)</div>
+                    <div class="ew-chart" style="height:150px"><canvas id="trendChart" aria-label="ሳምንታዊ የሪፖርት አዝማሚያ" role="img"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="ew-card">
+                    <h2>የዝናብ ሽፋን በዞን</h2>
+                    <div class="ew-desc">ቀበሌዎች በዝናብ ሽፋን ደረጃ</div>
+                    @if (agg.RainfallZones.Any())
+                    {
+                        <div class="ew-legend">
+                            <span style="--sw:#184f95">ሙሉ በሙሉ</span><span style="--sw:#2a78d6">በከፊል</span><span style="--sw:#86b6ef">ዝናብ የለም</span><span style="--sw:#c3c2b7">መረጃ የለም</span>
+                        </div>
+                        <div class="ew-chart" style="height:@(Math.Max(140, agg.RainfallZones.Count * 40 + 40))px"><canvas id="rainChart" aria-label="የዝናብ ሽፋን በዞን" role="img"></canvas></div>
+                    }
+                    else
+                    {
+                        <div class="ew-empty">የዝናብ መረጃ አልተገኘም።</div>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="ew-card">
+                    <h2>የመኸር እርሻ ሥራ ክንውን</h2>
+                    <div class="ew-desc">በሄክታር፤ ከዕቅዱ አንጻር</div>
+                    @if (meherPlan > 0 || agg.FarmingZones.Any())
+                    {
+                        <div class="ew-chart" style="height:240px"><canvas id="meherChart" aria-label="የመኸር እርሻ ሥራ ክንውን" role="img"></canvas></div>
+                    }
+                    else
+                    {
+                        <div class="ew-empty">የእርሻ ሥራ መረጃ አልተገኘም።</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="ew-card" style="height:auto">
+            <h2>የቅርብ ሳምንቱ ሪፖርቶች</h2>
+            <div class="ew-desc">@Model.Reports.Count ሪፖርቶች</div>
+            <div class="ew-table-wrap">
+                <table class="ew-table">
+                    <thead><tr><th>ዞን</th><th>ወረዳ</th><th>ሳምንት</th><th>ሁኔታ</th><th>መጨረሻ እርምጃ</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var r in Model.Reports.OrderBy(x => x.Zone).ThenBy(x => x.Woreda))
+                        {
+                            var st = Status(r.Status);
+                            <tr>
+                                <td>@r.Zone</td>
+                                <td style="font-weight:600">@r.Woreda</td>
+                                <td>@r.StartDate.ToString("dd/MM") – @r.EndDate.ToString("dd/MM/yyyy")</td>
+                                <td><span class="ew-pill"><i class="fas @st.Icon st-@st.Css"></i>@st.Label</span></td>
+                                <td>@r.LastActionAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td><a asp-controller="WeeklyWorkflow" asp-action="Details" asp-route-id="@r.Id" title="ዝርዝር"><i class="fas fa-arrow-right"></i></a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <details class="ew-details">
+            <summary><i class="fas fa-table"></i> ሁሉም የተጠቃለሉ መረጃዎች (ዝርዝር ሰንጠረዥ) <i class="fas fa-chevron-down"></i></summary>
+            <div class="ew-details-body">
+                <partial name="_AggregateSections" model="Model.Aggregate" />
+            </div>
+        </details>
+    }
 </div>
+
+@section Scripts {
+@if (hasData)
+{
+<script>
+    (function () {
+        if (typeof Chart === 'undefined') return;
+        const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(chartData));
+        const ink = '#52514e', muted = '#898781', grid = '#e1e0d9', blue = '#2a78d6';
+        const fmt = v => Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
+        Chart.defaults.global.defaultFontFamily = "'Nyala','Ebrima','Noto Sans Ethiopic',system-ui,'Segoe UI',sans-serif";
+        Chart.defaults.global.defaultFontColor = ink;
+        const axis = (stacked) => ({
+            stacked: !!stacked,
+            gridLines: { color: grid, zeroLineColor: '#c3c2b7', drawBorder: false },
+            ticks: { fontColor: muted, beginAtZero: true, precision: 0, callback: v => typeof v === 'number' ? fmt(v) : v }
+        });
+        const category = (stacked) => ({ stacked: !!stacked, gridLines: { display: false, drawBorder: false }, ticks: { fontColor: ink } });
+        const tooltip = (suffix) => ({
+            mode: 'index', intersect: false, backgroundColor: '#0b0b0b', titleFontStyle: '600', xPadding: 10, yPadding: 8, cornerRadius: 6,
+            callbacks: { label: (item, d) => `${d.datasets[item.datasetIndex].label ? d.datasets[item.datasetIndex].label + ': ' : ''}${fmt(item.value)}${suffix ? ' ' + suffix : ''}` }
+        });
+
+        // Affected people by cause — one series, one hue, sorted largest first.
+        const causeEl = document.getElementById('causeChart');
+        if (causeEl && data.causes.length) {
+            new Chart(causeEl, {
+                type: 'horizontalBar',
+                data: { labels: data.causes.map(x => x.label), datasets: [{ label: 'የተጎዱ ሰዎች', data: data.causes.map(x => x.value), backgroundColor: blue, hoverBackgroundColor: '#1c5cab', barPercentage: 0.7, categoryPercentage: 0.85 }] },
+                options: { maintainAspectRatio: false, legend: { display: false }, tooltips: tooltip('ሰዎች'), scales: { xAxes: [axis()], yAxes: [category()] } }
+            });
+        }
+
+        // Rainfall coverage by zone — ordinal blue ramp (full → partial → none) + neutral grey for "no data".
+        const rainEl = document.getElementById('rainChart');
+        if (rainEl && data.rain.length) {
+            const series = [['ሙሉ በሙሉ', 'full', '#184f95'], ['በከፊል', 'partial', '#2a78d6'], ['ዝናብ የለም', 'none', '#86b6ef'], ['መረጃ የለም', 'noData', '#c3c2b7']];
+            new Chart(rainEl, {
+                type: 'horizontalBar',
+                data: {
+                    labels: data.rain.map(x => x.zone),
+                    datasets: series.map(([label, key, color]) => ({ label, data: data.rain.map(x => x[key]), backgroundColor: color, borderColor: '#fcfcfb', borderWidth: 2, barPercentage: 0.7 }))
+                },
+                options: { maintainAspectRatio: false, legend: { display: false }, tooltips: tooltip('ቀበሌ'), scales: { xAxes: [axis(true)], yAxes: [category(true)] } }
+            });
+        }
+
+        // Meher farming progress — one series; tooltip adds the share of the plan.
+        const meherEl = document.getElementById('meherChart');
+        if (meherEl) {
+            const plan = data.meher[0].value || 0;
+            new Chart(meherEl, {
+                type: 'bar',
+                data: { labels: data.meher.map(x => x.label), datasets: [{ label: 'ሄክታር', data: data.meher.map(x => x.value), backgroundColor: data.meher.map((x, i) => i === 0 ? '#86b6ef' : blue), barPercentage: 0.6 }] },
+                options: {
+                    maintainAspectRatio: false, legend: { display: false },
+                    tooltips: Object.assign(tooltip('ሄ/ር'), {
+                        callbacks: { label: item => `${fmt(item.value)} ሄ/ር${plan && item.index > 0 ? ` (${fmt(item.value / plan * 100)}% ከዕቅዱ)` : ''}` }
+                    }),
+                    scales: { xAxes: [category()], yAxes: [axis()] }
+                }
+            });
+        }
+
+        // Weekly reporting trend — single line, 2px, visible markers.
+        const trendEl = document.getElementById('trendChart');
+        if (trendEl && data.trend.length) {
+            new Chart(trendEl, {
+                type: 'line',
+                data: { labels: data.trend.map(x => x.label), datasets: [{ label: 'ወረዳዎች', data: data.trend.map(x => x.value), borderColor: blue, backgroundColor: 'rgba(42,120,214,.08)', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: blue, pointBorderColor: '#fcfcfb', pointBorderWidth: 2, lineTension: 0.25, fill: true }] },
+                options: { maintainAspectRatio: false, legend: { display: false }, tooltips: tooltip('ወረዳ'), hover: { mode: 'index', intersect: false }, scales: { xAxes: [category()], yAxes: [axis()] } }
+            });
+        }
+    })();
+</script>
+}
+}

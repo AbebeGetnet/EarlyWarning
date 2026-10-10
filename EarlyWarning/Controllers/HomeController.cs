@@ -40,7 +40,32 @@ namespace EarlyWarning.Controllers
                 aggregate = await _aggregation.GetSnapshotAsync(user.LocationId, user.UserLocationLevl, reports[0].StartDate, reports[0].EndDate) ?? await _aggregation.BuildAsync(reports);
             else aggregate = await _aggregation.BuildAsync(reports);
             var scopeName = await _db.Locations.Where(x => x.Id == user.LocationId).Select(x => x.LocationAmharicName ?? x.LocationName ?? "").FirstOrDefaultAsync() ?? "";
-            return View(new WeeklyWorkflowIndexViewModel { ScopeName = scopeName, Reports = reports.Select(x => new WeeklyWorkflowRowViewModel { Id=x.Id,WoredaId=x.WoredaId,Woreda=x.Woreda.LocationAmharicName??x.Woreda.LocationName??"",Zone=x.Woreda.Parent?.LocationAmharicName??x.Woreda.Parent?.LocationName??"",StartDate=x.StartDate,EndDate=x.EndDate,Status=x.Status,LastActionAt=x.LastActionAt,RowVersion=x.RowVersion }).ToList(), Aggregate=aggregate });
+
+            // Reporting trend: distinct woredas per week over the last 8 reported weeks (same scope as above).
+            var weekly = await query.Select(x => new { x.ReportingWeekStart, x.WoredaId }).ToListAsync();
+            var trend = weekly.GroupBy(x => x.ReportingWeekStart.Date)
+                .OrderByDescending(g => g.Key).Take(8).OrderBy(g => g.Key)
+                .Select(g => new DashboardTrendPoint(g.Key, g.Select(x => x.WoredaId).Distinct().Count()))
+                .ToList();
+
+            // Affected people per cause, taken from the aggregate's "… ማህበረሰብ" metrics (aid recipients excluded).
+            var causes = aggregate.Sections
+                .SelectMany(s => s.Metrics.Where(m => m.Name.Contains("ማህበረሰብ") && !m.Name.Contains("ተጠቃሚ"))
+                    .Select(m => new DashboardCause(System.Text.RegularExpressions.Regex.Replace(s.Name, @"^[\d.]+\s*", ""), m.Value)))
+                .Where(x => x.People > 0)
+                .GroupBy(x => x.Cause).Select(g => new DashboardCause(g.Key, g.Sum(x => x.People)))
+                .OrderByDescending(x => x.People)
+                .ToList();
+
+            return View(new DashboardViewModel
+            {
+                ScopeName = scopeName,
+                UserDisplayName = $"{user.FirstName} {user.LastName}".Trim(),
+                Reports = reports.Select(x => new WeeklyWorkflowRowViewModel { Id=x.Id,WoredaId=x.WoredaId,Woreda=x.Woreda.LocationAmharicName??x.Woreda.LocationName??"",Zone=x.Woreda.Parent?.LocationAmharicName??x.Woreda.Parent?.LocationName??"",StartDate=x.StartDate,EndDate=x.EndDate,Status=x.Status,LastActionAt=x.LastActionAt,RowVersion=x.RowVersion }).ToList(),
+                Aggregate = aggregate,
+                Trend = trend,
+                AffectedByCause = causes
+            });
         }
 
         public IActionResult Privacy()
