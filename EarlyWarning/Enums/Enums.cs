@@ -90,6 +90,11 @@ namespace EarlyWarning.Enums
         ወረዳ,
         ቀበሌ
     }
+    public enum AnimalBodyCondition
+    {
+        መካከለኛ = 1,
+        ዝቅተኛ = 2
+    }
     public enum Measurement
     {
         ኪሎ , ሊትር, ኩንታል, ሌላ 

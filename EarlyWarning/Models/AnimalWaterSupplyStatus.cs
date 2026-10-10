@@ -17,6 +17,17 @@ namespace EarlyWarning.Models
         [DisplayName("በሳምንቱ የውሃ ችግር ያለባቸው ቀበሌዎች በቁጥር")]
         public int NoOfKebeliesWithWaterSupply { get; set; }
 
+        [DisplayName("የእንስሳት አቋም")]
+        public AnimalBodyCondition? AnimalBodyCondition { get; set; }
+
+        [DisplayName("አቋማቸው ዝቅተኛ የሆነ የተጎዱ እንስሳት ብዛት")]
+        [Range(0, int.MaxValue)]
+        public int LowBodyConditionAnimalsAffected { get; set; }
+
+        [DisplayName("ዝቅተኛ ከሆነ ምክንያት")]
+        [MaxLength(500)]
+        public string? LowBodyConditionReason { get; set; }
+
         [DisplayName("አባወራ")]
         public int MaleHouseHold { get; set; }
 

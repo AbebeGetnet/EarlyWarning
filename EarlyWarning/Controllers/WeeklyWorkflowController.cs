@@ -80,6 +80,46 @@ public class WeeklyWorkflowController : Controller
         return View(model);
     }
 
+    // Weekly report in the layout of the paper form. The boundary (woreda / zone / region) comes only from the
+    // signed-in user's assigned location; the only request input is the week, which must be one inside that boundary.
+    public async Task<IActionResult> FormReport([FromServices] IWeeklyFormReportService formReport, [FromServices] IReportScopeService scopes,
+        DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var user = await _users.GetUserAsync(User);
+        if (user == null) return Challenge();
+
+        var model = new WeeklyFormReportViewModel { PreparedBy = $"{user.FirstName} {user.LastName}".Trim() };
+        var (scope, error) = await scopes.ResolveAsync(user);
+        if (scope == null)
+        {
+            model.ErrorMessage = error;
+            return View(model);
+        }
+
+        model.ScopeLevel = scope.Level;
+        model.ScopeName = scope.LocationName;
+        model.ZoneName = scope.ZoneName;
+        model.RegionName = scope.RegionName;
+        model.WoredasInScope = scope.WoredaIds.Count;
+
+        var scoped = await scopes.GetSubmissionsAsync(scope);
+        model.AvailableWeeks = scoped.Select(x => new WeeklyFormReportWeek(x.StartDate.Date, x.EndDate.Date)).Distinct()
+            .OrderByDescending(x => x.EndDate).ThenByDescending(x => x.StartDate).ToList();
+
+        var week = startDate.HasValue && endDate.HasValue
+            ? model.AvailableWeeks.FirstOrDefault(x => x.StartDate == startDate.Value.Date && x.EndDate == endDate.Value.Date)
+            : model.AvailableWeeks.FirstOrDefault();
+        if (week == null) return View(model);
+
+        var reports = scoped.Where(x => x.StartDate.Date == week.StartDate && x.EndDate.Date == week.EndDate).ToList();
+        model.StartDate = week.StartDate;
+        model.EndDate = week.EndDate;
+        model.WoredaCount = reports.Select(x => x.WoredaId).Distinct().Count();
+        model.Zones = reports.Select(x => x.Woreda.Parent?.LocationAmharicName ?? x.Woreda.Parent?.LocationName ?? "-").Distinct().OrderBy(x => x).ToList();
+        model.Sections = await formReport.BuildAsync(reports, scope.Level);
+        return View(model);
+    }
+
     public async Task<IActionResult> Details(Guid id)
     {
         var user = await _users.GetUserAsync(User); if (user == null) return Challenge();

@@ -474,6 +474,10 @@ namespace EarlyWarning.Controllers
                 {
                     enough = water.Enough,
                     kebelesCount = water.NoOfKebeliesWithWaterSupply,
+                    pastureKebelesCount = water.NoOfKebeliesWithPastureShortage,
+                    bodyCondition = water.AnimalBodyCondition?.ToString(),
+                    bodyConditionReason = water.LowBodyConditionReason,
+                    bodyConditionAnimalsAffected = water.LowBodyConditionAnimalsAffected,
                     mHH = water.MaleHouseHold,
                     fHH = water.FemaleHouseHold,
                     mFam = water.MaleFamily,
@@ -493,6 +497,7 @@ namespace EarlyWarning.Controllers
                 {
                     enough = health.Enough,
                     infectedMale = health.NoOfKebeliesWithWaterSupply,
+                    diseaseType = health.DiseaseType,
                     diseaseIds = health.ImpactDetails.Select(x => x.AnimalDiseaseId),
                     mHH = health.MaleHouseHold,
                     fHH = health.FemaleHouseHold,
@@ -635,6 +640,12 @@ namespace EarlyWarning.Controllers
                 ModelState.AddModelError(nameof(model.Kebelies), "ለዚህ ወረዳ ያልተመደበ ቀበሌ ተመርጧል።");
             if (model.HumanDrinkWaterIssue.NumberOfAffectedKebeles > woredaKebeleCount)
                 ModelState.AddModelError("HumanDrinkWaterIssue.NumberOfAffectedKebeles", $"የቀበሌዎች ቁጥር ከወረዳው ጠቅላላ {woredaKebeleCount} ቀበሌዎች ሊበልጥ አይችልም።");
+            if (model.AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply > woredaKebeleCount)
+                ModelState.AddModelError("AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply", $"የቀበሌዎች ቁጥር ከወረዳው ጠቅላላ {woredaKebeleCount} ቀበሌዎች ሊበልጥ አይችልም።");
+            if (model.AnimalWaterSupplyStatus.NoOfKebeliesWithPastureShortage > woredaKebeleCount)
+                ModelState.AddModelError("AnimalWaterSupplyStatus.NoOfKebeliesWithPastureShortage", $"የቀበሌዎች ቁጥር ከወረዳው ጠቅላላ {woredaKebeleCount} ቀበሌዎች ሊበልጥ አይችልም።");
+            if (model.AnimalWaterSupplyStatus.AnimalBodyCondition == AnimalBodyCondition.ዝቅተኛ && string.IsNullOrWhiteSpace(model.AnimalWaterSupplyStatus.LowBodyConditionReason))
+                ModelState.AddModelError("AnimalWaterSupplyStatus.LowBodyConditionReason", "የእንስሳት አቋም ዝቅተኛ ከሆነ ምክንያቱን ይግለጹ።");
             if (model.EpidemicDisease.NumberOfAffectedKebeles > woredaKebeleCount)
                 ModelState.AddModelError("EpidemicDisease.NumberOfAffectedKebeles", $"የቀበሌዎች ቁጥር ከወረዳው ጠቅላላ {woredaKebeleCount} ቀበሌዎች ሊበልጥ አይችልም።");
             if (model.EpidemicDisease.HasEpidemicDisease && model.SelectedEpidemicDiseaseTypeIds.Count == 0)
@@ -809,6 +820,10 @@ namespace EarlyWarning.Controllers
             // ----------------------------------------------------
             // 5. DOMAIN LAYER: ANIMAL WATER SUPPLY STATUS (UPSERT)
             // ----------------------------------------------------
+            // Affected-animal count only applies when body condition is low.
+            if (model.AnimalWaterSupplyStatus.AnimalBodyCondition != AnimalBodyCondition.ዝቅተኛ)
+                model.AnimalWaterSupplyStatus.LowBodyConditionAnimalsAffected = 0;
+
             var existingWater = await _context.AnimalWaterSupplyStatuses
                 .FirstOrDefaultAsync(w => w.WoredaId == woredaId && w.StartDate == sDate && w.EndDate == eDate);
 
@@ -816,6 +831,10 @@ namespace EarlyWarning.Controllers
             {
                 existingWater.Enough = model.AnimalWaterSupplyStatus.Enough;
                 existingWater.NoOfKebeliesWithWaterSupply = model.AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply;
+                existingWater.NoOfKebeliesWithPastureShortage = model.AnimalWaterSupplyStatus.NoOfKebeliesWithPastureShortage;
+                existingWater.AnimalBodyCondition = model.AnimalWaterSupplyStatus.AnimalBodyCondition;
+                existingWater.LowBodyConditionReason = model.AnimalWaterSupplyStatus.LowBodyConditionReason;
+                existingWater.LowBodyConditionAnimalsAffected = model.AnimalWaterSupplyStatus.LowBodyConditionAnimalsAffected;
 
                 MapDemographicProperties(existingWater, model.AnimalWaterSupplyStatus);
             }
@@ -837,6 +856,7 @@ namespace EarlyWarning.Controllers
             {
                 existingHealth.Enough = model.AnimalHealthStatus.Enough;
                 existingHealth.NoOfKebeliesWithWaterSupply = model.AnimalHealthStatus.NoOfKebeliesWithWaterSupply;
+                existingHealth.DiseaseType = model.AnimalHealthStatus.DiseaseType;
 
                 MapDemographicProperties(existingHealth, model.AnimalHealthStatus);
 
@@ -1170,7 +1190,7 @@ namespace EarlyWarning.Controllers
                     x.WoredaId = woredaId; x.StartDate = startDate; x.EndDate = endDate;
                     if (!x.HasTeachingLearningProblem)
                     {
-                        x.Cause = null; x.MaleStudentDropouts = 0; x.FemaleStudentDropouts = 0; x.AverageDropoutAge = null; x.ClosedSchools = 0;
+                        x.Cause = null; x.MaleStudentDropouts = 0; x.FemaleStudentDropouts = 0; x.AverageDropoutAge = null; x.DropoutRatePercent = null; x.ClosedSchools = 0;
                         x.MajorSolutionOne = null; x.MajorSolutionTwo = null; x.MajorSolutionThree = null; x.WasActionSatisfactory = null;
                         x.StudentRelatedSolution = false; x.TeacherExpenseSolution = false; x.ClassroomMaterialsSolution = false;
                         x.SchoolBuildingServiceSolution = false; x.OtherSolution = false; x.OtherSolutionDescription = null;

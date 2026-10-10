@@ -1,0 +1,218 @@
+@model EarlyWarning.ViewModels.WeeklyFormReportViewModel
+@using EarlyWarning.ViewModels
+@using EarlyWarning.Services
+@{
+    ViewData["Title"] = "የቅድመ ማስጠንቀቂያና ምላሽ ሳምንታዊ ሪፖርት";
+    string Or(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+    // Header follows the signed-in user's administrative level.
+    var (officeLine, reportKind) = Model.ScopeLevel switch
+    {
+        ReportScopeLevel.Region => ($"የ{Or(Model.RegionName)} ክልል አደጋ ስጋት ስራ አመራር ኮሚሽን", "ክልላዊ ማጠቃለያ"),
+        ReportScopeLevel.Zone => ($"በ {Or(Model.ZoneName)} ዞን አደጋ ስጋት ስራ አመራር ኮሚሽን ተጠሪ ጽ/ቤት", "የዞን ማጠቃለያ"),
+        _ => ($"በ {Or(Model.ZoneName)} ዞን {Or(Model.ScopeName)} ወረዳ አደጋ ስጋት ስራ አመራር ጽ/ቤት", "የወረዳ ሪፖርት")
+    };
+    var coverageLine = Model.ScopeLevel switch
+    {
+        ReportScopeLevel.Region => $"ሪፖርት ያስገቡ ዞኖች፡ {Model.Zones.Count} ({string.Join("፣ ", Model.Zones)})፤ ሪፖርት ያስገቡ ወረዳዎች፡ {Model.WoredaCount} ከ {Model.WoredasInScope}",
+        ReportScopeLevel.Zone => $"ክልል፡ {Or(Model.RegionName)}፤ ሪፖርት ያስገቡ ወረዳዎች፡ {Model.WoredaCount} ከ {Model.WoredasInScope}",
+        _ => $"ክልል፡ {Or(Model.RegionName)}፤ ዞን፡ {Or(Model.ZoneName)}፤ ወረዳ፡ {Or(Model.ScopeName)}"
+    };
+    string Indent(int level) => level <= 0 ? "" : $"padding-left:{level * 2.25}rem";
+}
+
+@section Styles {
+<style>
+    .form-report { font-family: 'Nyala', 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Ebrima', serif; color: #000; background: #fff; max-width: 960px; margin: 0 auto 2rem; padding: 2.5rem 3rem; border: 1px solid #dee2e6; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); line-height: 1.7; }
+    .form-report .fr-header { text-align: center !important; margin-bottom: 1.25rem; }
+    .form-report .fr-header div { font-weight: 700; font-size: 1.15rem; text-align: center !important; overflow-wrap: anywhere; }
+    .form-report .fr-header u { text-underline-offset: 4px; }
+    .form-report .fr-subtitle { font-weight: 700; margin: .5rem 0 .75rem; }
+    .form-report .fr-section { margin-bottom: 1.1rem; }
+    .form-report .fr-section-title { font-weight: 700; font-size: 1.08rem; margin: .9rem 0 .3rem; }
+    .form-report .fr-num { display: inline-block; min-width: 2.75rem; font-weight: 700; }
+    .form-report .fr-heading { font-weight: 700; margin-top: .45rem; }
+    /* Keep label…value lines compact instead of stretching across the full page width. */
+    .form-report .fr-line { display: flex; align-items: baseline; gap: .35rem; max-width: 34rem; }
+    .form-report .fr-dots { flex: 1 1 auto; border-bottom: 1px dotted #444; min-width: 1.5rem; transform: translateY(-.3em); }
+    .form-report .fr-people-table { width: auto; min-width: 22rem; max-width: 34rem; }
+    .form-report .fr-people-table td:not(:first-child), .form-report .fr-people-table th:not(:first-child) { min-width: 4.5rem; }
+    .form-report .fr-table th, .form-report .fr-table td { text-align: left; }
+    .form-report .fr-people-table tfoot td { background: #f8f8f8; }
+    .form-report .fr-value { font-weight: 700; white-space: nowrap; }
+    .form-report .fr-people-label { font-weight: 700; }
+    .form-report .fr-people .fr-people-label { margin-bottom: .2rem; }
+    .form-report .fr-zone-text { padding-left: 1.5rem; }
+    .form-report .fr-zone-text .fr-zone { font-weight: 700; }
+    .form-report .fr-table { font-size: .9rem; margin: .35rem 0 .6rem; }
+    .form-report .fr-table th { background: #f2f2f2; }
+    .form-report .fr-signatures { margin-top: 2rem; }
+    .form-report .fr-signatures .fr-sign-title { font-weight: 700; }
+    @@media (max-width: 576px) { .form-report { padding: 1.25rem 1rem; } }
+    @@media print {
+        .main-header, .main-sidebar, .main-footer, .no-print { display: none !important; }
+        .content-wrapper { margin-left: 0 !important; background: #fff !important; }
+        .form-report { border: 0; box-shadow: none; padding: 0; max-width: none; font-size: 11pt; }
+        .form-report .fr-section { break-inside: auto; }
+        .form-report .fr-table { break-inside: avoid; }
+        @@page { size: A4; margin: 15mm; }
+    }
+</style>
+}
+
+<div class="container-fluid mt-4">
+    <div class="no-print d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <form method="get" asp-action="FormReport" class="d-flex flex-wrap align-items-end gap-2 @(Model.AvailableWeeks.Count == 0 ? "invisible" : "")">
+            <div>
+                <label for="weekSelect" class="form-label mb-1 fw-bold">የሪፖርት ሳምንት</label>
+                <select id="weekSelect" class="form-select" onchange="const [s, e] = this.value.split('|'); this.form.startDate.value = s; this.form.endDate.value = e; this.form.submit();">
+                    @foreach (var week in Model.AvailableWeeks)
+                    {
+                        var value = $"{week.StartDate:yyyy-MM-dd}|{week.EndDate:yyyy-MM-dd}";
+                        <option value="@value" selected="@(week.StartDate == Model.StartDate && week.EndDate == Model.EndDate)">@week.StartDate.ToString("dd/MM/yyyy") — @week.EndDate.ToString("dd/MM/yyyy")</option>
+                    }
+                </select>
+            </div>
+            <input type="hidden" name="startDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="endDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+        </form>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-dark" onclick="window.print()"><i class="fas fa-print me-1"></i> አትም</button>
+            <a asp-action="Index" class="btn btn-outline-primary">ወደ ተጠቃለለ ሪፖርት ተመለስ</a>
+        </div>
+    </div>
+
+    @if (Model.ErrorMessage != null)
+    {
+        <div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>@Model.ErrorMessage</div>
+    }
+    else if (Model.StartDate == null)
+    {
+        <div class="alert alert-info">
+            @(Model.WoredasInScope == 0
+                ? $"በ{Or(Model.ScopeName)} ስር የተመዘገበ ወረዳ የለም።"
+                : $"በ{Or(Model.ScopeName)} ስር ለተመረጠው ሳምንት የተላከ ሳምንታዊ ሪፖርት አልተገኘም።")
+        </div>
+    }
+    else
+    {
+        <div class="form-report">
+            <div class="fr-header">
+                <div>@officeLine</div>
+                <div>የቅድመ ማስጠንቀቂያና ምላሽ ሳምንታዊ ሪፖርት (@reportKind)</div>
+                <div>ሪፖርቱ የሚሸፍነው ጊዜ <u>@Model.StartDate.Value.ToString("dd/MM/yyyy")</u> እስከ <u>@Model.EndDate!.Value.ToString("dd/MM/yyyy")</u></div>
+                <div class="fw-normal fs-6 text-muted">@coverageLine</div>
+            </div>
+
+            <div class="fr-subtitle">የዝርዝር ስራዎች</div>
+
+            @foreach (var formSection in Model.Sections)
+            {
+                <div class="fr-section">
+                    <div class="fr-section-title"><span class="fr-num">@formSection.Number</span>@formSection.Title</div>
+                    @foreach (var item in formSection.Items)
+                    {
+                        switch (item.Kind)
+                        {
+                            case FormReportItemKind.Heading:
+                                <div class="fr-heading" style="@Indent(item.Indent)"><span class="fr-num">@item.Number</span>@item.Label</div>
+                                break;
+
+                            case FormReportItemKind.Line:
+                                <div class="fr-line" style="@Indent(item.Indent)">
+                                    <span class="fr-num">@item.Number</span><span>@item.Label</span><span class="fr-dots"></span><span class="fr-value">@item.Value</span>
+                                </div>
+                                break;
+
+                            case FormReportItemKind.People:
+                                var p = item.People!;
+                                var peopleRows = new List<(string Label, int Male, int Female)>
+                                {
+                                    ("አባወራ / እማወራ", p.MaleHouseholds, p.FemaleHouseholds)
+                                };
+                                if (p.HasFamilyRow) peopleRows.Add(("ቤተሰብ", p.MaleFamily, p.FemaleFamily));
+                                peopleRows.Add(("ህፃናት ከ5 ዓመት በታች", p.MaleChildren, p.FemaleChildren));
+                                peopleRows.Add(("ወጣት", p.MaleYouth, p.FemaleYouth));
+                                peopleRows.Add(("አረጋውያን", p.MaleElderly, p.FemaleElderly));
+                                peopleRows.Add(("አካል ጉዳተኛ", p.MaleDisabled, p.FemaleDisabled));
+                                <div class="fr-people" style="@Indent(item.Indent)">
+                                    <div class="fr-people-label">@item.Label</div>
+                                    <table class="table table-sm table-bordered align-middle fr-table fr-people-table">
+                                        <thead><tr><th>ምድብ</th><th>ወንድ</th><th>ሴት</th><th>ድምር</th></tr></thead>
+                                        <tbody>
+                                            @foreach (var row in peopleRows)
+                                            {
+                                                <tr><td>@row.Label</td><td>@row.Male.ToString("#,0")</td><td>@row.Female.ToString("#,0")</td><td class="fw-bold">@((row.Male + row.Female).ToString("#,0"))</td></tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="fw-bold"><td>ጠቅላላ ድምር</td><td>@peopleRows.Sum(x => x.Male).ToString("#,0")</td><td>@peopleRows.Sum(x => x.Female).ToString("#,0")</td><td>@peopleRows.Sum(x => x.Male + x.Female).ToString("#,0")</td></tr>
+                                            @if (p.LactatingAndPregnant.HasValue)
+                                            {
+                                                <tr><td colspan="3">አጥቢ እና ነፍሰጡር እናቶች በቁጥር</td><td class="fw-bold">@p.LactatingAndPregnant.Value.ToString("#,0")</td></tr>
+                                            }
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                break;
+
+                            case FormReportItemKind.ZoneText:
+                                <div style="@Indent(item.Indent)">
+                                    @if (item.ZoneTexts.Count == 0)
+                                    {
+                                        <div class="fr-line"><span>@item.Label</span><span class="fr-dots"></span><span class="fr-value">-</span></div>
+                                    }
+                                    else
+                                    {
+                                        <div class="fw-bold">@item.Label፡</div>
+                                        @foreach (var entry in item.ZoneTexts)
+                                        {
+                                            <div class="fr-zone-text">@if (entry.Group != "") { <span class="fr-zone">@entry.Group፡</span> }@entry.Text</div>
+                                        }
+                                    }
+                                </div>
+                                break;
+
+                            case FormReportItemKind.Table:
+                                <div style="@Indent(item.Indent)">
+                                    @if (item.TableRows.Count == 0)
+                                    {
+                                        <div class="text-muted small">— የተመዘገበ መረጃ የለም —</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered align-middle fr-table">
+                                                <thead><tr>@foreach (var header in item.TableHeaders) { <th>@header</th> }</tr></thead>
+                                                <tbody>
+                                                    @foreach (var row in item.TableRows)
+                                                    {
+                                                        <tr>@foreach (var cell in row) { <td>@cell</td> }</tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                </div>
+                                break;
+                        }
+                    }
+                </div>
+            }
+
+            <div class="row fr-signatures g-4">
+                <div class="col-md-6">
+                    <div class="fr-sign-title">መረጃውን የሞላው</div>
+                    <div class="fr-line"><span>ስም</span><span class="fr-dots"></span><span class="fr-value">@Model.PreparedBy</span></div>
+                    <div class="fr-line"><span>ኃላፊነት</span><span class="fr-dots"></span></div>
+                    <div class="fr-line"><span>ቀን</span><span class="fr-dots"></span><span class="fr-value">@DateTime.Now.ToString("dd/MM/yyyy")</span></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="fr-sign-title">መረጃውን ያረጋገጠው</div>
+                    <div class="fr-line"><span>ስም</span><span class="fr-dots"></span></div>
+                    <div class="fr-line"><span>ኃላፊነት</span><span class="fr-dots"></span></div>
+                    <div class="fr-line"><span>ቀን</span><span class="fr-dots"></span></div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -413,10 +413,10 @@
 
                 <div class="wizard-step d-none" id="step5">
                     <div class="p-4 bg-white rounded shadow-sm border-top border-success border-4">
-                        <h4 class="text-success mb-3"><i class="fas fa-leaf me-2"></i>ደረጃ 5፡ 
-                            መኖ ሁኔታ (Pasture Status)</h4>
+                        <h4 class="text-success mb-3"><i class="fas fa-leaf me-2"></i>ደረጃ 4፡ የእንስሳት ግጦሽና ውሀ አቅርቦት ሁኔታ</h4>
                         <hr />
-                        
+                        <h5 class="text-success mb-3">4.1፡ የእንስሳት ግጦሽ ሁኔታ</h5>
+
                         <div class="card p-3 bg-light mb-3">
                             <label class="form-label fw-bold mb-2">የእንስሳት መኖ አቅርቦት ሁኔታ ምንድነው?</label>
                             <div class="d-flex gap-4">
@@ -433,10 +433,17 @@
                         </div>
 
                         <div id="pastureFields" class="d-none">
-                            <div class="mb-3 col-md-4">
-                                <label asp-for="PastureStatus.NumberOfAnimalsAffected" class="form-label fw-bold"></label>
-                                <input asp-for="PastureStatus.NumberOfAnimalsAffected" id="pastureAnimalsAffected" class="form-for-int form-control" type="number" min="0" />
-                                <span asp-validation-for="PastureStatus.NumberOfAnimalsAffected" class="text-danger"></span>
+                            <div class="row">
+                                <div class="mb-3 col-md-6">
+                                    <label asp-for="PastureStatus.NumberOfAnimalsAffected" class="form-label fw-bold"></label>
+                                    <input asp-for="PastureStatus.NumberOfAnimalsAffected" id="pastureAnimalsAffected" class="form-for-int form-control" type="number" min="0" />
+                                    <span asp-validation-for="PastureStatus.NumberOfAnimalsAffected" class="text-danger"></span>
+                                </div>
+                                <div class="mb-3 col-md-6">
+                                    <label asp-for="AnimalWaterSupplyStatus.NoOfKebeliesWithPastureShortage" class="form-label fw-bold"></label>
+                                    <input asp-for="AnimalWaterSupplyStatus.NoOfKebeliesWithPastureShortage" id="pastureKebelesCount" class="form-for-int form-control" type="number" min="0" value="0" />
+                                    <span asp-validation-for="AnimalWaterSupplyStatus.NoOfKebeliesWithPastureShortage" class="text-danger"></span>
+                                </div>
                             </div>
 
                             <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በመኖ እጥረት ምክንያት የተጎዱ አርብቶ አደሮች ስብጥር</h5>
@@ -474,9 +481,10 @@
 
                 <div class="wizard-step d-none" id="step6">
                     <div class="p-4 bg-white rounded shadow-sm border-top border-primary border-4">
-                        <h4 class="text-primary mb-3"><i class="fas fa-tint me-2"></i>ደረጃ 6፡ የእንስሳት ውሃ አቅርቦት ሁኔታ</h4>
+                        <h4 class="text-primary mb-3"><i class="fas fa-tint me-2"></i>ደረጃ 4፡ የእንስሳት ግጦሽና ውሀ አቅርቦት ሁኔታ</h4>
                         <hr />
-                        
+                        <h5 class="text-primary mb-3">4.2፡ የእንስሳት ውሃ አቅርቦት ሁኔታ</h5>
+
                         <div class="card p-3 bg-light mb-3">
                             <label class="form-label fw-bold mb-2">የእንስሳት ውሃ አቅርቦት ሁኔታ ምንድነው?</label>
                             <div class="d-flex gap-4">
@@ -496,6 +504,7 @@
                             <div class="mb-3 col-md-6">
                                 <label asp-for="AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply" class="form-label"></label>
                                 <input asp-for="AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply" id="waterKebelesCount" class="form-for-int form-control" type="number" min="0" value="0" />
+                                <span asp-validation-for="AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply" class="text-danger"></span>
                             </div>
 
                             <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በውሃ እጥረት ምክንያት የተጎዱ አርብቶ አደሮች ስብጥር</h5>
@@ -528,24 +537,52 @@
                                 </table>
                             </div>
                         </div>
+
+                        <h5 class="text-primary mt-4 mb-3">4.3፡ የእንስሳት አቋም</h5>
+                        <div class="card p-3 bg-light mb-3">
+                            <label class="form-label fw-bold mb-2">የእንስሳት አቋም ምን ይመስላል?</label>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="AnimalWaterSupplyStatus.AnimalBodyCondition" id="bodyConditionMedium" value="@AnimalBodyCondition.መካከለኛ" onchange="toggleBodyConditionFields()">
+                                    <label class="form-check-label fw-bold text-warning" for="bodyConditionMedium">መካከለኛ</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="AnimalWaterSupplyStatus.AnimalBodyCondition" id="bodyConditionLow" value="@AnimalBodyCondition.ዝቅተኛ" onchange="toggleBodyConditionFields()">
+                                    <label class="form-check-label fw-bold text-danger" for="bodyConditionLow">ዝቅተኛ</label>
+                                </div>
+                            </div>
+                            <span asp-validation-for="AnimalWaterSupplyStatus.AnimalBodyCondition" class="text-danger"></span>
+                        </div>
+                        <div id="bodyConditionReasonField" class="row g-3 mb-3 d-none">
+                            <div class="col-md-4">
+                                <label asp-for="AnimalWaterSupplyStatus.LowBodyConditionAnimalsAffected" class="form-label fw-bold"></label>
+                                <input asp-for="AnimalWaterSupplyStatus.LowBodyConditionAnimalsAffected" id="bodyConditionAnimalsAffected" class="form-for-int form-control" type="number" min="0" value="0" />
+                                <span asp-validation-for="AnimalWaterSupplyStatus.LowBodyConditionAnimalsAffected" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-8">
+                                <label asp-for="AnimalWaterSupplyStatus.LowBodyConditionReason" class="form-label fw-bold"></label>
+                                <textarea asp-for="AnimalWaterSupplyStatus.LowBodyConditionReason" id="bodyConditionReason" class="form-control" rows="3" maxlength="500" placeholder="የእንስሳት አቋም ዝቅተኛ የሆነበትን ምክንያት ይግለጹ"></textarea>
+                                <span asp-validation-for="AnimalWaterSupplyStatus.LowBodyConditionReason" class="text-danger"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="wizard-step d-none" id="step7">
                     <div class="p-4 bg-white rounded shadow-sm border-top border-danger border-4">
-                        <h4 class="text-danger mb-3"><i class="fas fa-ambulance me-2"></i>ደረጃ 7፡ የእንስሳት ጤና እና በሽታዎች ሁኔታ መመዝገቢያ</h4>
+                        <h4 class="text-danger mb-3"><i class="fas fa-ambulance me-2"></i>ደረጃ 4.3፡ የእንስሳት ጤና </h4>
                         <hr />
                         
                         <div class="card p-3 bg-light mb-3">
-                            <label class="form-label fw-bold mb-2">የእንስሳት ጤና ሁኔታ እንዴት ነው?</label>
+                            <label class="form-label fw-bold mb-2">በወረርሽኝ መልክ የተከሰተ የእንስሳት በሽታ</label>
                             <div class="d-flex flex-row flex-wrap align-items-center gap-4">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="healthEnoughRadio" id="healthEnoughYes" value="true" onchange="toggleAnimalHealthFields()" checked>
-                                    <label class="form-check-label fw-bold text-success" for="healthEnoughYes">አጥጋቢ / ጤናማ ነው</label>
+                                    <label class="form-check-label fw-bold text-success" for="healthEnoughYes">የለም</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="healthEnoughRadio" id="healthEnoughNo" value="false" onchange="toggleAnimalHealthFields()">
-                                    <label class="form-check-label fw-bold text-danger" for="healthEnoughNo">ያልተረጋጋ / የበሽታ ወረርሽኝ አለ</label>
+                                    <label class="form-check-label fw-bold text-danger" for="healthEnoughNo">አለ</label>
                                 </div>
                             </div>
                             <input type="hidden" asp-for="AnimalHealthStatus.Enough" id="animalHealthEnoughSwitch" value="true" />
@@ -556,6 +593,11 @@
                                 <div class="col-md-6">
                                     <label asp-for="AnimalHealthStatus.NoOfKebeliesWithWaterSupply" class="form-label fw-bold"></label>
                                     <input asp-for="AnimalHealthStatus.NoOfKebeliesWithWaterSupply" id="healthAnimalsMale" class="form-for-int form-control" type="number" min="0" value="0" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="AnimalHealthStatus.DiseaseType" class="form-label fw-bold"></label>
+                                    <input asp-for="AnimalHealthStatus.DiseaseType" id="healthDiseaseType" class="form-control" maxlength="500" />
+                                    <span asp-validation-for="AnimalHealthStatus.DiseaseType" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="p-3 bg-light rounded border mb-3 shadow-sm">
@@ -675,6 +717,15 @@
         schoolProblemSwitch?.querySelectorAll('input[type="radio"]').forEach(radio =>
             radio.addEventListener('change', updateSchoolProblemVisibility));
         updateSchoolProblemVisibility();
+        const updateSchoolDropoutTotal = () => {
+            const total = (Number(document.getElementById('SchoolReport_MaleStudentDropouts')?.value) || 0)
+                + (Number(document.getElementById('SchoolReport_FemaleStudentDropouts')?.value) || 0);
+            const totalInput = document.getElementById('schoolDropoutTotal');
+            if (totalInput) totalInput.value = total;
+        };
+        ['SchoolReport_MaleStudentDropouts', 'SchoolReport_FemaleStudentDropouts'].forEach(id =>
+            document.getElementById(id)?.addEventListener('input', updateSchoolDropoutTotal));
+        updateSchoolDropoutTotal();
         let currentWoredaMaxKebeles = 0;
         let serverDraftEnabled = false;
         let serverDraftTimer = null;
@@ -1074,6 +1125,11 @@
             document.getElementById("waterFields").classList.toggle("d-none", value);
         }
 
+        function toggleBodyConditionFields() {
+            const isLow = document.getElementById("bodyConditionLow").checked;
+            document.getElementById("bodyConditionReasonField").classList.toggle("d-none", !isLow);
+        }
+
         function toggleAnimalHealthFields() {
             const selected = document.querySelector('input[name="healthEnoughRadio"]:checked');
             const value = selected ? selected.value === "true" : document.getElementById("animalHealthEnoughSwitch").value === "true";
@@ -1185,6 +1241,25 @@
                 if (!valid) { errorAlert.classList.remove("d-none"); window.scrollTo({ top: 0, behavior: 'smooth' }); }
             }
 
+            // STEP 5 VALIDATION: PASTURE-SHORTAGE KEBELE BOUNDARY CHECK
+            if (currentStep === 4) {
+                const pastureKebelesInput = document.getElementById("pastureKebelesCount");
+                const pastureFieldsActive = document.querySelector('input[name="pastureEnoughRadio"]:checked').value === "false";
+
+                if (pastureFieldsActive) {
+                    let pastureKebelesCount = parseInt(pastureKebelesInput.value) || 0;
+
+                    if (pastureKebelesCount > currentWoredaMaxKebeles) {
+                        pastureKebelesInput.classList.add("is-invalid");
+                        alert(`⚠️ የግጦሽ ችግር ያለባቸው ቀበሌዎች ብዛት (${pastureKebelesCount}) ከወረዳው ጠቅላላ ቀበሌዎች ብዛት (${currentWoredaMaxKebeles}) ሊበልጥ አይችልም!`);
+                        valid = false;
+                        window.scrollTo({ top: pastureKebelesInput.offsetTop - 100, behavior: 'smooth' });
+                    } else {
+                        pastureKebelesInput.classList.remove("is-invalid");
+                    }
+                }
+            }
+
             // STEP 6 VALIDATION: ANIMAL WATER SUPPLY FIELD BOUNDARY CHECK
             if (currentStep === 5) {
                 const waterKebelesInput = document.getElementById("waterKebelesCount");
@@ -1201,6 +1276,24 @@
                     } else {
                         waterKebelesInput.classList.remove("is-invalid");
                     }
+                }
+            }
+
+            // STEP 6 VALIDATION: ANIMAL BODY CONDITION (REASON REQUIRED WHEN LOW)
+            if (currentStep === 5 && valid) {
+                const isMedium = document.getElementById("bodyConditionMedium").checked;
+                const isLow = document.getElementById("bodyConditionLow").checked;
+                const reasonInput = document.getElementById("bodyConditionReason");
+
+                if (!isMedium && !isLow) {
+                    alert("⚠️ እባክዎ የእንስሳት አቋም ይምረጡ (መካከለኛ ወይም ዝቅተኛ)።");
+                    valid = false;
+                } else if (isLow && !reasonInput.value.trim()) {
+                    reasonInput.classList.add("is-invalid");
+                    alert("⚠️ የእንስሳት አቋም ዝቅተኛ ከሆነ ምክንያቱን ይግለጹ።");
+                    valid = false;
+                } else {
+                    reasonInput.classList.remove("is-invalid");
                 }
             }
 
@@ -1302,6 +1395,7 @@
             if (data.water) {
                 document.getElementById(`waterEnough${data.water.enough ? 'Yes' : 'No'}`).checked = true;
                 document.getElementById("waterKebelesCount").value = data.water.kebelesCount;
+                document.getElementById("pastureKebelesCount").value = data.water.pastureKebelesCount ?? 0;
                 const rows = document.getElementById("waterTable").querySelectorAll("tbody tr");
                 mapDemographicInputs(rows[0], data.water.mHH, data.water.fHH);
                 mapDemographicInputs(rows[1], data.water.mFam, data.water.fFam);
@@ -1309,12 +1403,18 @@
                 mapDemographicInputs(rows[3], data.water.mYouth, data.water.fYouth);
                 mapDemographicInputs(rows[4], data.water.mEld, data.water.fEld);
                 mapDemographicInputs(rows[5], data.water.mDis, data.water.fDis);
+                document.getElementById("bodyConditionMedium").checked = data.water.bodyCondition === "መካከለኛ";
+                document.getElementById("bodyConditionLow").checked = data.water.bodyCondition === "ዝቅተኛ";
+                document.getElementById("bodyConditionReason").value = data.water.bodyConditionReason ?? "";
+                document.getElementById("bodyConditionAnimalsAffected").value = data.water.bodyConditionAnimalsAffected ?? 0;
                 toggleWaterFields();
+                toggleBodyConditionFields();
             }
 
             if (data.health) {
                 document.getElementById(`healthEnough${data.health.enough ? 'Yes' : 'No'}`).checked = true;
                 document.getElementById("healthAnimalsMale").value = data.health.infectedMale;
+                document.getElementById("healthDiseaseType").value = data.health.diseaseType ?? "";
                 const healthFemale = document.getElementById("healthAnimalsFemale");
                 if (healthFemale) healthFemale.value = data.health.infectedFemale || 0;
                 const diseaseIds = data.health.diseaseIds || [];
@@ -1409,6 +1509,7 @@
             toggleCropPestFields();
             togglePastureFields();
             toggleWaterFields();
+            toggleBodyConditionFields();
             toggleAnimalHealthFields();
             document.querySelectorAll('.calc-table').forEach(t => calculateGridTotals(t));
         }
@@ -1493,7 +1594,7 @@
                 (parseInt(row.querySelector('.val-female')?.value) || 0) > 0);
 
             let hasPestData = isPestActive || parseFloat(document.getElementById("pestHectars").value) > 0 || selectedPests !== "ምንም አልተመረጠም" || gridHasData('pestTable');
-            let hasPastureShortage = isPastureShort || parseInt(document.getElementById("pastureAnimalsAffected").value) > 0 || gridHasData('pastureTable');
+            let hasPastureShortage = isPastureShort || parseInt(document.getElementById("pastureAnimalsAffected").value) > 0 || parseInt(document.getElementById("pastureKebelesCount").value) > 0 || gridHasData('pastureTable');
             let hasWaterShortage = isWaterShort || parseInt(document.getElementById("waterKebelesCount").value) > 0 || gridHasData('waterTable');
             let hasHealthIssues = isHealthIssues || parseInt(document.getElementById("healthAnimalsMale")?.value || 0) > 0 || selectedDiseases !== "ምንም አልተመረጠም" || gridHasData('healthTable');
 
@@ -1565,38 +1666,43 @@
                 </div>
 
                 <div class="card mb-3 border-success shadow-sm">
-                    <div class="card-header bg-success bg-opacity-10 text-success fw-bold"><i class="fas fa-leaf me-2"></i>ደረጃ 5፡ የእንስሳት መኖ ሁኔታ (Pasture)</div>
+                    <div class="card-header bg-success bg-opacity-10 text-success fw-bold"><i class="fas fa-leaf me-2"></i>4.1፡ የእንስሳት ግጦሽ ሁኔታ</div>
                     <div class="card-body bg-white">
                         <p><strong>የመኖ አቅርቦት በቂ ነው?</strong> ${!isPastureShort ? '<span class="badge bg-success">በቂ ነው</span>' : '<span class="badge bg-danger">እጥረት አለ</span>'}</p>
                         ${hasPastureShortage ? `
                             <p><strong>በመኖ እጥረት የተጎዱ እንስሳት ብዛት፡</strong> <span class="text-danger fw-bold">${document.getElementById("pastureAnimalsAffected").value}</span></p>
+                            <p><strong>የግጦሽ ችግር ያለባቸው ቀበሌዎች ብዛት፡</strong> <span class="fw-bold text-danger">${document.getElementById("pastureKebelesCount").value}</span></p>
                             ${compileReviewGridHtml('pastureTable', 'success')}
                         ` : ''}
                     </div>
                 </div>
 
                 <div class="card mb-3 border-primary shadow-sm">
-                    <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold"><i class="fas fa-tint me-2"></i>ደረጃ 6፡ የእንስሳት ውሃ አቅርቦት ሁኔታ</div>
+                    <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold"><i class="fas fa-tint me-2"></i>4.2፡ የእንስሳት ውሃ አቅርቦት ሁኔታ</div>
                     <div class="card-body bg-white">
                         <p><strong>የውሃ አቅርቦት በቂ ነው?</strong> ${!isWaterShort ? '<span class="badge bg-success">በቂ ነው</span>' : '<span class="badge bg-danger">እጥረት አለ</span>'}</p>
                         ${hasWaterShortage ? `
                             <p><strong>የውሃ እጥረት የታየባቸው ቀበሌዎች ብዛት፡</strong> <span class="fw-bold text-danger">${document.getElementById("waterKebelesCount").value}</span></p>
                             ${compileReviewGridHtml('waterTable', 'primary')}
                         ` : ''}
+                        <p class="mt-3"><strong>4.3፡ የእንስሳት አቋም፡</strong> ${document.getElementById("bodyConditionLow").checked ? '<span class="badge bg-danger">ዝቅተኛ</span>' : document.getElementById("bodyConditionMedium").checked ? '<span class="badge bg-warning text-dark">መካከለኛ</span>' : '<span class="text-muted">አልተመረጠም</span>'}</p>
+                        ${document.getElementById("bodyConditionLow").checked ? `<p><strong>የተጎዱ እንስሳት ብዛት፡</strong> <span class="fw-bold text-danger">${document.getElementById("bodyConditionAnimalsAffected").value || 0}</span></p>` : ''}
+                        ${document.getElementById("bodyConditionLow").checked ? `<p><strong>ዝቅተኛ የሆነበት ምክንያት፡</strong> ${document.getElementById("bodyConditionReason").value.replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';')}</p>` : ''}
                     </div>
                 </div>
 
                 <div class="card mb-3 border-danger shadow-sm">
-                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold"><i class="fas fa-ambulance me-2"></i>ደረጃ 7፡ የእንስሳት ጤና እና በሽታዎች ሁኔታ ማጠቃለያ</div>
+                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold"><i class="fas fa-ambulance me-2"></i>ደረጃ 5፡ የእንስሳት ጤና እና በሽታዎች ሁኔታ ማጠቃለያ</div>
                     <div class="card-body bg-white">
                         <p><strong>የእንስሳት ጤና ሁኔታ አጥጋቢ ነው?</strong> ${!isHealthIssues ? '<span class="badge bg-success">አዎ አጥጋቢ ነው</span>' : '<span class="badge bg-danger">አጥጋቢ አይደለም (ችግር አለ)</span>'}</p>
                         ${hasHealthIssues ? `
                             <p><strong>የታመሙ/የተጎዱ እንስሳት፡</strong> <span class="fw-bold text-danger">${document.getElementById("healthAnimalsMale")?.value || 0}</span></p>
+                            <p><strong>የበሽታው አይነት፡</strong> ${(document.getElementById("healthDiseaseType")?.value || '-').replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';')}</p>
                             <p><strong>የተከሰቱ በሽታዎች፡</strong> <span class="text-danger fw-bold">${selectedDiseases}</span></p>
                             ${compileSelectedImpactTables('animalImpactCards', '.health-checkbox:checked', 'danger')}
                         ` : ''}
                         <div class="p-2 border rounded bg-light mt-3">
-                            <strong>ተጨማሪ ማስታወሻ (Remarks)፦</strong> 
+                            <strong>ተጨማሪ ማስታወሻ (Remarks)፦</strong>
                             <p class="mb-0 text-muted italic small pt-1">${document.getElementById("remarksInput").value || "ምንም አስተያየት አልተሰጠም"}</p>
                         </div>
                     </div>
@@ -1851,6 +1957,7 @@
             toggleCropPestFields();
             togglePastureFields();
             toggleWaterFields();
+            toggleBodyConditionFields();
             toggleAnimalHealthFields();
             initMatrixCalculations();
             navigateToServerValidationError();

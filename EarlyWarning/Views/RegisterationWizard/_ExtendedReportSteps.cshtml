@@ -5,7 +5,7 @@
 
 <div class="wizard-step d-none" id="step8">
     <div class="p-4 bg-white rounded shadow-sm border-top border-primary border-4">
-        <h4 class="text-primary mb-3"><i class="fas fa-faucet me-2"></i>ደረጃ 8፡ የሰው መጠጥ ውሃ ችግር (የሰነዱ ክፍል 5)</h4>
+        <h4 class="text-primary mb-3"><i class="fas fa-faucet me-2"></i>ደረጃ 5፡ የሰው መጠጥ ውሃ ችግር (የሰነዱ ክፍል 5)</h4>
         <label class="fw-bold">የሰው መጠጥ ውሃ ችግር አለ?</label><div class="d-flex gap-4 mb-2"><label><input type="radio" name="humanWaterChoice" class="bool-radio" data-field="humanWaterValue" data-section="#humanWaterDetails" value="true" /> አዎ</label><label><input type="radio" name="humanWaterChoice" class="bool-radio" data-field="humanWaterValue" data-section="#humanWaterDetails" value="false" /> የለም</label></div><input asp-for="HumanDrinkWaterIssue.HasWaterProblem" type="hidden" id="humanWaterValue" />
         <div id="humanWaterDetails" class="conditional-section d-none mt-3">
             <div class="row g-2"><div class="col-md-4"><label asp-for="HumanDrinkWaterIssue.NumberOfAffectedKebeles"></label><input asp-for="HumanDrinkWaterIssue.NumberOfAffectedKebeles" class="form-control kebele-count" min="0" /></div><div class="col-md-8"><label asp-for="HumanDrinkWaterIssue.AdditionalNotes"></label><textarea asp-for="HumanDrinkWaterIssue.AdditionalNotes" class="form-control"></textarea></div></div>
@@ -17,7 +17,7 @@
 
 <div class="wizard-step d-none" id="step9">
     <div class="p-4 bg-white rounded shadow-sm border-top border-warning border-4">
-        <h4 class="text-warning mb-3"><i class="fas fa-virus me-2"></i>ደረጃ 9፡ የሰው ጤና ወረርሽኝ (የሰነዱ ክፍል 6)</h4>
+        <h4 class="text-warning mb-3"><i class="fas fa-virus me-2"></i>ደረጃ 6፡ የሰው ጤና ወረርሽኝ (የሰነዱ ክፍል 6)</h4>
         <label class="fw-bold">በሳምንቱ ወረርሽኝ መልኩ የተከሰተ በሽታ አለ?</label><div class="d-flex gap-4 mb-2"><label><input type="radio" name="epidemicChoice" class="bool-radio" data-field="epidemicValue" data-section="#epidemicDetails" value="true" /> አዎ</label><label><input type="radio" name="epidemicChoice" class="bool-radio" data-field="epidemicValue" data-section="#epidemicDetails" value="false" /> የለም</label></div><input asp-for="EpidemicDisease.HasEpidemicDisease" type="hidden" id="epidemicValue" />
         <div id="epidemicDetails" class="conditional-section d-none">
             <div class="row g-3 mb-3"><div class="col-md-4"><label asp-for="EpidemicDisease.NumberOfAffectedKebeles"></label><input asp-for="EpidemicDisease.NumberOfAffectedKebeles" class="form-control" min="0" /></div><div class="col-md-4"><label asp-for="EpidemicDisease.LactatingMothers"></label><input asp-for="EpidemicDisease.LactatingMothers" class="form-control" min="0" /></div><div class="col-md-4"><label asp-for="EpidemicDisease.PregnantWomen"></label><input asp-for="EpidemicDisease.PregnantWomen" class="form-control" min="0" /></div></div>
@@ -35,9 +35,44 @@
     </div>
 </div>
 
+<div class="wizard-step d-none" id="step17">
+    <div class="p-4 bg-white rounded shadow-sm border-top border-primary border-4">
+        <h4 class="text-primary mb-3"><i class="fas fa-school me-2"></i>ደረጃ 7፡ የትምህርት ሁኔታ (የሰነዱ ክፍል 7.1)</h4>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold d-block">በትምህርትና መማር ሂደት ላይ ችግር ነበር?</label>
+                <div class="d-flex flex-wrap gap-3" id="schoolProblemSwitch">
+                    <label><input asp-for="SchoolReport.HasTeachingLearningProblem" id="schoolProblemYes" type="radio" value="true" /> አዎ</label>
+                    <label><input asp-for="SchoolReport.HasTeachingLearningProblem" id="schoolProblemNo" type="radio" value="false" /> አይ</label>
+                </div>
+            </div>
+            <div class="col-md-6 school-problem-detail"><label asp-for="SchoolReport.Cause" class="form-label fw-bold">የችግሩ ምክንያት</label><textarea asp-for="SchoolReport.Cause" class="form-control" rows="2"></textarea><span asp-validation-for="SchoolReport.Cause" class="text-danger"></span></div>
+            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.MaleStudentDropouts" class="form-label">ከትምህርት የወጡ ወንድ ተማሪዎች</label><input asp-for="SchoolReport.MaleStudentDropouts" class="form-control" min="0" max="1000000" /></div>
+            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.FemaleStudentDropouts" class="form-label">ከትምህርት የወጡ ሴት ተማሪዎች</label><input asp-for="SchoolReport.FemaleStudentDropouts" class="form-control" min="0" max="1000000" /></div>
+            <div class="col-md-4 school-problem-detail"><label class="form-label">ያቋረጡ ተማሪዎች ድምር</label><input id="schoolDropoutTotal" class="form-control fw-bold bg-light" value="@(Model.SchoolReport.MaleStudentDropouts + Model.SchoolReport.FemaleStudentDropouts)" readonly tabindex="-1" /></div>
+            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.DropoutRatePercent" class="form-label">የማቋረጥ ጥምርታ/ምጣኔ በ%</label><input asp-for="SchoolReport.DropoutRatePercent" class="form-control" type="number" min="0" max="100" step="0.01" /><span asp-validation-for="SchoolReport.DropoutRatePercent" class="text-danger"></span></div>
+            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.AverageDropoutAge" class="form-label">የወጡ ተማሪዎች አማካይ ዕድሜ</label><input asp-for="SchoolReport.AverageDropoutAge" class="form-control" type="number" min="0" max="100" step="0.1" /><span asp-validation-for="SchoolReport.AverageDropoutAge" class="text-danger"></span></div>
+            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.ClosedSchools" class="form-label">የተዘጉ ትምህርት ቤቶች ብዛት</label><input asp-for="SchoolReport.ClosedSchools" class="form-control" min="0" max="100000" /></div>
+            <div class="col-12 school-problem-detail"><h6 class="fw-bold mb-2">ችግሩን ለመቆጣጠር/ለመፍታት የተወሰዱ ሶስት ዋና መፍትሄዎች</h6></div>
+            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.MajorSolutionOne" class="form-label">መፍትሄ 1</label><textarea asp-for="SchoolReport.MajorSolutionOne" class="form-control" rows="2"></textarea></div>
+            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.MajorSolutionTwo" class="form-label">መፍትሄ 2</label><textarea asp-for="SchoolReport.MajorSolutionTwo" class="form-control" rows="2"></textarea></div>
+            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.MajorSolutionThree" class="form-label">መፍትሄ 3</label><textarea asp-for="SchoolReport.MajorSolutionThree" class="form-control" rows="2"></textarea></div>
+            <div class="col-md-6 school-problem-detail">
+                <label class="form-label fw-bold d-block">የተወሰደው እርምጃ አጥጋቢ ነበር?</label>
+                <div class="d-flex flex-wrap gap-3">
+                    <label><input asp-for="SchoolReport.WasActionSatisfactory" id="schoolActionSatisfactoryYes" type="radio" value="true" /> አዎ</label>
+                    <label><input asp-for="SchoolReport.WasActionSatisfactory" id="schoolActionSatisfactoryNo" type="radio" value="false" /> አይ</label>
+                </div>
+                <span asp-validation-for="SchoolReport.WasActionSatisfactory" class="text-danger"></span>
+            </div>
+            <div class="col-12 school-problem-detail"><label class="form-label fw-bold">የተወሰዱ መፍትሄዎች ምድብ</label><div class="row g-2"><div class="col-md"><label class="form-check border rounded p-2 w-100"><input asp-for="SchoolReport.StudentRelatedSolution" class="form-check-input me-2" />የተማሪ ጉዳዮች</label></div><div class="col-md"><label class="form-check border rounded p-2 w-100"><input asp-for="SchoolReport.TeacherExpenseSolution" class="form-check-input me-2" />ከመምህራን ጋር የተያያዙ ወጪዎች</label></div><div class="col-md"><label class="form-check border rounded p-2 w-100"><input asp-for="SchoolReport.ClassroomMaterialsSolution" class="form-check-input me-2" />ክፍል ጥገናና የመማሪያ ቁሳቁስ</label></div><div class="col-md"><label class="form-check border rounded p-2 w-100"><input asp-for="SchoolReport.SchoolBuildingServiceSolution" class="form-check-input me-2" />የትምህርት ቤት ሕንፃ አገልግሎት</label></div><div class="col-md"><label class="form-check border rounded p-2 w-100"><input asp-for="SchoolReport.OtherSolution" class="form-check-input me-2" />ሌላ</label></div></div><textarea asp-for="SchoolReport.OtherSolutionDescription" class="form-control mt-2" rows="2" placeholder="ሌላ መፍትሄ ይግለጹ"></textarea></div>
+        </div>
+    </div>
+</div>
+
 <div class="wizard-step d-none" id="step10">
     <div class="p-4 bg-white rounded shadow-sm border-top border-info border-4">
-        <h4 class="text-info mb-3"><i class="fas fa-store me-2"></i>ደረጃ 10፡ የገበያ ሁኔታ (የሰነዱ ክፍል 7)</h4>
+        <h4 class="text-info mb-3"><i class="fas fa-store me-2"></i>ደረጃ 7፡ የገበያ ሁኔታ (የሰነዱ ክፍል 7.2)</h4>
         <div class="row g-3">
             <div class="col-6"><label asp-for="GrainSupply.GrainSupplyStatus"></label><select asp-for="GrainSupply.GrainSupplyStatus" asp-items="Html.GetEnumSelectList<SupplyStatus>()" class="form-select"></select><textarea asp-for="GrainSupply.AdditionalNotes" class="form-control mt-2" placeholder="የእህል አቅርቦት ምክንያት/ማስታወሻ"></textarea></div>
             <div class="col-6"><label asp-for="GrainPrice.GrainSupplyStatus">የእህል ዋጋ</label><select asp-for="GrainPrice.GrainSupplyStatus" asp-items="Html.GetEnumSelectList<SupplyStatus>()" class="form-select"></select><textarea asp-for="GrainPrice.AdditionalNotes" class="form-control mt-2" placeholder="የእህል ዋጋ ምክንያት/ማስታወሻ"></textarea></div>
@@ -48,7 +83,7 @@
 
 <div class="wizard-step d-none" id="step11">
     <div class="p-4 bg-white rounded shadow-sm border-top border-info border-4">
-        <h4 class="text-info mb-3"><i class="fas fa-cow me-2"></i>ደረጃ 11፡ የእንስሳት ዋጋ በአንድ (የገበያ ሁኔታ ክፍል 2)</h4>
+        <h4 class="text-info mb-3"><i class="fas fa-cow me-2"></i>ደረጃ 7፡ የእንስሳት ዋጋ በአንድ (የገበያ ሁኔታ ክፍል 7.3)</h4>
         <div class="row g-3 mb-4">
             <div class="col-6"><label asp-for="AnimalSupply.GrainSupplyStatus">የእንስሳት አቅርቦት</label><select asp-for="AnimalSupply.GrainSupplyStatus" asp-items="Html.GetEnumSelectList<SupplyStatus>()" class="form-select"></select><textarea asp-for="AnimalSupply.AdditionalNotes" class="form-control mt-2" placeholder="የእንስሳት አቅርቦት ምክንያት/ማስታወሻ"></textarea></div>
             <div class="col-6"><label asp-for="AnimalPrice.GrainSupplyStatus">የእንስሳት ዋጋ</label><select asp-for="AnimalPrice.GrainSupplyStatus" asp-items="Html.GetEnumSelectList<SupplyStatus>()" class="form-select"></select><textarea asp-for="AnimalPrice.AdditionalNotes" class="form-control mt-2" placeholder="የእንስሳት ዋጋ ምክንያት/ማስታወሻ"></textarea></div>
@@ -59,7 +94,7 @@
 
 <div class="wizard-step d-none" id="step12">
     <div class="p-4 bg-white rounded shadow-sm border-top border-danger border-4">
-        <h4 class="text-danger mb-3"><i class="fas fa-house-damage me-2"></i>ደረጃ 12፡ የሳምንቱ አደጋ (የሰነዱ ክፍል 8)</h4>
+        <h4 class="text-danger mb-3"><i class="fas fa-house-damage me-2"></i>ደረጃ 8፡ የሳምንቱ አደጋ (የሰነዱ ክፍል 8)</h4>
         <label class="fw-bold">በሳምንቱ አደጋ ተከስቷል?</label><div class="d-flex gap-4"><label><input type="radio" name="accidentChoice" class="bool-radio" data-field="accidentValue" data-section="#accidentDetails" value="true" /> አዎ</label><label><input type="radio" name="accidentChoice" class="bool-radio" data-field="accidentValue" data-section="#accidentDetails" value="false" /> የለም</label></div><input asp-for="WeeklyAccidents.HasAccident" type="hidden" id="accidentValue" />
         <div id="accidentDetails" class="conditional-section d-none border rounded p-3 mt-2"><div class="row mb-2">@foreach (var type in Model.AccidentTypes) { <div class="col-md-3 form-check"><input class="form-check-input" type="checkbox" name="SelectedAccidentTypeIds" value="@type.AccidentTypeId" id="acc_@type.AccidentTypeId" /><label for="acc_@type.AccidentTypeId">@type.AccidentName</label></div> }</div><div id="accidentImpactCards">@for (var i = 0; i < Model.AccidentDetails.Count; i++) { var item = Model.AccidentDetails[i]; var type = Model.AccidentTypes.First(x => x.AccidentTypeId == item.AccidentTypeId); <div class="card mb-3 impact-card d-none" data-impact-key="@item.AccidentTypeId"><div class="card-header fw-bold">@type.AccidentName<input asp-for="AccidentDetails[i].AccidentTypeId" type="hidden" /></div><div class="card-body"><div class="row g-2"><div class="col"><label>የተጎዳ መሬት</label><input asp-for="AccidentDetails[i].DamagedLandInHectares" class="form-control" min="0" /></div><div class="col"><label>የጉዳት %</label><input asp-for="AccidentDetails[i].DamageRateInPercent" class="form-control" min="0" max="100" /></div><div class="col"><label>ተጎጂ አባወራ</label><input asp-for="AccidentDetails[i].AffectedHouseholdsMale" class="form-control" min="0" /></div><div class="col"><label>ተጎጂ እማወራ</label><input asp-for="AccidentDetails[i].AffectedHouseholdsFemale" class="form-control" min="0" /></div><div class="col"><label>ወንድ ህጻናት</label><input asp-for="AccidentDetails[i].AffectedChildrenMale" class="form-control" min="0" /></div><div class="col"><label>ሴት ህጻናት</label><input asp-for="AccidentDetails[i].AffectedChildrenFemale" class="form-control" min="0" /></div></div></div></div> }</div></div>
     </div>
@@ -67,7 +102,7 @@
 
 <div class="wizard-step d-none" id="step13">
     <div class="p-4 bg-white rounded shadow-sm border-top border-warning border-4">
-        <h4 class="text-warning mb-3"><i class="fas fa-people-arrows me-2"></i>ደረጃ 13፡ ስደት እና ሞት (የሰነዱ ክፍል 9)</h4>
+        <h4 class="text-warning mb-3"><i class="fas fa-people-arrows me-2"></i>ደረጃ 9፡ ስደት እና ሞት (የሰነዱ ክፍል 9)</h4>
         <div class="row g-4">
             <div class="col-12"><label class="fw-bold">ስደት አለ?</label><div class="d-flex gap-4"><label><input type="radio" name="migrationChoice" class="bool-radio" data-field="migrationValue" data-section="#migrationDetails" value="true" /> አዎ</label><label><input type="radio" name="migrationChoice" class="bool-radio" data-field="migrationValue" data-section="#migrationDetails" value="false" /> የለም</label></div><input asp-for="Migration.HasMigration" type="hidden" id="migrationValue" />
                 <div id="migrationDetails" class="conditional-section d-none border rounded p-3 mt-2">
@@ -84,7 +119,7 @@
 
 <div class="wizard-step d-none" id="step14">
     <div class="p-4 bg-white rounded shadow-sm border-top border-primary border-4">
-        <h4 class="text-primary mb-3"><i class="fas fa-cow me-2"></i>ደረጃ 14፡ የእንስሳት ስደት</h4>
+        <h4 class="text-primary mb-3"><i class="fas fa-cow me-2"></i>ደረጃ 10፡ የእንስሳት ስደት</h4>
         <div class="alert alert-info">አንድ የስደት አቅጣጫ ብቻ ይምረጡ። ለተመረጠው መስመር የእያንዳንዱን እንስሳ ብዛት ያስገቡ።</div>
         <div class="mb-3">
             <label class="fw-bold d-block mb-2">የእንስሳት ስደት አቅጣጫ</label>
@@ -117,48 +152,15 @@
 
 <div class="wizard-step d-none" id="step15">
     <div class="p-4 bg-white rounded shadow-sm border-top border-success border-4">
-        <h4 class="text-success mb-3"><i class="fas fa-hands-helping me-2"></i>ደረጃ 15፡ የእርዳታ ተጠቃሚዎች (የሰነዱ ክፍል 10)</h4>
+        <h4 class="text-success mb-3"><i class="fas fa-hands-helping me-2"></i>ደረጃ 11፡ የእርዳታ ተጠቃሚዎች (የሰነዱ ክፍል 10)</h4>
         <partial name="_AdvancedDemographics" model='("AssistanceRecipient", "የእርዳታ ተጠቃሚዎች ሙሉ ስብጥር", (object)Model.AssistanceRecipient)' />
     </div>
 </div>
 
 <div class="wizard-step d-none" id="step16">
     <div class="p-4 bg-white rounded shadow-sm border-top border-success border-4">
-        <h4 class="text-success mb-3"><i class="fas fa-box-open me-2"></i>ደረጃ 16፡ በሳምንቱ የቀረበና የተሰራጨ እርዳታ እና ሌሎች ችግሮች</h4>
+        <h4 class="text-success mb-3"><i class="fas fa-box-open me-2"></i>ደረጃ 12፡ በሳምንቱ የቀረበና የተሰራጨ እርዳታ እና ሌሎች ችግሮች</h4>
         <h5 class="mt-3">በሳምንቱ የቀረበና የተሰራጨ</h5><div class="table-responsive"><table class="table table-bordered table-sm"><thead><tr><th>አቅርቦት</th><th>መለኪያ</th><th>የቀረበ</th><th>የተሰራጨ</th><th>%</th><th>ለጋሽ</th></tr></thead><tbody>@for (var i = 0; i < Model.AidDistributionDetails.Count; i++) { var type = Model.SupplyTypes.First(x => x.SupplyTypeId == Model.AidDistributionDetails[i].SupplyTypeId); <tr><td>@type.SupplyTypeName<input asp-for="AidDistributionDetails[i].SupplyTypeId" type="hidden" /></td><td><select asp-for="AidDistributionDetails[i].Measurement" asp-items="Html.GetEnumSelectList<Measurement>()" class="form-select"></select></td><td><input asp-for="AidDistributionDetails[i].ProvidedQuantity" class="form-control aid-provided" min="0" /></td><td><input asp-for="AidDistributionDetails[i].DistributedQuantity" class="form-control aid-distributed" min="0" /></td><td><input asp-for="AidDistributionDetails[i].PercentageOfDistributedFromProvided" class="form-control aid-percent" readonly /></td><td><input asp-for="AidDistributionDetails[i].Donor" class="form-control" /></td></tr> }</tbody></table></div>
         <div class="row g-3"><div class="col-md-6"><label asp-for="WeeklyProvided.IfProblem"></label><select asp-for="WeeklyProvided.IfProblem" asp-items="Html.GetEnumSelectList<Problem>()" class="form-select"><option value="">-- ይምረጡ --</option></select><label asp-for="WeeklyProvided.Notes"></label><textarea asp-for="WeeklyProvided.Notes" class="form-control"></textarea></div><div class="col-md-6"><label class="fw-bold">ሌላ ያልተገለጸ ችግር አለ?</label><div class="d-flex gap-4"><label><input type="radio" name="otherProblemChoice" class="bool-radio" data-field="otherProblemValue" data-section="#otherProblemDetails" value="true" /> አዎ</label><label><input type="radio" name="otherProblemChoice" class="bool-radio" data-field="otherProblemValue" data-section="#otherProblemDetails" value="false" /> የለም</label></div><input asp-for="OtherProblem.HasOtherProblem" type="hidden" id="otherProblemValue" /><div id="otherProblemDetails" class="conditional-section d-none"><label asp-for="OtherProblem.ProblemName"></label><textarea asp-for="OtherProblem.ProblemName" class="form-control"></textarea><partial name="_AdvancedDemographics" model='("OtherProblem", "በሌላ ችግር የተጎዱ ሰዎች", (object)Model.OtherProblem)' /><label asp-for="OtherProblem.GeneralNotes"></label><textarea asp-for="OtherProblem.GeneralNotes" class="form-control"></textarea></div></div></div>
-    </div>
-</div>
-
-<div class="wizard-step d-none" id="step17">
-    <div class="p-4 bg-white rounded shadow-sm border-top border-primary border-4">
-        <h4 class="text-primary mb-3"><i class="fas fa-school me-2"></i>ደረጃ 17፡ የትምህርት ቤት ሁኔታ</h4>
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label fw-bold d-block">በትምህርትና መማር ሂደት ላይ ችግር ነበር?</label>
-                <div class="d-flex flex-wrap gap-3" id="schoolProblemSwitch">
-                    <label><input asp-for="SchoolReport.HasTeachingLearningProblem" id="schoolProblemYes" type="radio" value="true" /> አዎ</label>
-                    <label><input asp-for="SchoolReport.HasTeachingLearningProblem" id="schoolProblemNo" type="radio" value="false" /> አይ</label>
-                </div>
-            </div>
-            <div class="col-md-6 school-problem-detail"><label asp-for="SchoolReport.Cause" class="form-label fw-bold">የችግሩ ምክንያት</label><textarea asp-for="SchoolReport.Cause" class="form-control" rows="2"></textarea><span asp-validation-for="SchoolReport.Cause" class="text-danger"></span></div>
-            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.MaleStudentDropouts" class="form-label">ከትምህርት የወጡ ወንድ ተማሪዎች</label><input asp-for="SchoolReport.MaleStudentDropouts" class="form-control" min="0" max="1000000" /></div>
-            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.FemaleStudentDropouts" class="form-label">ከትምህርት የወጡ ሴት ተማሪዎች</label><input asp-for="SchoolReport.FemaleStudentDropouts" class="form-control" min="0" max="1000000" /></div>
-            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.AverageDropoutAge" class="form-label">የወጡ ተማሪዎች አማካይ ዕድሜ</label><input asp-for="SchoolReport.AverageDropoutAge" class="form-control" type="number" min="0" max="100" step="0.1" /><span asp-validation-for="SchoolReport.AverageDropoutAge" class="text-danger"></span></div>
-            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.ClosedSchools" class="form-label">የተዘጉ ትምህርት ቤቶች ብዛት</label><input asp-for="SchoolReport.ClosedSchools" class="form-control" min="0" max="100000" /></div>
-            <div class="col-12 school-problem-detail"><h6 class="fw-bold mb-2">ችግሩን ለመቆጣጠር/ለመፍታት የተወሰዱ ሶስት ዋና መፍትሄዎች</h6></div>
-            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.MajorSolutionOne" class="form-label">መፍትሄ 1</label><textarea asp-for="SchoolReport.MajorSolutionOne" class="form-control" rows="2"></textarea></div>
-            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.MajorSolutionTwo" class="form-label">መፍትሄ 2</label><textarea asp-for="SchoolReport.MajorSolutionTwo" class="form-control" rows="2"></textarea></div>
-            <div class="col-md-4 school-problem-detail"><label asp-for="SchoolReport.MajorSolutionThree" class="form-label">መፍትሄ 3</label><textarea asp-for="SchoolReport.MajorSolutionThree" class="form-control" rows="2"></textarea></div>
-            <div class="col-md-6 school-problem-detail">
-                <label class="form-label fw-bold d-block">የተወሰደው እርምጃ አጥጋቢ ነበር?</label>
-                <div class="d-flex flex-wrap gap-3">
-                    <label><input asp-for="SchoolReport.WasActionSatisfactory" id="schoolActionSatisfactoryYes" type="radio" value="true" /> አዎ</label>
-                    <label><input asp-for="SchoolReport.WasActionSatisfactory" id="schoolActionSatisfactoryNo" type="radio" value="false" /> አይ</label>
-                </div>
-                <span asp-validation-for="SchoolReport.WasActionSatisfactory" class="text-danger"></span>
-            </div>
-            <div class="col-12 school-problem-detail"><label class="form-label fw-bold">የተወሰዱ መፍትሄዎች ምድብ</label><div class="row g-2"><div class="col-md"><label class="form-check border rounded p-2 w-100"><input asp-for="SchoolReport.StudentRelatedSolution" class="form-check-input me-2" />የተማሪ ጉዳዮች</label></div><div class="col-md"><label class="form-check border rounded p-2 w-100"><input asp-for="SchoolReport.TeacherExpenseSolution" class="form-check-input me-2" />ከመምህራን ጋር የተያያዙ ወጪዎች</label></div><div class="col-md"><label class="form-check border rounded p-2 w-100"><input asp-for="SchoolReport.ClassroomMaterialsSolution" class="form-check-input me-2" />ክፍል ጥገናና የመማሪያ ቁሳቁስ</label></div><div class="col-md"><label class="form-check border rounded p-2 w-100"><input asp-for="SchoolReport.SchoolBuildingServiceSolution" class="form-check-input me-2" />የትምህርት ቤት ሕንፃ አገልግሎት</label></div><div class="col-md"><label class="form-check border rounded p-2 w-100"><input asp-for="SchoolReport.OtherSolution" class="form-check-input me-2" />ሌላ</label></div></div><textarea asp-for="SchoolReport.OtherSolutionDescription" class="form-control mt-2" rows="2" placeholder="ሌላ መፍትሄ ይግለጹ"></textarea></div>
-        </div>
     </div>
 </div>

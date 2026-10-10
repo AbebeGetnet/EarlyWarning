@@ -13,8 +13,12 @@ namespace EarlyWarning.Models
 
         [DisplayName("ወንድ አባወራ")]
         public int MaleHouseHold { get; set; }
-        [DisplayName("የውሃ እጥረት የተከሰተባቸው ቀበሌዎች ብዛት")]
+        [DisplayName("አለ ከተባለ የተጎዱ እንስሳት ብዛት")]
         public int NoOfKebeliesWithWaterSupply { get; set; }
+
+        [DisplayName("የበሽታው አይነት")]
+        [MaxLength(500)]
+        public string? DiseaseType { get; set; }
 
         [DisplayName("ሴት እማወራ")]
         public int FemaleHouseHold { get; set; }

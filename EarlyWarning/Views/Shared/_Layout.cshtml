@@ -217,6 +217,7 @@
                                         </a>
                                         <ul class="nav nav-treeview">
                                             <li class="nav-item"><a asp-controller="WeeklyWorkflow" asp-action="Index" class="nav-link"><i class="fas fa-chart-bar nav-icon"></i><p>የተጠቃለለ ሪፖርት</p></a></li>
+                                            <li class="nav-item"><a asp-controller="WeeklyWorkflow" asp-action="FormReport" class="nav-link"><i class="fas fa-file-signature nav-icon"></i><p>የቅጽ ሪፖርት (ሳምንታዊ)</p></a></li>
                                             <li class="nav-item"><a asp-controller="WeeklyWorkflow" asp-action="Index" asp-route-mode="details" class="nav-link"><i class="fas fa-search nav-icon"></i><p>የሪፖርት ግምገማ</p></a></li>
                                             @if (User.IsInRole("ZoneAdmin") || User.IsInRole("RegionAdmin"))
                                             {

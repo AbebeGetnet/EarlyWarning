@@ -375,6 +375,10 @@ namespace EarlyWarning.Migrations
                     b.Property<int>("DisabledMale")
                         .HasColumnType("int");
 
+                    b.Property<string>("DiseaseType")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("ElderlyFemale")
                         .HasColumnType("int");
 
@@ -756,6 +760,9 @@ namespace EarlyWarning.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("AnimalBodyCondition")
+                        .HasColumnType("int");
+
                     b.Property<int>("ChildFemale")
                         .HasColumnType("int");
 
@@ -791,6 +798,13 @@ namespace EarlyWarning.Migrations
 
                     b.Property<DateTime>("LasModifiedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("LowBodyConditionAnimalsAffected")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LowBodyConditionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("MaleFamily")
                         .HasColumnType("int");
@@ -2303,10 +2317,10 @@ namespace EarlyWarning.Migrations
                     b.Property<int>("MediumHighAmountKebeles")
                         .HasColumnType("int");
 
-                    b.Property<int>("NoDataKebeles")
+                    b.Property<int>("NoDataForRainAmountKebeles")
                         .HasColumnType("int");
 
-                    b.Property<int>("NoDataForRainAmountKebeles")
+                    b.Property<int>("NoDataKebeles")
                         .HasColumnType("int");
 
                     b.Property<int>("NoRainKebeles")
@@ -2395,6 +2409,9 @@ namespace EarlyWarning.Migrations
 
                     b.Property<int>("ClosedSchools")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("DropoutRatePercent")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");

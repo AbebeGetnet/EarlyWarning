@@ -93,6 +93,7 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
 
         var water = (await db.AnimalWaterSupplyStatuses.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).ToList();
         result.Sections.Add(Section("4.2 የእንስሳት ውሃ አቅርቦት ሁኔታ", M("በሳምንቱ የግጦሽ ችግር ያለባቸው ቀበሌዎች በቁጥር", water.Sum(x => x.NoOfKebeliesWithPastureShortage)), M("በሳምንቱ የውሃ ችግር ያለባቸው ቀበሌዎች በቁጥር", water.Sum(x => x.NoOfKebeliesWithWaterSupply)), M("የውሃ አቅርቦት ዝቅተኛ የሆነባቸው ወረዳዎች", water.Count(x => !x.Enough), "", "COUNT"), M("በውሃ እጥረት የተጎዳ ማህበረሰብ", People(water.Select(x => (x.MaleHouseHold,x.FemaleHouseHold,x.MaleFamily,x.FemaleFamily,x.ChildhMale,x.ChildFemale,x.YouthMale,x.YouthFemale,x.ElderlyMale,x.ElderlyFemale,x.DisabledMale,x.DisabledFemale))))));
+        result.Sections.Add(Section("4.3 የእንስሳት አቋም", M("የእንስሳት አቋም መካከለኛ የሆነባቸው ወረዳዎች", water.Count(x => x.AnimalBodyCondition == AnimalBodyCondition.መካከለኛ), "", "COUNT"), M("የእንስሳት አቋም ዝቅተኛ የሆነባቸው ወረዳዎች", water.Count(x => x.AnimalBodyCondition == AnimalBodyCondition.ዝቅተኛ), "", "COUNT"), M("አቋማቸው ዝቅተኛ የሆነ የተጎዱ እንስሳት ብዛት", water.Sum(x => x.LowBodyConditionAnimalsAffected))));
 
         var health = (await db.AnimalHealthStatuses.Include(x => x.Woreda).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).ToList();
         result.AnimalDiseaseAffectedPeople = (int)People(health.Select(x => (x.MaleHouseHold,x.FemaleHouseHold,x.MaleFamily,x.FemaleFamily,x.ChildhMale,x.ChildFemale,x.YouthMale,x.YouthFemale,x.ElderlyMale,x.ElderlyFemale,x.DisabledMale,x.DisabledFemale)));
@@ -151,6 +152,7 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
             M("ያቋረጡ ተማሪዎች — ወንድ", schools.Sum(x => x.MaleStudentDropouts), "ተማሪ"),
             M("ያቋረጡ ተማሪዎች — ሴት", schools.Sum(x => x.FemaleStudentDropouts), "ተማሪ"),
             M("ጠቅላላ ከትምህርት የወጡ", dropoutCount, "ተማሪ"),
+            M("አማካይ የማቋረጥ ጥምርታ/ምጣኔ", schools.Any(x => x.DropoutRatePercent.HasValue) ? schools.Where(x => x.DropoutRatePercent.HasValue).Average(x => x.DropoutRatePercent!.Value) : 0, "%", "AVERAGE"),
             M("የወጡ ተማሪዎች የተመዘነ አማካይ ዕድሜ", weightedAverageAge, "ዓመት", "WEIGHTED AVERAGE"),
             M("የተዘጉ ትምህርት ቤቶች ብዛት", schools.Sum(x => x.ClosedSchools), "ትምህርት ቤት"),
             M("እርምጃው አጥጋቢ የነበረባቸው", schools.Count(x => x.WasActionSatisfactory == true), "ወረዳ", "COUNT"),

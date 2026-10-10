@@ -28,6 +28,8 @@ builder.Services.AddScoped<ICropGrowthRepository, CropGrowthRepository>();
 builder.Services.AddScoped<CropGrowthService>();
 builder.Services.AddScoped<IReportSaveService, ReportSaveService>();
 builder.Services.AddScoped<IWeeklyAggregationService, WeeklyAggregationService>();
+builder.Services.AddScoped<IWeeklyFormReportService, WeeklyFormReportService>();
+builder.Services.AddScoped<IReportScopeService, ReportScopeService>();
 builder.Services.AddHttpContextAccessor();
 
 // DbContext ???? ApplicationDbContext ????? ????

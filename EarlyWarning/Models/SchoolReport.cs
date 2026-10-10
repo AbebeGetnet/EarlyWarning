@@ -16,6 +16,8 @@ public class SchoolReport : IValidatableObject
     [StringLength(1000)] public string? Cause { get; set; }
     [Range(0, 1_000_000)] public int MaleStudentDropouts { get; set; }
     [Range(0, 1_000_000)] public int FemaleStudentDropouts { get; set; }
+    [Display(Name = "የማቋረጥ ጥምርታ/ምጣኔ በ%")]
+    [Range(typeof(decimal), "0", "100")] public decimal? DropoutRatePercent { get; set; }
     [Range(typeof(decimal), "0", "100")] public decimal? AverageDropoutAge { get; set; }
     [Range(0, 100_000)] public int ClosedSchools { get; set; }
     [StringLength(500)] public string? MajorSolutionOne { get; set; }
