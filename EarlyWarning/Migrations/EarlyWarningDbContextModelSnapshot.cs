@@ -2306,6 +2306,9 @@ namespace EarlyWarning.Migrations
                     b.Property<int>("NoDataKebeles")
                         .HasColumnType("int");
 
+                    b.Property<int>("NoDataForRainAmountKebeles")
+                        .HasColumnType("int");
+
                     b.Property<int>("NoRainKebeles")
                         .HasColumnType("int");
 

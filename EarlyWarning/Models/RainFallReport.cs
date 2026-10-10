@@ -30,7 +30,7 @@ namespace EarlyWarning.Models
         public int NoRainKebeles { get; set; } = 0;
         public string? NoRainKebelieList { get; set; }
 
-        [DisplayName("መረጃ ያልተገኘባቸው ቀበሌዎች")]
+        [DisplayName("መረጃው ያልተገኝ ቀበሌ")]
         public int NoDataKebeles { get; set; } = 0;
 
         // የዝናብ መጠን ምድቦች
@@ -51,6 +51,9 @@ namespace EarlyWarning.Models
         [DisplayName("ከፍተኛ ዝናብ ያገኙ ቀበሌዎች")]
         public int HighAmountKebeles { get; set; } = 0;
         public string? HighRainKebelieList { get; set; } 
+
+        [DisplayName("መረጃ ያልተገኘላቸው ቀበሌዎች")]
+        public int NoDataForRainAmountKebeles { get; set; } = 0;
 
         // ሁኔታ እና ማጽደቂያዎች
 

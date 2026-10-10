@@ -63,6 +63,7 @@ namespace EarlyWarning.Controllers
                 EndDate = selectedEndDate,
                 RainfallReport = new RainfallReport(),
                 FarmingActivity = new FarmingActivity(),
+                CropGrowth = new CropGrowth(),
                 CropPestAndDeseaseReport = new CropPestAndDeseaseReport(),
                 PastureStatus = new PastureStatus(),
                 AnimalWaterSupplyStatus = new AnimalWaterSupplyStatus(),
@@ -273,9 +274,12 @@ namespace EarlyWarning.Controllers
             var rainfall = await _context.RainfallReports.AsNoTracking()
                 .FirstOrDefaultAsync(r => r.WoredaId == woredaId && r.StartDate == sDate && r.EndDate == eDate);
             rainfall?.DeserializeKebeles();
+            rainfall?.DeserializeDroughtKebeles();
 
             var farming = await _context.FarmingActivities.AsNoTracking()
                 .FirstOrDefaultAsync(f => f.WoredaId == woredaId && f.StartDate == sDate && f.EndDate == eDate);
+            var cropGrowth = await _context.CropGrowths.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.WoredaId == woredaId && x.StartDate == sDate && x.EndDate == eDate);
 
             var pest = await _context.CropPestAndDeseaseReports.AsNoTracking().Include(x => x.ImpactDetails)
                 .FirstOrDefaultAsync(p => p.WoredaId == woredaId && p.StartDate == sDate && p.EndDate == eDate);
@@ -308,7 +312,7 @@ namespace EarlyWarning.Controllers
                 .Where(x => x.WeeklyReportSubmissionId == workflow.Id).ToListAsync();
 
             // 2. Check if data exists in ANY of the domains
-            bool dataExists = (rainfall != null || farming != null || pest != null ||
+            bool dataExists = (rainfall != null || farming != null || cropGrowth != null || pest != null ||
                                pasture != null || water != null || health != null || humanWater != null || epidemic != null ||
                                grainSupply != null || animalSupply != null || grainPrice != null || animalPrice != null || accidents != null ||
                                migration != null || death != null || recipient != null || aid != null || other != null || school != null);
@@ -390,8 +394,24 @@ namespace EarlyWarning.Controllers
                     full = rainfall.FullCoverageKebeles,
                     partial = rainfall.PartialCoverageKebeles,
                     none = rainfall.NoRainKebeles,
+                    noData = rainfall.NoDataKebeles,
                     high = rainfall.HighAmountKebeles,
-                    kebeleIds = rainfall.SelectedKebeleIds
+                    amountNoData = rainfall.NoDataForRainAmountKebeles,
+                    medium = rainfall.MediumAmountKebeles,
+                    mediumHigh = rainfall.MediumHighAmountKebeles,
+                    low = rainfall.LowAmountKebeles,
+                    lowMedium = rainfall.LowMediumAmountKebeles,
+                    kebeleIds = rainfall.SelectedKebeleIds,
+                    droughtKebeleIds = rainfall.SelectedDroughtKebeleIds
+                },
+
+                cropGrowth = cropGrowth == null ? null : new
+                {
+                    seed = cropGrowth.AtSeedStage,
+                    germination = cropGrowth.AtGerminationStage,
+                    growth = cropGrowth.AtGrowthStage,
+                    fruit = cropGrowth.AtFruitStage,
+                    harvesting = cropGrowth.AtHarvestingStage
                 },
 
                 // Table 2: Farming Activity
@@ -502,7 +522,7 @@ namespace EarlyWarning.Controllers
         // Process the Consolidated Multi-Step Submission
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SubmitWizard(RegistrationWithardViewModel model, List<Guid> SelectedKebeliesIds, List<Guid> SelectedCropDiseaseIds, List<Guid> SelectedAnimalDiseaseIds)
+        public async Task<IActionResult> SubmitWizard(RegistrationWithardViewModel model, List<Guid> SelectedKebeliesIds, List<Guid> SelectedDroughtKebeleIds, List<Guid> SelectedCropDiseaseIds, List<Guid> SelectedAnimalDiseaseIds)
         {
             //if (!ModelState.IsValid)
             //{
@@ -540,6 +560,7 @@ namespace EarlyWarning.Controllers
 
             ValidateNumericValues(model.RainfallReport, "የዝናብ መረጃ");
             ValidateNumericValues(model.FarmingActivity, "የእርሻ መረጃ");
+            ValidateNumericValues(model.CropGrowth, "የሰብል እድገት ሁኔታ");
             ValidateNumericValues(model.CropPestAndDeseaseReport, "የሰብል ተባይ/በሽታ");
             ValidateNumericValues(model.PastureStatus, "የመኖ መረጃ");
             ValidateNumericValues(model.AnimalWaterSupplyStatus, "የእንስሳት ውሃ");
@@ -592,7 +613,24 @@ namespace EarlyWarning.Controllers
                 .Select(x => x.Id)
                 .ToListAsync();
             var woredaKebeleCount = woredaKebeleIds.Count;
+            var rainfallKebeleCounts = new Dictionary<string, int>
+            {
+                ["RainfallReport.FullCoverageKebeles"] = model.RainfallReport.FullCoverageKebeles,
+                ["RainfallReport.PartialCoverageKebeles"] = model.RainfallReport.PartialCoverageKebeles,
+                ["RainfallReport.NoRainKebeles"] = model.RainfallReport.NoRainKebeles,
+                ["RainfallReport.NoDataKebeles"] = model.RainfallReport.NoDataKebeles,
+                ["RainfallReport.HighAmountKebeles"] = model.RainfallReport.HighAmountKebeles,
+                ["RainfallReport.NoDataForRainAmountKebeles"] = model.RainfallReport.NoDataForRainAmountKebeles,
+                ["RainfallReport.MediumAmountKebeles"] = model.RainfallReport.MediumAmountKebeles,
+                ["RainfallReport.MediumHighAmountKebeles"] = model.RainfallReport.MediumHighAmountKebeles,
+                ["RainfallReport.LowAmountKebeles"] = model.RainfallReport.LowAmountKebeles,
+                ["RainfallReport.LowMediumAmountKebeles"] = model.RainfallReport.LowMediumAmountKebeles
+            };
+            foreach (var rainfallCount in rainfallKebeleCounts.Where(x => x.Value > woredaKebeleCount))
+                ModelState.AddModelError(rainfallCount.Key,
+                    $"የቀበሌዎች ቁጥር ከወረዳው ጠቅላላ {woredaKebeleCount} ቀበሌዎች ሊበልጥ አይችልም።");
             if ((SelectedKebeliesIds ?? []).Any(id => !woredaKebeleIds.Contains(id)) ||
+                (SelectedDroughtKebeleIds ?? []).Any(id => !woredaKebeleIds.Contains(id)) ||
                 model.SelectedHumanWaterKebeleIds.Any(id => !woredaKebeleIds.Contains(id)))
                 ModelState.AddModelError(nameof(model.Kebelies), "ለዚህ ወረዳ ያልተመደበ ቀበሌ ተመርጧል።");
             if (model.HumanDrinkWaterIssue.NumberOfAffectedKebeles > woredaKebeleCount)
@@ -656,9 +694,17 @@ namespace EarlyWarning.Controllers
                 existingRain.FullCoverageKebeles = model.RainfallReport.FullCoverageKebeles;
                 existingRain.PartialCoverageKebeles = model.RainfallReport.PartialCoverageKebeles;
                 existingRain.NoRainKebeles = model.RainfallReport.NoRainKebeles;
+                existingRain.NoDataKebeles = model.RainfallReport.NoDataKebeles;
                 existingRain.HighAmountKebeles = model.RainfallReport.HighAmountKebeles;
+                existingRain.NoDataForRainAmountKebeles = model.RainfallReport.NoDataForRainAmountKebeles;
+                existingRain.MediumAmountKebeles = model.RainfallReport.MediumAmountKebeles;
+                existingRain.MediumHighAmountKebeles = model.RainfallReport.MediumHighAmountKebeles;
+                existingRain.LowAmountKebeles = model.RainfallReport.LowAmountKebeles;
+                existingRain.LowMediumAmountKebeles = model.RainfallReport.LowMediumAmountKebeles;
                 existingRain.SelectedKebeleIds = SelectedKebeliesIds ?? [];
                 existingRain.SerializeKebeles();
+                existingRain.SelectedDroughtKebeleIds = SelectedDroughtKebeleIds ?? [];
+                existingRain.SerializeDroughtKebeles();
             }
             else
             {
@@ -667,6 +713,8 @@ namespace EarlyWarning.Controllers
                 model.RainfallReport.EndDate = eDate;
                 model.RainfallReport.SelectedKebeleIds = SelectedKebeliesIds ?? [];
                 model.RainfallReport.SerializeKebeles();
+                model.RainfallReport.SelectedDroughtKebeleIds = SelectedDroughtKebeleIds ?? [];
+                model.RainfallReport.SerializeDroughtKebeles();
                 _context.RainfallReports.Add(model.RainfallReport);
             }
 
@@ -698,6 +746,10 @@ namespace EarlyWarning.Controllers
                 model.FarmingActivity.EndDate = eDate;
                 _context.FarmingActivities.Add(model.FarmingActivity);
             }
+
+            await UpsertSimpleAsync(_context.CropGrowths, model.CropGrowth,
+                x => x.WoredaId == woredaId && x.StartDate == sDate && x.EndDate == eDate,
+                x => { x.WoredaId = woredaId; x.StartDate = sDate; x.EndDate = eDate; });
 
             // ----------------------------------------------------
             // 3. DOMAIN LAYER: CROP PEST AND DISEASE REPORT (UPSERT)

@@ -179,7 +179,7 @@
 
                 <div class="wizard-step" id="step1">
                     <div class="p-4 bg-white rounded shadow-sm border-top border-primary border-4">
-                        <h4 class="text-primary mb-3"><i class="fas fa-map-marker-alt me-2"></i>ደረጃ 1፡ አጠቃላይ የአካባቢ እና የጊዜ መረጃ</h4>
+                        <h4 class="text-primary mb-3"><i class="fas fa-map-marker-alt me-2"></i>መነሻ ፡ አጠቃላይ የአካባቢ እና የጊዜ መረጃ</h4>
                         <div class="alert alert-danger p-2 d-none" id="dateValidationWarning">
                             <i class="fas fa-exclamation-triangle me-2"></i><strong>የቀን ስህተት፡</strong> እባክዎ ካለፉት 8 ቀናት እስከ ዛሬ ያለውን ቀን ብቻ ያስገቡ (የወደፊት ቀን ወይም ከ8 ቀን የበለሰ መረጃ ማስገባት አይቻልም)።
                         </div>
@@ -206,7 +206,7 @@
 
                 <div class="wizard-step d-none" id="step2">
                     <div class="p-4 bg-white rounded shadow-sm border-top border-info border-4">
-                        <h4 class="text-info mb-3"><i class="fas fa-cloud-showers-heavy me-2"></i>ደረጃ 2፡ የዝናብ ስርጭት ሁኔታ</h4>
+                        <h4 class="text-info mb-3"><i class="fas fa-cloud-showers-heavy me-2"></i>ደረጃ 1፡ የዝናብ ስርጭት ሁኔታ</h4>
                         <div class="alert alert-info py-1 mb-3 bg-opacity-10 text-dark border-info">
                             <i class="fas fa-info-circle me-2 text-info"></i>የወረዳው ጠቅላላ የቀበሌዎች ብዛት ገደብ፦ <span id="woredaKebeleCountBadge" class="fw-bold text-primary">0</span>
                         </div>
@@ -225,8 +225,35 @@
                                 <input asp-for="RainfallReport.NoRainKebeles" id="rainNone" class="form-control text-center" type="number" min="0" value="0" />
                             </div>
                             <div class="col-md-3">
+                                <label asp-for="RainfallReport.NoDataKebeles" class="form-label"></label>
+                                <input asp-for="RainfallReport.NoDataKebeles" id="rainNoData" class="form-control text-center" type="number" min="0" value="0" />
+                            </div>
+                        </div>
+                        <h5 class="text-info border-bottom pb-2 mb-3">የዝናቡ መጠንና ስርጭት</h5>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
                                 <label asp-for="RainfallReport.HighAmountKebeles" class="form-label"></label>
                                 <input asp-for="RainfallReport.HighAmountKebeles" id="rainHigh" class="form-control text-center" type="number" min="0" value="0" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="RainfallReport.MediumAmountKebeles" class="form-label"></label>
+                                <input asp-for="RainfallReport.MediumAmountKebeles" id="rainMedium" class="form-control text-center" type="number" min="0" value="0" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="RainfallReport.MediumHighAmountKebeles" class="form-label"></label>
+                                <input asp-for="RainfallReport.MediumHighAmountKebeles" id="rainMediumHigh" class="form-control text-center" type="number" min="0" value="0" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="RainfallReport.LowAmountKebeles" class="form-label"></label>
+                                <input asp-for="RainfallReport.LowAmountKebeles" id="rainLow" class="form-control text-center" type="number" min="0" value="0" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="RainfallReport.LowMediumAmountKebeles" class="form-label"></label>
+                                <input asp-for="RainfallReport.LowMediumAmountKebeles" id="rainLowMedium" class="form-control text-center" type="number" min="0" value="0" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="RainfallReport.NoDataForRainAmountKebeles" class="form-label"></label>
+                                <input asp-for="RainfallReport.NoDataForRainAmountKebeles" id="rainAmountNoData" class="form-control text-center" type="number" min="0" value="0" />
                             </div>
                         </div>
                         <div class="p-3 bg-light rounded shadow-sm border">
@@ -244,12 +271,27 @@
                                 }
                             </div>
                         </div>
+                        <div class="p-3 bg-light rounded shadow-sm border mt-3">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-sun me-1"></i>በድርቅ የተጎዱ ከበሌዎችን ይምረጡ</label>
+                            <div class="row pt-2 ms-1">
+                                @if (Model.Kebelies != null)
+                                {
+                                    foreach (var kebele in Model.Kebelies)
+                                    {
+                                        <div class="col-md-3 form-check mb-2">
+                                            <input class="form-check-input drought-kebele-checkbox" type="checkbox" name="SelectedDroughtKebeleIds" value="@kebele.Id" data-name="@kebele.LocationAmharicName" id="droughtKeb_@kebele.Id" />
+                                            <label class="form-check-label" for="droughtKeb_@kebele.Id">@kebele.LocationAmharicName</label>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="wizard-step d-none" id="step3">
                     <div class="p-4 bg-white rounded shadow-sm border-top border-success border-4">
-                        <h4 class="text-success mb-3"><i class="fas fa-seedling me-2"></i>ደረጃ 3፡ የግብርና ስራዎች ክንውን (ሄክታር)</h4>
+                        <h4 class="text-success mb-3"><i class="fas fa-seedling me-2"></i>ደረጃ 2፡ የግብርና ስራዎች ክንውን (ሄክታር)</h4>
                         <div class="alert alert-warning p-2 d-none" id="farmPlanValidationError">
                             <i class="fas fa-exclamation-triangle me-2"></i><strong>ስህተት፡</strong> የእቅድ መጠን ከተከናወኑት ማናቸውም መስኮች ማነስ አይችልም።
                         </div>
@@ -277,9 +319,21 @@
 
                 <div class="wizard-step d-none" id="step4">
                     <div class="p-4 bg-white rounded shadow-sm border-top border-warning border-4">
-                        <h4 class="text-warning mb-3"><i class="fas fa-bug me-2"></i>ደረጃ 4፡ የሰብል ተባይ እና በሽታ ሁኔታ</h4>
+                        <h4 class="text-warning mb-3"><i class="fas fa-bug me-2"></i>ደረጃ 3፡ የሰብል ሁኔታ</h4>
                         <hr />
-                        
+                        <div class="card border-success mb-4">
+                            <div class="card-header bg-success bg-opacity-10 text-success fw-bold">3.1፡ የሰብል እድገትና አቋም ሁኔታ</div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4"><label asp-for="CropGrowth.AtSeedStage" class="form-label">በዘር ደረጃ</label><input asp-for="CropGrowth.AtSeedStage" id="cropSeedStage" class="form-control" type="number" step="0.01" min="0" /></div>
+                                    <div class="col-md-4"><label asp-for="CropGrowth.AtGerminationStage" class="form-label">በብቅለት ደረጃ</label><input asp-for="CropGrowth.AtGerminationStage" id="cropGerminationStage" class="form-control" type="number" step="0.01" min="0" /></div>
+                                    <div class="col-md-4"><label asp-for="CropGrowth.AtGrowthStage" class="form-label">በእድገት ደረጃ</label><input asp-for="CropGrowth.AtGrowthStage" id="cropGrowthStage" class="form-control" type="number" step="0.01" min="0" /></div>
+                                    <div class="col-md-6"><label asp-for="CropGrowth.AtFruitStage" class="form-label">ፍሬ በመሙላት ደረጃ</label><input asp-for="CropGrowth.AtFruitStage" id="cropFruitStage" class="form-control" type="number" step="0.01" min="0" /></div>
+                                    <div class="col-md-6"><label asp-for="CropGrowth.AtHarvestingStage" class="form-label">በመሰብሰብ ደረጃ</label><input asp-for="CropGrowth.AtHarvestingStage" id="cropHarvestingStage" class="form-control" type="number" step="0.01" min="0" /></div>
+                                </div>
+                            </div>
+                        </div>
+                        <h5 class="text-warning mb-3">3.2፡ የሰብል ተባይ እና በሽታ ተከስቷል?</h5>
                         <div class="card p-3 bg-light mb-3">
                             <label class="form-label fw-bold mb-2">የሰብል ተባይ እና በሽታ ተከስቷል?</label>
                             <div class="d-flex gap-4">
@@ -745,6 +799,9 @@
             if (badge) {
                 badge.innerText = currentWoredaMaxKebeles;
             }
+
+            ["rainFull", "rainPartial", "rainNone", "rainNoData", "rainHigh", "rainMedium", "rainMediumHigh", "rainLow", "rainLowMedium", "rainAmountNoData"]
+                .forEach(id => document.getElementById(id)?.setAttribute("max", currentWoredaMaxKebeles));
         }
 
         function showStep(n) {
@@ -1089,10 +1146,13 @@
                 let rFull = parseInt(document.getElementById("rainFull").value) || 0;
                 let rPartial = parseInt(document.getElementById("rainPartial").value) || 0;
                 let rNone = parseInt(document.getElementById("rainNone").value) || 0;
-                let rHigh = parseInt(document.getElementById("rainHigh").value) || 0;
+                let rNoData = parseInt(document.getElementById("rainNoData").value) || 0;
+                const rainAmountFields = ["rainHigh", "rainMedium", "rainMediumHigh", "rainLow", "rainLowMedium", "rainAmountNoData"];
+                const totalRainAmountKebeles = rainAmountFields
+                    .reduce((total, id) => total + (parseInt(document.getElementById(id).value) || 0), 0);
 
-                let totalReportedKebeles = rFull + rPartial + rNone;
-                const rainFields = ["rainFull", "rainPartial", "rainNone", "rainHigh"];
+                let totalReportedKebeles = rFull + rPartial + rNone + rNoData;
+                const rainFields = ["rainFull", "rainPartial", "rainNone", "rainNoData", ...rainAmountFields];
                 
                 rainFields.forEach(id => {
                     let el = document.getElementById(id);
@@ -1100,7 +1160,7 @@
                     else { el.classList.remove("is-invalid"); }
                 });
 
-                if (totalReportedKebeles > currentWoredaMaxKebeles || rHigh > currentWoredaMaxKebeles) {
+                if (totalReportedKebeles > currentWoredaMaxKebeles || totalRainAmountKebeles > currentWoredaMaxKebeles) {
                     valid = false;
                     alert(`⚠️ የተመዘገበው የቀበሌዎች ቁጥር ድምር ከወረዳው ጠቅላላ ቀበሌዎች ብዛት (${currentWoredaMaxKebeles}) መብለጥ አይችልም! እባክዎ ያርሙ።`);
                 }
@@ -1176,9 +1236,17 @@
                 document.getElementById("rainFull").value = data.rainfall.full;
                 document.getElementById("rainPartial").value = data.rainfall.partial;
                 document.getElementById("rainNone").value = data.rainfall.none;
+                document.getElementById("rainNoData").value = data.rainfall.noData;
                 document.getElementById("rainHigh").value = data.rainfall.high;
+                document.getElementById("rainMedium").value = data.rainfall.medium;
+                document.getElementById("rainMediumHigh").value = data.rainfall.mediumHigh;
+                document.getElementById("rainLow").value = data.rainfall.low;
+                document.getElementById("rainLowMedium").value = data.rainfall.lowMedium;
+                document.getElementById("rainAmountNoData").value = data.rainfall.amountNoData;
                 const kebeleIds = data.rainfall.kebeleIds || [];
                 document.querySelectorAll(".kebele-checkbox").forEach(cb => cb.checked = kebeleIds.map(String).includes(cb.value));
+                const droughtKebeleIds = data.rainfall.droughtKebeleIds || [];
+                document.querySelectorAll(".drought-kebele-checkbox").forEach(cb => cb.checked = droughtKebeleIds.map(String).includes(cb.value));
             }
 
             if (data.farming) {
@@ -1192,6 +1260,14 @@
                 document.getElementById("autumnSown").value = data.farming.autumnSown;
                 document.getElementById("autumnHarvesting").value = data.farming.autumnHarvesting;
                 document.getElementById("autumnResidual").value = data.farming.autumnResidual;
+            }
+
+            if (data.cropGrowth) {
+                document.getElementById("cropSeedStage").value = data.cropGrowth.seed;
+                document.getElementById("cropGerminationStage").value = data.cropGrowth.germination;
+                document.getElementById("cropGrowthStage").value = data.cropGrowth.growth;
+                document.getElementById("cropFruitStage").value = data.cropGrowth.fruit;
+                document.getElementById("cropHarvestingStage").value = data.cropGrowth.harvesting;
             }
 
             if (data.pest) {
@@ -1403,6 +1479,7 @@
             const eDate = document.getElementById("EndDate").value || "-";
 
             let selectedKebeles = Array.from(document.querySelectorAll(".kebele-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
+            let selectedDroughtKebeles = Array.from(document.querySelectorAll(".drought-kebele-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
             let selectedPests = Array.from(document.querySelectorAll(".pest-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
             let selectedDiseases = Array.from(document.querySelectorAll(".health-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
 
@@ -1428,20 +1505,29 @@
                 </div>
 
                 <div class="card mb-3 border-info shadow-sm">
-                    <div class="card-header bg-info bg-opacity-10 text-info fw-bold"><i class="fas fa-cloud-showers-heavy me-2"></i>ደረጃ 2፡ የዝናብ ስርጭት ሁኔታ ማጠቃለያ</div>
+                    <div class="card-header bg-info bg-opacity-10 text-info fw-bold"><i class="fas fa-cloud-showers-heavy me-2"></i>ደረጃ 1፡ የዝናብ ስርጭት ሁኔታ ማጠቃለያ</div>
                     <div class="card-body bg-white">
                         <div class="row text-center g-2 mb-2">
                             <div class="col-6 col-md-3"><div class="p-2 border rounded bg-light"><strong>ሙሉ፡</strong> ${document.getElementById("rainFull").value}</div></div>
                             <div class="col-6 col-md-3"><div class="p-2 border rounded bg-light"><strong>ከፊል፡</strong> ${document.getElementById("rainPartial").value}</div></div>
                             <div class="col-6 col-md-3"><div class="p-2 border rounded bg-light"><strong>ዝናብ የለሽ፡</strong> ${document.getElementById("rainNone").value}</div></div>
-                            <div class="col-6 col-md-3"><div class="p-2 border rounded bg-light"><strong>ከፍተኛ፡</strong> ${document.getElementById("rainHigh").value}</div></div>
+                            <div class="col-6 col-md-3"><div class="p-2 border rounded bg-light"><strong>መረጃ ያልተገኘ፡</strong> ${document.getElementById("rainNoData").value}</div></div>
+                        </div>
+                        <div class="row text-center g-2 mb-2">
+                            <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>ከፍተኛ፡</strong> ${document.getElementById("rainHigh").value}</div></div>
+                            <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>መካከለኛ፡</strong> ${document.getElementById("rainMedium").value}</div></div>
+                            <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>መካከለኛ - ከፍተኛ፡</strong> ${document.getElementById("rainMediumHigh").value}</div></div>
+                            <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>ዝቅተኛ፡</strong> ${document.getElementById("rainLow").value}</div></div>
+                            <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>ዝቅተኛ - መካከለኛ፡</strong> ${document.getElementById("rainLowMedium").value}</div></div>
+                            <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>መረጃ ያልተገኘ፡</strong> ${document.getElementById("rainAmountNoData").value}</div></div>
                         </div>
                         <p class="mb-0 mt-2"><strong>በከፍተኛ ዝናብ የተጎዱ ቀበሌዎች፡</strong> <span class="badge bg-secondary p-1">${selectedKebeles}</span></p>
+                        <p class="mb-0 mt-2"><strong>በድርቅ የተጎዱ ቀበሌዎች፡</strong> <span class="badge bg-secondary p-1">${selectedDroughtKebeles}</span></p>
                     </div>
                 </div>
 
                 <div class="card mb-3 border-success shadow-sm">
-                    <div class="card-header bg-success bg-opacity-10 text-success fw-bold"><i class="fas fa-seedling me-2"></i>ደረጃ 3፡ የግብርና ስራዎች ክንውን (ሄክታር)</div>
+                    <div class="card-header bg-success bg-opacity-10 text-success fw-bold"><i class="fas fa-seedling me-2"></i>ደረጃ 2፡ የግብርና ስራዎች ክንውን (ሄክታር)</div>
                     <div class="card-body p-0 bg-white">
                         <table class="table table-sm table-bordered m-0 text-center align-middle">
                             <thead class="table-light">
@@ -1455,8 +1541,19 @@
                     </div>
                 </div>
 
+                <div class="card mb-3 border-success shadow-sm">
+                    <div class="card-header bg-success bg-opacity-10 text-success fw-bold"><i class="fas fa-seedling me-2"></i>ደረጃ 3፡ የሰብል ሁኔታ — 3.1፡ የሰብል እድገትና አቋም ሁኔታ</div>
+                    <div class="card-body bg-white"><div class="row text-center g-2">
+                        <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>በዘር፡</strong> ${document.getElementById("cropSeedStage").value}</div></div>
+                        <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>በብቅለት፡</strong> ${document.getElementById("cropGerminationStage").value}</div></div>
+                        <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>በእድገት፡</strong> ${document.getElementById("cropGrowthStage").value}</div></div>
+                        <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>ፍሬ በመሙላት፡</strong> ${document.getElementById("cropFruitStage").value}</div></div>
+                        <div class="col-6 col-md"><div class="p-2 border rounded bg-light"><strong>በመሰብሰብ፡</strong> ${document.getElementById("cropHarvestingStage").value}</div></div>
+                    </div></div>
+                </div>
+
                 <div class="card mb-3 border-warning shadow-sm">
-                    <div class="card-header bg-warning bg-opacity-10 text-warning fw-bold"><i class="fas fa-bug me-2"></i>ደረጃ 4፡ የሰብል ተባይ እና በሽታ ሁኔታ</div>
+                    <div class="card-header bg-warning bg-opacity-10 text-warning fw-bold"><i class="fas fa-bug me-2"></i>ደረጃ 3፡ የሰብል ሁኔታ — 3.2፡ የሰብል ተባይ ክስተት</div>
                     <div class="card-body bg-white">
                         <p><strong>የተከሰተ ተባይ/በሽታ አለ?</strong> ${isPestActive ? '<span class="badge bg-danger">አዎ ተከስቷል</span>' : '<span class="badge bg-success">አልተከሰተም</span>'}</p>
                         ${hasPestData ? `

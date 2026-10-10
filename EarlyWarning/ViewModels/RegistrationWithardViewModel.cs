@@ -23,6 +23,7 @@ namespace EarlyWarning.ViewModels
 
         public RainfallReport RainfallReport { get; set; }
         public FarmingActivity FarmingActivity { get; set; }
+        public CropGrowth CropGrowth { get; set; } = new();
         public CropPestAndDeseaseReport CropPestAndDeseaseReport { get; set; }
         public PastureStatus PastureStatus { get; set; }
         public AnimalWaterSupplyStatus AnimalWaterSupplyStatus { get; set; }
