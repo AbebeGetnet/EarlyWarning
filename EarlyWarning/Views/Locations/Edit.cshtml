@@ -46,7 +46,7 @@
                         <select asp-for="ParentId" class="form-control">
                             @foreach (var location in ViewBag.Locations)
                             {
-                                <option value="@location.Id" name="@location.LocationAmharicName">@location.LocationAmharicName</option>
+                                <option value="@location.Id" name="@location.DisplayName">@location.DisplayName</option>
                             }
                         </select>
                     </div>
@@ -54,6 +54,16 @@
                         <label asp-for="PhoneNumber" class="control-label"></label>
                         <input asp-for="PhoneNumber" class="form-control"  required/>
                         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label asp-for="Latitude" class="control-label"></label>
+                        <input asp-for="Latitude" class="form-control" type="number" step="0.000001" min="-90" max="90" placeholder="ለምሳሌ 12.603000" />
+                        <span asp-validation-for="Latitude" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label asp-for="Longitude" class="control-label"></label>
+                        <input asp-for="Longitude" class="form-control" type="number" step="0.000001" min="-180" max="180" placeholder="ለምሳሌ 37.452100" />
+                        <span asp-validation-for="Longitude" class="text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label style="color:white">.</label><br />&nbsp;&nbsp;&nbsp;

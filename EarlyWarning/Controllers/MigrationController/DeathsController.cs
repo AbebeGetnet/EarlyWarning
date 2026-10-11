@@ -97,14 +97,14 @@ namespace EarlyWarning.Controllers.MigrationController
                     .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
                     .ToListAsync(),
                 "Id",
-                "LocationAmharicName",
+                nameof(EarlyWarning.Models.Locations.DisplayName),
                 migration.WoredaId
             );
 
             // Get all kebeles for migration details (where people are migrating from/to)
             ViewBag.Kebeles = await _context.Locations
                 .Where(x => x.Level == LocationLevel.ቀበሌ && x.IsActive)
-                .OrderBy(x => x.LocationAmharicName)
+                .OrderBy(x => x.LocationAmharicName ?? x.LocationName)
                 .ToListAsync();
 
             // Get migration reasons (if you have a reasons table)
@@ -131,7 +131,7 @@ namespace EarlyWarning.Controllers.MigrationController
             // Reload ViewBag in case of error
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", death.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), death.WoredaId);
 
             // Remove validation for DeathDetails
             ModelState.Remove("DeathDetails");
@@ -254,7 +254,7 @@ namespace EarlyWarning.Controllers.MigrationController
 
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", death.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), death.WoredaId);
 
             return View(death);
         }
@@ -273,7 +273,7 @@ namespace EarlyWarning.Controllers.MigrationController
 
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", death.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), death.WoredaId);
 
             ModelState.Remove("DeathDetails");
 

@@ -102,7 +102,7 @@ namespace EarlyWarning.Controllers.AidController
                     .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
                     .ToListAsync(),
                 "Id",
-                "LocationAmharicName",
+                nameof(EarlyWarning.Models.Locations.DisplayName),
                 weeklyProvided.WoredaId
             );
 
@@ -133,7 +133,7 @@ namespace EarlyWarning.Controllers.AidController
             // Reload ViewBag data in case of error
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", weeklyProvided.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), weeklyProvided.WoredaId);
 
             ViewBag.SupplyTypes = await _context.SupplyTypes
                 .Where(s => s.IsActive)
@@ -235,7 +235,7 @@ namespace EarlyWarning.Controllers.AidController
             {
                 return NotFound();
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", weeklyProvided.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), weeklyProvided.WoredaId);
             return View(weeklyProvided);
         }
 
@@ -271,7 +271,7 @@ namespace EarlyWarning.Controllers.AidController
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", weeklyProvided.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), weeklyProvided.WoredaId);
             return View(weeklyProvided);
         }
 

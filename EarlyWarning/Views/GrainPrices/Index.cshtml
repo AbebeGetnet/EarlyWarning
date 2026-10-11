@@ -10,7 +10,7 @@
 <style>
     /* Custom Styles */
     .page-header {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        background: var(--ew-brand-gradient, linear-gradient(120deg, #173e50 0%, #276683 55%, #2f7f9f 100%));
         color: white;
         padding: 25px 20px;
         border-radius: 12px;
@@ -45,7 +45,7 @@
         }
 
     .btn-create {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        background: var(--ew-good, #1e7e34);
         border: none;
         padding: 10px 20px;
         border-radius: 8px;
@@ -83,19 +83,19 @@
     }
 
         .stat-header.total {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            background: var(--ew-brand-gradient, linear-gradient(120deg, #173e50 0%, #276683 55%, #2f7f9f 100%));
         }
 
         .stat-header.increase {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            background: var(--ew-good, #1e7e34);
         }
 
         .stat-header.decrease {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: var(--ew-critical, #c0392b);
         }
 
         .stat-header.same {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--ew-neutral, #6c757d);
         }
 
     .stat-body {
@@ -178,7 +178,7 @@
         }
 
     .badge-increase {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        background: var(--ew-good, #1e7e34);
         padding: 5px 12px;
         border-radius: 20px;
         color: white;
@@ -187,7 +187,7 @@
     }
 
     .badge-decrease {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        background: var(--ew-critical, #c0392b);
         padding: 5px 12px;
         border-radius: 20px;
         color: white;
@@ -196,7 +196,7 @@
     }
 
     .badge-same {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--ew-neutral, #6c757d);
         padding: 5px 12px;
         border-radius: 20px;
         color: white;
@@ -267,8 +267,8 @@
         }
 
             .search-box input:focus {
-                border-color: #11998e;
-                box-shadow: 0 0 0 0.2rem rgba(17, 153, 142, 0.25);
+                border-color: var(--ew-brand, #276683);
+                box-shadow: 0 0 0 0.2rem rgba(39, 102, 131, 0.25);
                 outline: none;
             }
 
@@ -287,7 +287,7 @@
     }
 
     .table-footer {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        background: var(--ew-brand-gradient, linear-gradient(120deg, #173e50 0%, #276683 55%, #2f7f9f 100%));
         color: white;
         padding: 12px 20px;
         border-radius: 0 0 12px 12px;
@@ -795,7 +795,7 @@
             document.body.innerHTML += '.badge-decrease { background: #dc3545; color: white; padding: 3px 8px; border-radius: 15px; }';
             document.body.innerHTML += '.badge-same { background: #6c757d; color: white; padding: 3px 8px; border-radius: 15px; }';
             document.body.innerHTML += '.reason-tag { display: inline-block; background: #e9ecef; padding: 2px 6px; border-radius: 12px; font-size: 0.7rem; margin: 2px; }';
-            document.body.innerHTML += '.table-footer { background: #11998e; color: white; padding: 10px; margin-top: 20px; }';
+            document.body.innerHTML += '.table-footer { background: var(--ew-brand, #276683); color: white; padding: 10px; margin-top: 20px; }';
             document.body.innerHTML += '.footer-stats { display: flex; justify-content: space-around; }';
             document.body.innerHTML += '.footer-stat-item { text-align: center; }';
             document.body.innerHTML += '</style></head><body>';

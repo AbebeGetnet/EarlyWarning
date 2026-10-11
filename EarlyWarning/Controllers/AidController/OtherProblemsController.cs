@@ -49,7 +49,7 @@ namespace EarlyWarning.Controllers.AidController
         public IActionResult Create()
         {
             ViewData["WoredaId"] = new SelectList(_context.Locations
-                .Where(x=>x.Level== Enums.LocationLevel.ወረዳ), "Id", "LocationAmharicName");
+                .Where(x=>x.Level== Enums.LocationLevel.ወረዳ), "Id", nameof(EarlyWarning.Models.Locations.DisplayName));
             return View();
         }
 
@@ -67,7 +67,7 @@ namespace EarlyWarning.Controllers.AidController
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", otherProblem.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), otherProblem.WoredaId);
             return View(otherProblem);
         }
 
@@ -84,7 +84,7 @@ namespace EarlyWarning.Controllers.AidController
             {
                 return NotFound();
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", otherProblem.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), otherProblem.WoredaId);
             return View(otherProblem);
         }
 
@@ -120,7 +120,7 @@ namespace EarlyWarning.Controllers.AidController
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", otherProblem.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), otherProblem.WoredaId);
             return View(otherProblem);
         }
 

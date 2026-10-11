@@ -410,3 +410,127 @@ body {
         text-align: center;
     }
 }
+} /* closes "@media (max-width: 768px)" opened above, which was never closed. Rules above keep their
+     existing mobile-only behaviour; the brand theme below applies at every screen width. */
+
+/* =====================================================================
+   Brand theme — matches the sidebar (#276683).
+   Re-maps Bootstrap/AdminLTE "primary" and "info" to the brand teal so
+   every page shares one colour. Status colours (success / warning /
+   danger) are intentionally left alone: they carry meaning.
+   ===================================================================== */
+:root {
+    --ew-brand: #276683;
+    --ew-brand-dark: #1d4f66;
+    --ew-brand-darker: #173e50;
+    --ew-brand-mid: #6aa6be;
+    --ew-brand-tint: #e6f0f4;
+    --ew-brand-tint-border: #c4dbe5;
+    --ew-brand-gradient: linear-gradient(120deg, #173e50 0%, #276683 55%, #2f7f9f 100%);
+    --ew-brand-mark: #1a7aa3;
+    /* Status colours for page accents that carry meaning (increase/decrease, active/inactive, ...). */
+    --ew-good: #1e7e34;
+    --ew-critical: #c0392b;
+    --ew-warning: #b26a00;
+    --ew-neutral: #6c757d;
+}
+
+/* Links (sidebar links keep AdminLTE's more specific white styling) */
+a { color: var(--ew-brand); }
+a:hover { color: var(--ew-brand-dark); }
+
+/* Buttons: primary and info → brand */
+.btn-primary, .btn-info {
+    color: #fff;
+    background-color: var(--ew-brand);
+    border-color: var(--ew-brand);
+}
+.btn-primary:hover, .btn-primary:focus, .btn-info:hover, .btn-info:focus {
+    color: #fff;
+    background-color: var(--ew-brand-dark);
+    border-color: var(--ew-brand-darker);
+}
+.btn-primary:not(:disabled):not(.disabled):active, .btn-primary:not(:disabled):not(.disabled).active,
+.btn-info:not(:disabled):not(.disabled):active, .btn-info:not(:disabled):not(.disabled).active {
+    color: #fff;
+    background-color: var(--ew-brand-darker);
+    border-color: var(--ew-brand-darker);
+}
+.btn-primary:focus, .btn-info:focus, .btn-outline-primary:focus, .btn-outline-info:focus,
+.form-control:focus, .custom-select:focus {
+    box-shadow: 0 0 0 .2rem rgba(39, 102, 131, .25);
+}
+.btn-outline-primary, .btn-outline-info {
+    color: var(--ew-brand);
+    border-color: var(--ew-brand);
+}
+.btn-outline-primary:hover, .btn-outline-info:hover,
+.btn-outline-primary:not(:disabled):not(.disabled):active, .btn-outline-info:not(:disabled):not(.disabled):active {
+    color: #fff;
+    background-color: var(--ew-brand);
+    border-color: var(--ew-brand);
+}
+
+/* Backgrounds, text, borders */
+.bg-primary, .bg-info { background-color: var(--ew-brand) !important; color: #fff; }
+.text-primary, .text-info, .text-primary-custom { color: var(--ew-brand) !important; }
+.border-primary, .border-info { border-color: var(--ew-brand) !important; }
+.badge-primary, .badge-info, .badge.bg-primary, .badge.bg-info { background-color: var(--ew-brand); color: #fff; }
+.progress-bar { background-color: var(--ew-brand); }
+
+/* Bootstrap 5 "bg-opacity" helpers used by some views (Bootstrap 4 is loaded, so they were missing):
+   render the intended light tint instead of a solid block behind same-coloured text. */
+.bg-primary.bg-opacity-10, .bg-info.bg-opacity-10 { background-color: rgba(39, 102, 131, .10) !important; color: #1d4f66 !important; }
+.bg-primary.bg-opacity-25, .bg-info.bg-opacity-25 { background-color: rgba(39, 102, 131, .25) !important; color: #173e50 !important; }
+.bg-success.bg-opacity-10 { background-color: rgba(40, 167, 69, .10) !important; color: #1e6b31 !important; }
+.bg-success.bg-opacity-25 { background-color: rgba(40, 167, 69, .25) !important; color: #175a28 !important; }
+.bg-warning.bg-opacity-10 { background-color: rgba(255, 193, 7, .12) !important; color: #7a5a00 !important; }
+.bg-warning.bg-opacity-25 { background-color: rgba(255, 193, 7, .28) !important; color: #6b4f00 !important; }
+.bg-danger.bg-opacity-10 { background-color: rgba(220, 53, 69, .10) !important; color: #a71d2a !important; }
+.bg-danger.bg-opacity-25 { background-color: rgba(220, 53, 69, .25) !important; color: #8a1823 !important; }
+
+/* Cards (AdminLTE) */
+.card-primary:not(.card-outline) > .card-header, .card-info:not(.card-outline) > .card-header {
+    background-color: var(--ew-brand);
+    color: #fff;
+}
+.card-primary.card-outline, .card-info.card-outline { border-top: 3px solid var(--ew-brand); }
+
+/* Location-management style page header: the full-width "btn btn-info" bar inside a card */
+.card > .btn.btn-info:first-child {
+    background: var(--ew-brand-gradient);
+    border: 0;
+    border-radius: .25rem .25rem 0 0;
+    text-align: left;
+    cursor: default;
+}
+
+/* Tables and alerts */
+.table-primary, .table-primary > th, .table-primary > td,
+.table-info, .table-info > th, .table-info > td { background-color: #d4e5ec; }
+.thead-primary th, .table thead.table-primary th { background-color: var(--ew-brand); color: #fff; }
+.alert-primary, .alert-info {
+    color: var(--ew-brand-darker);
+    background-color: var(--ew-brand-tint);
+    border-color: var(--ew-brand-tint-border);
+}
+
+/* Form controls */
+.form-control:focus, .custom-select:focus { border-color: var(--ew-brand-mid); }
+.custom-control-input:checked ~ .custom-control-label::before {
+    background-color: var(--ew-brand);
+    border-color: var(--ew-brand);
+}
+
+/* Pagination (DataTables) and in-page pills/tabs */
+.page-item.active .page-link { background-color: var(--ew-brand); border-color: var(--ew-brand); }
+.page-link { color: var(--ew-brand); }
+.nav-pills:not(.nav-sidebar) .nav-link.active { background-color: var(--ew-brand); }
+
+/* Sidebar: the active item was AdminLTE blue on the teal menu — use a light overlay instead */
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active,
+.sidebar-light-primary .nav-sidebar > .nav-item > .nav-link.active {
+    background-color: rgba(255, 255, 255, .18);
+    color: #fff;
+    box-shadow: inset 3px 0 0 #fff;
+}

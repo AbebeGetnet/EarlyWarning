@@ -52,6 +52,46 @@ namespace EarlyWarning.Controllers
 
             return Json(kebeles);
         }
+        // ------------------------------------------------------------------ bulk import (.xlsx / .csv)
+
+        private const long MaxImportBytes = 10 * 1024 * 1024;
+
+        [Authorize(Roles = "Supper Administrator")]
+        public IActionResult Import() => View();
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Supper Administrator")]
+        [RequestSizeLimit(MaxImportBytes + 64 * 1024)]
+        public async Task<IActionResult> Import(IFormFile? file, string mode, [FromServices] EarlyWarning.Services.ILocationImportService importer)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["error"] = "እባክዎ የ.xlsx ወይም .csv ፋይል ይምረጡ።";
+                return View();
+            }
+            if (file.Length > MaxImportBytes)
+            {
+                TempData["error"] = "ፋይሉ ከ10 MB መብለጥ የለበትም።";
+                return View();
+            }
+
+            await using var stream = file.OpenReadStream();
+            var result = await importer.ImportAsync(stream, file.FileName, commit: mode == "import", HttpContext.RequestAborted);
+            ViewBag.FileName = file.FileName;
+            if (result.Committed) TempData["success"] = $"{result.ToInsert} አዲስ አድራሻዎች ተመዝግበዋል፤ {result.ToUpdate} ተሻሽለዋል።";
+            return View(result);
+        }
+
+        [Authorize(Roles = "Supper Administrator")]
+        public async Task<IActionResult> ImportTemplate([FromServices] EarlyWarning.Services.ILocationImportService importer) =>
+            File(await importer.BuildTemplateExcelAsync(includeExistingLocations: true, HttpContext.RequestAborted),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "location-import-template.xlsx");
+
+        [Authorize(Roles = "Supper Administrator")]
+        public async Task<IActionResult> ExportLocations([FromServices] EarlyWarning.Services.ILocationImportService importer) =>
+            File(await importer.ExportCsvAsync(HttpContext.RequestAborted), "text/csv", $"locations-{DateTime.Now:yyyyMMdd}.csv");
+
         // GET: Locations
         //[Authorize(Roles = "Supper Administrator, Administrator")]
         public async Task<IActionResult> Index()
@@ -205,6 +245,16 @@ namespace EarlyWarning.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Locations location)
         {
+            var coordinateError = CoordinateError(location.Latitude, location.Longitude);
+            if (coordinateError != null)
+            {
+                ViewData["ParentId"] = new SelectList(await _context.Locations.ToListAsync(), "Id", "LocationName", location.ParentId);
+                TempData["error"] = coordinateError;
+                return View(location);
+            }
+            if (location.Latitude.HasValue) location.Latitude = Math.Round(location.Latitude.Value, 6);
+            if (location.Longitude.HasValue) location.Longitude = Math.Round(location.Longitude.Value, 6);
+
             if (!ModelState.IsValid)
             {
                 if (!await LocationCodeExistsAsync(location.Level, location.LocationCode))
@@ -338,6 +388,10 @@ namespace EarlyWarning.Controllers
                         LocationName = location.LocationName,
                         LocationCode = location.LocationCode,
                         PhoneNumber = location.PhoneNumber,
+                        Level = location.Level ?? default,
+                        CardHeaderTitle = location.CardHeaderTitle,
+                        Latitude = location.Latitude,
+                        Longitude = location.Longitude,
                     };
                     var locations = await _context.Locations.ToListAsync();
                     ViewBag.Locations = locations;
@@ -365,6 +419,14 @@ namespace EarlyWarning.Controllers
             var location = await _context.Locations.Include(l => l.Parent).FirstOrDefaultAsync(l => l.Id == id);
             if (location != null)
             {
+                var coordinateError = CoordinateError(model.Latitude, model.Longitude);
+                if (coordinateError != null)
+                {
+                    TempData["error"] = coordinateError;
+                    return RedirectToAction(nameof(Edit), new { id });
+                }
+                location.Latitude = model.Latitude.HasValue ? Math.Round(model.Latitude.Value, 6) : null;
+                location.Longitude = model.Longitude.HasValue ? Math.Round(model.Longitude.Value, 6) : null;
                 location.LocationAmharicName = model.LocationAmharicName;
                 location.LocationName = model.LocationName;
                 location.LocationCode = model.LocationCode;
@@ -381,6 +443,15 @@ namespace EarlyWarning.Controllers
             TempData["error"] = "Nothing changed";
             return RedirectToAction(nameof(Index));
         }
+        // Coordinates are optional, but latitude and longitude must be given together and within range.
+        private static string? CoordinateError(decimal? latitude, decimal? longitude)
+        {
+            if (latitude.HasValue != longitude.HasValue) return "ኬክሮስ (Latitude) እና ኬንትሮስ (Longitude) አብረው መሰጠት አለባቸው።";
+            if (latitude is < -90 or > 90) return "ኬክሮስ (Latitude) ከ -90 እስከ 90 መሆን አለበት።";
+            if (longitude is < -180 or > 180) return "ኬንትሮስ (Longitude) ከ -180 እስከ 180 መሆን አለበት።";
+            return null;
+        }
+
         private Task<bool> LocationExistsAsync(Guid id)
         {
             return _context.Locations.AnyAsync(e => e.Id == id);

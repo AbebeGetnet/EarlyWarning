@@ -100,7 +100,7 @@ namespace EarlyWarning.Controllers.AnimalSupplyController
                     .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
                     .ToListAsync(),
                 "Id",
-                "LocationAmharicName",
+                nameof(EarlyWarning.Models.Locations.DisplayName),
                 animalSupply.WoredaId
             );
 
@@ -133,7 +133,7 @@ namespace EarlyWarning.Controllers.AnimalSupplyController
             // Reload ViewBag data in case of error
             ViewData["WoredaId"] = new SelectList(_context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToList(), "LocationId", "LocationAmharicName", animalSupply.WoredaId);
+                .ToList(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), animalSupply.WoredaId);
 
             // Load reasons for ViewBag
             ViewBag.IncreaseReasons = await _context.AnimalIncreaseDecreases
@@ -235,7 +235,7 @@ namespace EarlyWarning.Controllers.AnimalSupplyController
             {
                 return NotFound();
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations.Where(x => x.Level == LocationLevel.ወረዳ), "Id", "LocationAmharicName", animalSupply.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations.Where(x => x.Level == LocationLevel.ወረዳ), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), animalSupply.WoredaId);
             return View(animalSupply);
         }
 
@@ -271,7 +271,7 @@ namespace EarlyWarning.Controllers.AnimalSupplyController
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", animalSupply.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), animalSupply.WoredaId);
             return View(animalSupply);
         }
 

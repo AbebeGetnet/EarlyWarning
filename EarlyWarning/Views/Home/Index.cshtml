@@ -63,20 +63,20 @@
     .ew-dash {
         --surface: #fcfcfb; --plane: #f4f5f2; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
         --grid: #e1e0d9; --ring: rgba(11,11,11,.10);
-        --blue: #2a78d6; --orange: #eb6834; --aqua: #1baf7a; --yellow: #eda100; --green: #008300; --violet: #4a3aa7; --red: #e34948;
+        --brand: #276683; --brand-dark: #173e50; --brand-mark: #1a7aa3; --brand-light: #6aa6be; --blue: var(--brand); --orange: #eb6834; --aqua: #1baf7a; --yellow: #eda100; --green: #008300; --violet: #4a3aa7; --red: #e34948;
         --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;
         font-family: 'Nyala', 'Ebrima', 'Noto Sans Ethiopic', system-ui, 'Segoe UI', sans-serif;
         color: var(--ink); padding: 1.25rem 1rem 2rem;
     }
-    .ew-hero { background: linear-gradient(120deg, #0d366b 0%, #1c5cab 55%, #2a78d6 100%); color: #fff; border-radius: 14px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 6px 18px rgba(13,54,107,.18); }
+    .ew-hero { background: linear-gradient(120deg, #173e50 0%, #276683 55%, #2f7f9f 100%); color: #fff; border-radius: 14px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 6px 18px rgba(39,102,131,.22); }
     .ew-hero h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 .25rem; color: #fff; }
     .ew-hero .ew-sub { opacity: .88; font-size: .98rem; }
     .ew-chip { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: .25rem .8rem; margin: .5rem .4rem 0 0; font-size: .9rem; }
     .ew-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
     .ew-btn { display: inline-flex; align-items: center; gap: .45rem; padding: .5rem .95rem; border-radius: 8px; font-weight: 600; text-decoration: none !important; border: 1px solid rgba(255,255,255,.4); color: #fff !important; background: rgba(255,255,255,.08); transition: background .15s; }
     .ew-btn:hover { background: rgba(255,255,255,.2); }
-    .ew-btn.primary { background: #fff; color: #0d366b !important; border-color: #fff; }
-    .ew-btn.primary:hover { background: #e8f0fb; }
+    .ew-btn.primary { background: #fff; color: var(--brand) !important; border-color: #fff; }
+    .ew-btn.primary:hover { background: #e6f0f4; }
 
     .ew-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .9rem; margin-bottom: 1.25rem; }
     .ew-tile { background: var(--surface); border-radius: 12px; box-shadow: 0 0 0 1px var(--ring); padding: 1rem 1.1rem; display: flex; gap: .9rem; align-items: flex-start; }
@@ -109,7 +109,10 @@
     .ew-table { width: 100%; font-size: .88rem; border-collapse: collapse; }
     .ew-table th { color: var(--muted); font-weight: 600; text-align: left; padding: .45rem .5rem; border-bottom: 1px solid var(--grid); white-space: nowrap; }
     .ew-table td { padding: .45rem .5rem; border-bottom: 1px solid var(--grid); text-align: left; }
-    .ew-table tr:hover td { background: #f6f7f4; }
+    .ew-table tr:hover td { background: #eef5f8; }
+    .ew-table a { color: var(--brand); }
+    .ew-card h2 { color: var(--brand-dark); }
+    .ew-details summary { color: var(--brand-dark); }
     .ew-table-wrap { max-height: 330px; overflow: auto; }
 
     .ew-details { background: var(--surface); border-radius: 12px; box-shadow: 0 0 0 1px var(--ring); margin-top: .25rem; }
@@ -217,7 +220,7 @@
                     @if (agg.RainfallZones.Any())
                     {
                         <div class="ew-legend">
-                            <span style="--sw:#184f95">ሙሉ በሙሉ</span><span style="--sw:#2a78d6">በከፊል</span><span style="--sw:#86b6ef">ዝናብ የለም</span><span style="--sw:#c3c2b7">መረጃ የለም</span>
+                            <span style="--sw:#173e50">ሙሉ በሙሉ</span><span style="--sw:#1a7aa3">በከፊል</span><span style="--sw:#6aa6be">ዝናብ የለም</span><span style="--sw:#c3c2b7">መረጃ የለም</span>
                         </div>
                         <div class="ew-chart" style="height:@(Math.Max(140, agg.RainfallZones.Count * 40 + 40))px"><canvas id="rainChart" aria-label="የዝናብ ሽፋን በዞን" role="img"></canvas></div>
                     }
@@ -283,7 +286,7 @@
     (function () {
         if (typeof Chart === 'undefined') return;
         const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(chartData));
-        const ink = '#52514e', muted = '#898781', grid = '#e1e0d9', blue = '#2a78d6';
+        const ink = '#52514e', muted = '#898781', grid = '#e1e0d9', blue = '#1a7aa3'; // brand teal (sidebar #276683), chart step
         const fmt = v => Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
         Chart.defaults.global.defaultFontFamily = "'Nyala','Ebrima','Noto Sans Ethiopic',system-ui,'Segoe UI',sans-serif";
         Chart.defaults.global.defaultFontColor = ink;
@@ -303,7 +306,7 @@
         if (causeEl && data.causes.length) {
             new Chart(causeEl, {
                 type: 'horizontalBar',
-                data: { labels: data.causes.map(x => x.label), datasets: [{ label: 'የተጎዱ ሰዎች', data: data.causes.map(x => x.value), backgroundColor: blue, hoverBackgroundColor: '#1c5cab', barPercentage: 0.7, categoryPercentage: 0.85 }] },
+                data: { labels: data.causes.map(x => x.label), datasets: [{ label: 'የተጎዱ ሰዎች', data: data.causes.map(x => x.value), backgroundColor: blue, hoverBackgroundColor: '#276683', barPercentage: 0.7, categoryPercentage: 0.85 }] },
                 options: { maintainAspectRatio: false, legend: { display: false }, tooltips: tooltip('ሰዎች'), scales: { xAxes: [axis()], yAxes: [category()] } }
             });
         }
@@ -311,7 +314,7 @@
         // Rainfall coverage by zone — ordinal blue ramp (full → partial → none) + neutral grey for "no data".
         const rainEl = document.getElementById('rainChart');
         if (rainEl && data.rain.length) {
-            const series = [['ሙሉ በሙሉ', 'full', '#184f95'], ['በከፊል', 'partial', '#2a78d6'], ['ዝናብ የለም', 'none', '#86b6ef'], ['መረጃ የለም', 'noData', '#c3c2b7']];
+            const series = [['ሙሉ በሙሉ', 'full', '#173e50'], ['በከፊል', 'partial', '#1a7aa3'], ['ዝናብ የለም', 'none', '#6aa6be'], ['መረጃ የለም', 'noData', '#c3c2b7']];
             new Chart(rainEl, {
                 type: 'horizontalBar',
                 data: {
@@ -328,7 +331,7 @@
             const plan = data.meher[0].value || 0;
             new Chart(meherEl, {
                 type: 'bar',
-                data: { labels: data.meher.map(x => x.label), datasets: [{ label: 'ሄክታር', data: data.meher.map(x => x.value), backgroundColor: data.meher.map((x, i) => i === 0 ? '#86b6ef' : blue), barPercentage: 0.6 }] },
+                data: { labels: data.meher.map(x => x.label), datasets: [{ label: 'ሄክታር', data: data.meher.map(x => x.value), backgroundColor: data.meher.map((x, i) => i === 0 ? '#6aa6be' : blue), barPercentage: 0.6 }] },
                 options: {
                     maintainAspectRatio: false, legend: { display: false },
                     tooltips: Object.assign(tooltip('ሄ/ር'), {
@@ -344,7 +347,7 @@
         if (trendEl && data.trend.length) {
             new Chart(trendEl, {
                 type: 'line',
-                data: { labels: data.trend.map(x => x.label), datasets: [{ label: 'ወረዳዎች', data: data.trend.map(x => x.value), borderColor: blue, backgroundColor: 'rgba(42,120,214,.08)', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: blue, pointBorderColor: '#fcfcfb', pointBorderWidth: 2, lineTension: 0.25, fill: true }] },
+                data: { labels: data.trend.map(x => x.label), datasets: [{ label: 'ወረዳዎች', data: data.trend.map(x => x.value), borderColor: blue, backgroundColor: 'rgba(26,122,163,.08)', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: blue, pointBorderColor: '#fcfcfb', pointBorderWidth: 2, lineTension: 0.25, fill: true }] },
                 options: { maintainAspectRatio: false, legend: { display: false }, tooltips: tooltip('ወረዳ'), hover: { mode: 'index', intersect: false }, scales: { xAxes: [category()], yAxes: [axis()] } }
             });
         }

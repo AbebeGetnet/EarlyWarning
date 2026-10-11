@@ -264,8 +264,8 @@
                                     foreach (var kebele in Model.Kebelies)
                                     {
                                         <div class="col-md-3 form-check mb-2">
-                                            <input class="form-check-input kebele-checkbox" type="checkbox" name="SelectedKebeliesIds" value="@kebele.Id" data-name="@kebele.LocationAmharicName" id="keb_@kebele.Id" />
-                                            <label class="form-check-label" for="keb_@kebele.Id">@kebele.LocationAmharicName</label>
+                                            <input class="form-check-input kebele-checkbox" type="checkbox" name="SelectedKebeliesIds" value="@kebele.Id" data-name="@kebele.DisplayName" id="keb_@kebele.Id" />
+                                            <label class="form-check-label" for="keb_@kebele.Id">@kebele.DisplayName</label>
                                         </div>
                                     }
                                 }
@@ -279,8 +279,8 @@
                                     foreach (var kebele in Model.Kebelies)
                                     {
                                         <div class="col-md-3 form-check mb-2">
-                                            <input class="form-check-input drought-kebele-checkbox" type="checkbox" name="SelectedDroughtKebeleIds" value="@kebele.Id" data-name="@kebele.LocationAmharicName" id="droughtKeb_@kebele.Id" />
-                                            <label class="form-check-label" for="droughtKeb_@kebele.Id">@kebele.LocationAmharicName</label>
+                                            <input class="form-check-input drought-kebele-checkbox" type="checkbox" name="SelectedDroughtKebeleIds" value="@kebele.Id" data-name="@kebele.DisplayName" id="droughtKeb_@kebele.Id" />
+                                            <label class="form-check-label" for="droughtKeb_@kebele.Id">@kebele.DisplayName</label>
                                         </div>
                                     }
                                 }

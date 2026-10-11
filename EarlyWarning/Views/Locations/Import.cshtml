@@ -1,0 +1,109 @@
+@model EarlyWarning.Services.LocationImportResult?
+@using EarlyWarning.Services
+@{
+    ViewData["Title"] = "የአድራሻ ዝርዝር ማስገቢያ";
+    var errors = Model?.Issues.Where(x => x.Severity == ImportIssueSeverity.Error).ToList() ?? [];
+    var warnings = Model?.Issues.Where(x => x.Severity == ImportIssueSeverity.Warning).ToList() ?? [];
+}
+
+<div class="container-fluid mt-3">
+    <div class="card card-outline card-primary">
+        <div class="card-header d-flex flex-wrap align-items-center">
+            <h3 class="card-title mb-0"><i class="fas fa-file-import mr-2"></i>የአድራሻ ዝርዝር ማስገቢያ (Import)</h3>
+            <div class="ml-auto">
+                <a asp-action="ImportTemplate" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-excel mr-1"></i>የExcel ቅጽ (Template) አውርድ</a>
+                <a asp-action="ExportLocations" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-export mr-1"></i>ያሉትን አድራሻዎች አውርድ</a>
+                <a asp-action="Index" class="btn btn-sm btn-outline-primary"><i class="fas fa-list mr-1"></i>ወደ አድራሻ ዝርዝር</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-5 mb-3">
+                    <form asp-action="Import" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group">
+                            <label for="file" class="font-weight-bold">ፋይል ይምረጡ (.xlsx ወይም .csv፣ እስከ 10 MB)</label>
+                            <input type="file" id="file" name="file" class="form-control-file" accept=".xlsx,.csv" required />
+                        </div>
+                        <button type="submit" name="mode" value="validate" class="btn btn-outline-primary mr-2"><i class="fas fa-check-circle mr-1"></i>አረጋግጥ ብቻ</button>
+                        <button type="submit" name="mode" value="import" class="btn btn-primary"
+                                onclick="return confirm('ፋይሉ ከተረጋገጠ በኋላ ሁሉም ረድፎች ይመዘገባሉ። ስህተት ካለ ምንም አይመዘገብም። ይቀጥሉ?');">
+                            <i class="fas fa-upload mr-1"></i>አስገባ
+                        </button>
+                        <p class="text-muted small mt-2 mb-0">"አረጋግጥ ብቻ" ፋይሉን ይፈትሻል እንጂ ምንም አይመዘግብም። "አስገባ" ምንም ስህተት ከሌለ ሁሉንም ረድፎች በአንድ ጊዜ ይመዘግባል፤ አንድ ስህተት ካለ ምንም አይመዘገብም።</p>
+                    </form>
+                </div>
+                <div class="col-lg-7">
+                    <h6 class="font-weight-bold">የዓምዶች መግለጫ</h6>
+                    <table class="table table-sm table-bordered small mb-2">
+                        <thead class="thead-light"><tr><th>ዓምድ</th><th>መግለጫ</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>Id</code></td><td>የረድፉ መለያ። GUID ወይም ማንኛውም ልዩ ጽሑፍ/ቁጥር (ለምሳሌ <code>Z-NG</code>)። ልጆቹ በ<code>ParentId</code> ይጠቅሱታል። ባዶ ከሆነ በደረጃና ኮድ ይታወቃል።</td></tr>
+                            <tr><td><code>ParentId</code> *</td><td>የወላጅ አድራሻ <code>Id</code> — በዚሁ ፋይል ያለ ረድፍ ወይም በሥርዓቱ ያለ አድራሻ GUID። ወላጁ በትክክል አንድ ደረጃ ከፍ ያለ መሆን አለበት (ሀገር ብቻ ወላጅ የለውም)።</td></tr>
+                            <tr><td><code>LocationName</code>, <code>LocationAmharicName</code> *</td><td>የእንግሊዝኛና የአማርኛ ስም (ቢያንስ አንዱ)።</td></tr>
+                            <tr><td><code>LocationCode</code> *</td><td>በደረጃው ውስጥ ልዩ ኮድ። ያለ አድራሻ በዚህ ኮድ ከተገኘ ይሻሻላል።</td></tr>
+                            <tr><td><code>Level</code> *</td><td><code>ሀገር</code>/<code>ክልል</code>/<code>ዞን</code>/<code>ወረዳ</code>/<code>ቀበሌ</code>፣ <code>0</code>–<code>4</code> ወይም Country/Region/Zone/Woreda/Kebele።</td></tr>
+                            <tr><td><code>Latitude</code>, <code>Longitude</code></td><td>የቦታው ነጥብ በዲግሪ (WGS84)፣ የአስርዮሽ ነጥብ <code>.</code> ይጠቀሙ (ለምሳሌ <code>12.6030</code>, <code>37.4521</code>)።</td></tr>
+                            <tr><td><code>PhoneNumber</code>, <code>CardHeaderTitle</code>, <code>IsActive</code></td><td>አማራጭ። ባዶ ሕዋስ ያለውን መረጃ አይሰርዝም።</td></tr>
+                        </tbody>
+                    </table>
+                    <p class="text-muted small mb-0">* አስፈላጊ። የዓምዶቹ ቅደም ተከተል ግድ አይደለም፤ የማይታወቁ ዓምዶች ችላ ይባላሉ።</p>
+                </div>
+            </div>
+
+            @if (Model != null)
+            {
+                <hr />
+                <h5 class="font-weight-bold mb-3">
+                    ውጤት @(ViewBag.FileName is string f ? $"— {f}" : "")
+                    @if (Model.Committed)
+                    {
+                        <span class="badge badge-success ml-2"><i class="fas fa-check mr-1"></i>ተመዝግቧል</span>
+                    }
+                    else if (Model.HasErrors)
+                    {
+                        <span class="badge badge-danger ml-2"><i class="fas fa-times mr-1"></i>ምንም አልተመዘገበም — ስህተቶቹን ያስተካክሉ</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-info ml-2"><i class="fas fa-check-circle mr-1"></i>ፋይሉ ትክክል ነው — ለማስመዝገብ "አስገባ"ን ይጫኑ</span>
+                    }
+                </h5>
+                <div class="row mb-3">
+                    <div class="col-6 col-md-3"><div class="small-box bg-light border mb-2"><div class="inner"><h3>@Model.TotalRows</h3><p>ጠቅላላ ረድፎች</p></div></div></div>
+                    <div class="col-6 col-md-3"><div class="small-box bg-light border mb-2"><div class="inner"><h3>@Model.ToInsert</h3><p>አዲስ @(Model.Committed ? "የተመዘገቡ" : "የሚመዘገቡ")</p></div></div></div>
+                    <div class="col-6 col-md-3"><div class="small-box bg-light border mb-2"><div class="inner"><h3>@Model.ToUpdate</h3><p>@(Model.Committed ? "የተሻሻሉ" : "የሚሻሻሉ") ነባር</p></div></div></div>
+                    <div class="col-6 col-md-3"><div class="small-box bg-light border mb-2"><div class="inner"><h3 class="@(errors.Any() ? "text-danger" : "")">@errors.Count / @warnings.Count</h3><p>ስህተቶች / ማስጠንቀቂያዎች</p></div></div></div>
+                </div>
+
+                @if (Model.Issues.Any())
+                {
+                    <div class="table-responsive" style="max-height:420px;overflow:auto">
+                        <table class="table table-sm table-striped table-bordered small mb-0">
+                            <thead class="thead-light"><tr><th style="width:80px">ረድፍ</th><th style="width:120px">አይነት</th><th>መልዕክት</th></tr></thead>
+                            <tbody>
+                                @foreach (var issue in Model.Issues.OrderBy(x => x.Severity).ThenBy(x => x.Row))
+                                {
+                                    <tr>
+                                        <td>@(issue.Row == 0 ? "ፋይል" : issue.Row.ToString())</td>
+                                        <td>
+                                            @if (issue.Severity == ImportIssueSeverity.Error)
+                                            {
+                                                <span class="text-danger"><i class="fas fa-times-circle mr-1"></i>ስህተት</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-warning"><i class="fas fa-exclamation-triangle mr-1"></i>ማስጠንቀቂያ</span>
+                                            }
+                                        </td>
+                                        <td>@issue.Message</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

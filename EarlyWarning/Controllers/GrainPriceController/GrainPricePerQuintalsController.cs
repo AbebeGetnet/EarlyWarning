@@ -80,7 +80,7 @@ namespace EarlyWarning.Controllers.GrainPriceController
 
             ViewBag.Woredas = await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .Select(x => new { WoredaId = x.Id, LocationAmharicName = x.LocationAmharicName })
+                .Select(x => new { WoredaId = x.Id, LocationAmharicName = x.LocationAmharicName ?? x.LocationName })
                 .ToListAsync();
 
             ViewBag.GrainTypes = await _context.GrainTypes
@@ -152,7 +152,7 @@ namespace EarlyWarning.Controllers.GrainPriceController
                     .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
                     .ToListAsync(),
                 "Id",
-                "LocationAmharicName",
+                nameof(EarlyWarning.Models.Locations.DisplayName),
                 grainPricePerQuintal.WoredaId
             );
 
@@ -182,7 +182,7 @@ namespace EarlyWarning.Controllers.GrainPriceController
             var currentUser = await _userManager.GetUserAsync(User);
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", grainPricePerQuintal.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), grainPricePerQuintal.WoredaId);
 
             ViewBag.GrainTypes = await _context.GrainTypes
                 .Where(g => g.IsActive)
@@ -300,7 +300,7 @@ namespace EarlyWarning.Controllers.GrainPriceController
                 return NotFound();
             }
             ViewData["GrainTypeId"] = new SelectList(_context.GrainTypes, "GrainTypeId", "GrainName", grainPricePerQuintal.GrainTypeId);
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", grainPricePerQuintal.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), grainPricePerQuintal.WoredaId);
             return View(grainPricePerQuintal);
         }
 
@@ -337,7 +337,7 @@ namespace EarlyWarning.Controllers.GrainPriceController
                 return RedirectToAction(nameof(Index));
             }
             ViewData["GrainTypeId"] = new SelectList(_context.GrainTypes, "GrainTypeId", "GrainName", grainPricePerQuintal.GrainTypeId);
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", grainPricePerQuintal.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), grainPricePerQuintal.WoredaId);
             return View(grainPricePerQuintal);
         }
 

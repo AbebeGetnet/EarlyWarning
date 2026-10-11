@@ -162,7 +162,7 @@ namespace EarlyWarning.Controllers.HumanDrinkWaterIssueController
                     reportedBy = userId
                 });
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", humanDrinkWaterIssue.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), humanDrinkWaterIssue.WoredaId);
             return View(humanDrinkWaterIssue);
         }
 
@@ -179,7 +179,7 @@ namespace EarlyWarning.Controllers.HumanDrinkWaterIssueController
             {
                 return NotFound();
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", humanDrinkWaterIssue.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), humanDrinkWaterIssue.WoredaId);
             return View(humanDrinkWaterIssue);
         }
 
@@ -215,7 +215,7 @@ namespace EarlyWarning.Controllers.HumanDrinkWaterIssueController
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", humanDrinkWaterIssue.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), humanDrinkWaterIssue.WoredaId);
             return View(humanDrinkWaterIssue);
         }
 

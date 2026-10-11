@@ -328,12 +328,12 @@ namespace EarlyWarning.Controllers
 
             var kebeleNames = await _dbContext.Locations
             .Where(l => report.SelectedKebeleIds.Contains(l.Id) && l.Level == LocationLevel.ቀበሌ)
-            .Select(l => new { l.Id, l.LocationName, l.LocationAmharicName })
+            .Select(l => new { l.Id, l.LocationName, LocationAmharicName = l.LocationAmharicName ?? l.LocationName })
             .ToListAsync();
 
             var droughtKebeleNames = await _dbContext.Locations
             .Where(l => report.SelectedKebeleIds.Contains(l.Id) && l.Level == LocationLevel.ቀበሌ)
-            .Select(l => new { l.Id, l.LocationName, l.LocationAmharicName })
+            .Select(l => new { l.Id, l.LocationName, LocationAmharicName = l.LocationAmharicName ?? l.LocationName })
             .ToListAsync();
 
             ViewBag.KebeleNames = kebeleNames.Select(k => new
@@ -491,7 +491,7 @@ namespace EarlyWarning.Controllers
         {
             var kebeles = await _dbContext.Locations
                 .Where(l => l.ParentId == woredaId && l.Level == LocationLevel.ቀበሌ && l.IsActive)
-                .Select(l => new { l.Id, l.LocationName, l.LocationAmharicName })
+                .Select(l => new { l.Id, l.LocationName, LocationAmharicName = l.LocationAmharicName ?? l.LocationName })
                 .ToListAsync();
             return Ok(kebeles);
         }

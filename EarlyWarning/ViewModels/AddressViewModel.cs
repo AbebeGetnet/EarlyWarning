@@ -31,5 +31,11 @@ namespace EarlyWarning.ViewModels.AddressViewModel
         [DisplayName("ሔደር")]
         public string? CardHeaderTitle { get; set; }
         public Guid? ParentId { get; set; }
+        [DisplayName("ኬክሮስ (Latitude)")]
+        [System.ComponentModel.DataAnnotations.Range(-90, 90)]
+        public decimal? Latitude { get; set; }
+        [DisplayName("ኬንትሮስ (Longitude)")]
+        [System.ComponentModel.DataAnnotations.Range(-180, 180)]
+        public decimal? Longitude { get; set; }
     }
 }

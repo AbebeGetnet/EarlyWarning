@@ -97,14 +97,14 @@ namespace EarlyWarning.Controllers.AidController
                     .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
                     .ToListAsync(),
                 "Id",
-                "LocationAmharicName",
+                nameof(EarlyWarning.Models.Locations.DisplayName),
                 assistanceRecipient.WoredaId
             );
 
             // Get all kebeles for assistance details
             ViewBag.Kebeles = await _context.Locations
                 .Where(x => x.Level == LocationLevel.ቀበሌ && x.IsActive)
-                .OrderBy(x => x.LocationAmharicName)
+                .OrderBy(x => x.LocationAmharicName ?? x.LocationName)
                 .ToListAsync();
 
             // Show success message if coming from previous report
@@ -150,7 +150,7 @@ namespace EarlyWarning.Controllers.AidController
                     reportedBy = userId
                 });
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", assistanceRecipient.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), assistanceRecipient.WoredaId);
             return View(assistanceRecipient);
         }
 
@@ -167,7 +167,7 @@ namespace EarlyWarning.Controllers.AidController
             {
                 return NotFound();
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", assistanceRecipient.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), assistanceRecipient.WoredaId);
             return View(assistanceRecipient);
         }
 
@@ -203,7 +203,7 @@ namespace EarlyWarning.Controllers.AidController
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", assistanceRecipient.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), assistanceRecipient.WoredaId);
             return View(assistanceRecipient);
         }
 

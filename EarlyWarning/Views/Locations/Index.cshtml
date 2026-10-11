@@ -9,6 +9,10 @@
     <div class="btn btn-info">
         <h4 style="color: white;padding-left:10px;">የአድራሻ መመዝገቢያ</h4>
         <a asp-action="Create" class="btn btn-success">አዲስ አድራሻ ጨምር</a>
+        @if (User.IsInRole("Supper Administrator"))
+        {
+            <a asp-action="Import" class="btn btn-light"><i class="fas fa-file-import mr-1"></i>ከፋይል አስገባ (Excel/CSV)</a>
+        }
     </div>
    
     <div class="card-body">

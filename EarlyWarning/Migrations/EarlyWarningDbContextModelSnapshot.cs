@@ -1708,11 +1708,13 @@ namespace EarlyWarning.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<decimal?>("Latitude")
+                        .HasColumnType("decimal(9,6)");
+
                     b.Property<int>("Level")
                         .HasColumnType("int");
 
                     b.Property<string>("LocationAmharicName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LocationCode")
@@ -1722,6 +1724,9 @@ namespace EarlyWarning.Migrations
                     b.Property<string>("LocationName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Longitude")
+                        .HasColumnType("decimal(9,6)");
 
                     b.Property<Guid?>("ParentId")
                         .HasColumnType("uniqueidentifier");

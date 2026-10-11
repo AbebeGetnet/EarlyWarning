@@ -96,7 +96,7 @@ namespace EarlyWarning.Controllers.GrainSupplyController
                     .Where(x => x.Level == LocationLevel.ወረዳ )
                     .ToListAsync(),
                 "Id",
-                "LocationAmharicName"
+                nameof(EarlyWarning.Models.Locations.DisplayName)
             );
 
 
@@ -129,7 +129,7 @@ namespace EarlyWarning.Controllers.GrainSupplyController
             // Reload ViewBag data in case of error
             ViewData["WoredaId"] = new SelectList(_context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToList(), "Id", "LocationAmharicName", grainSupply.WoredaId);
+                .ToList(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), grainSupply.WoredaId);
 
             // Load reasons for ViewBag
             ViewBag.IncreaseReasons = await _context.GrainIncreaseDecreases
@@ -225,7 +225,7 @@ namespace EarlyWarning.Controllers.GrainSupplyController
             {
                 return NotFound();
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", grainSupply.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), grainSupply.WoredaId);
             return View(grainSupply);
         }
 
@@ -261,7 +261,7 @@ namespace EarlyWarning.Controllers.GrainSupplyController
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", grainSupply.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), grainSupply.WoredaId);
             return View(grainSupply);
         }
 

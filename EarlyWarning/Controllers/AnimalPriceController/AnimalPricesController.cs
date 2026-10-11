@@ -48,7 +48,7 @@ namespace EarlyWarning.Controllers.AnimalPriceController
         // GET: AnimalPrices/Create
         public IActionResult Create()
         {
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName");
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName));
             return View();
         }
 
@@ -66,7 +66,7 @@ namespace EarlyWarning.Controllers.AnimalPriceController
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", animalPrice.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), animalPrice.WoredaId);
             return View(animalPrice);
         }
 
@@ -83,7 +83,7 @@ namespace EarlyWarning.Controllers.AnimalPriceController
             {
                 return NotFound();
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", animalPrice.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), animalPrice.WoredaId);
             return View(animalPrice);
         }
 
@@ -119,7 +119,7 @@ namespace EarlyWarning.Controllers.AnimalPriceController
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", animalPrice.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), animalPrice.WoredaId);
             return View(animalPrice);
         }
 

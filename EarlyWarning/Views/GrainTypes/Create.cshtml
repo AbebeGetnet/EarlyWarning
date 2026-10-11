@@ -8,7 +8,7 @@
 <style>
     /* Custom Styles */
     .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--ew-brand-gradient, linear-gradient(120deg, #173e50 0%, #276683 55%, #2f7f9f 100%));
         color: white;
         padding: 25px 20px;
         border-radius: 12px;
@@ -61,7 +61,7 @@
         }
 
     .card-header-custom {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--ew-brand-gradient, linear-gradient(120deg, #173e50 0%, #276683 55%, #2f7f9f 100%));
         color: white;
         padding: 12px 20px;
         font-weight: 600;
@@ -88,7 +88,7 @@
 
         .form-label i {
             margin-right: 5px;
-            color: #11998e;
+            color: var(--ew-brand, #276683);
         }
 
     .form-control {
@@ -101,8 +101,8 @@
     }
 
         .form-control:focus {
-            border-color: #11998e;
-            box-shadow: 0 0 0 0.2rem rgba(17, 153, 142, 0.25);
+            border-color: var(--ew-brand, #276683);
+            box-shadow: 0 0 0 0.2rem rgba(39, 102, 131, 0.25);
             outline: none;
         }
 
@@ -133,7 +133,7 @@
         }
 
     .badge-status {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        background: var(--ew-brand-gradient, linear-gradient(120deg, #173e50 0%, #276683 55%, #2f7f9f 100%));
         color: white;
         padding: 5px 12px;
         border-radius: 20px;
@@ -141,7 +141,7 @@
     }
 
         .badge-status.inactive {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            background: var(--ew-critical, #c0392b);
         }
 
     .action-buttons {
@@ -163,7 +163,7 @@
     }
 
     .btn-submit {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        background: var(--ew-good, #1e7e34);
         color: white;
     }
 
@@ -186,7 +186,7 @@
 
     .info-hint {
         background: #e8f4f8;
-        border-left: 3px solid #11998e;
+        border-left: 3px solid var(--ew-brand, #276683);
         padding: 8px 12px;
         border-radius: 6px;
         font-size: 0.8rem;

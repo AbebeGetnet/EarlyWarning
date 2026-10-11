@@ -1242,7 +1242,7 @@ namespace EarlyWarning.Controllers
         {
             ViewBag.WoredaSelectList = new SelectList(
                 await _context.Set<Locations>().Where(l => l.Level == LocationLevel.ወረዳ && l.IsActive).ToListAsync(),
-                "Id", "LocationAmharicName", model.WoredaId
+                "Id", nameof(EarlyWarning.Models.Locations.DisplayName), model.WoredaId
             );
 
             model.Kebelies = await _context.Set<Locations>()

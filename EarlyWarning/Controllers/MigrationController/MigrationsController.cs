@@ -110,14 +110,14 @@ namespace EarlyWarning.Controllers.MigrationController
                     .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
                     .ToListAsync(),
                 "Id",
-                "LocationAmharicName",
+                nameof(EarlyWarning.Models.Locations.DisplayName),
                 migration.WoredaId
             );
 
             // Get all kebeles for migration details (where people are migrating from/to)
             ViewBag.Kebeles = await _context.Locations
                 .Where(x => x.Level == LocationLevel.ቀበሌ && x.IsActive)
-                .OrderBy(x => x.LocationAmharicName)
+                .OrderBy(x => x.LocationAmharicName ?? x.LocationName)
                 .ToListAsync();
 
             // Get migration reasons (if you have a reasons table)
@@ -145,11 +145,11 @@ namespace EarlyWarning.Controllers.MigrationController
             // Reload ViewBag data in case of error
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", migration.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), migration.WoredaId);
 
             var locations = await _context.Locations
                 .Where(x => x.Level == LocationLevel.ቀበሌ && x.IsActive)
-                .OrderBy(x => x.LocationAmharicName)
+                .OrderBy(x => x.LocationAmharicName ?? x.LocationName)
                 .ToListAsync();
             ViewBag.Locations = locations;
 
@@ -272,11 +272,11 @@ namespace EarlyWarning.Controllers.MigrationController
 
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", migration.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), migration.WoredaId);
 
             var locations = await _context.Locations
                 .Where(x => x.IsActive)
-                .OrderBy(x => x.LocationAmharicName)
+                .OrderBy(x => x.LocationAmharicName ?? x.LocationName)
                 .ToListAsync();
             ViewBag.Locations = locations;
 
@@ -297,11 +297,11 @@ namespace EarlyWarning.Controllers.MigrationController
 
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", migration.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), migration.WoredaId);
 
             var locations = await _context.Locations
                 .Where(x => x.IsActive)
-                .OrderBy(x => x.LocationAmharicName)
+                .OrderBy(x => x.LocationAmharicName ?? x.LocationName)
                 .ToListAsync();
             ViewBag.Locations = locations;
 

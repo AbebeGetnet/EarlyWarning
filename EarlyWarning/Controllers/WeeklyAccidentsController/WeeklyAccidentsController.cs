@@ -103,7 +103,7 @@ namespace EarlyWarning.Controllers.WeeklyAccidentsController
                     .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
                     .ToListAsync(),
                 "Id",
-                "LocationAmharicName",
+                nameof(EarlyWarning.Models.Locations.DisplayName),
                 weeklyAccident.WoredaId
             );
 
@@ -135,7 +135,7 @@ namespace EarlyWarning.Controllers.WeeklyAccidentsController
             // Reload ViewBag data in case of error
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", weeklyAccidents.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), weeklyAccidents.WoredaId);
 
             ViewBag.AccidentTypes = await _context.AccidentTypes
                 .Where(a => a.IsActive)
@@ -251,7 +251,7 @@ namespace EarlyWarning.Controllers.WeeklyAccidentsController
 
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", weeklyAccidents.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), weeklyAccidents.WoredaId);
 
             ViewBag.AccidentTypes = await _context.AccidentTypes
                 .Where(a => a.IsActive)
@@ -276,7 +276,7 @@ namespace EarlyWarning.Controllers.WeeklyAccidentsController
             // Reload ViewBag data
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", weeklyAccidents.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), weeklyAccidents.WoredaId);
 
             ViewBag.AccidentTypes = await _context.AccidentTypes
                 .Where(a => a.IsActive)

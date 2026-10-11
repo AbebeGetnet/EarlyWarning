@@ -88,7 +88,7 @@ namespace EarlyWarning.Controllers.EpidemicDiseaseController
             ViewData["WoredaId"] = new SelectList(
                 _context.Locations.Where(x => x.Level == Enums.LocationLevel.ወረዳ),
                 "Id",
-                "LocationAmharicName",
+                nameof(EarlyWarning.Models.Locations.DisplayName),
                 epidemicDisease.WoredaId
             );
 
@@ -122,7 +122,7 @@ namespace EarlyWarning.Controllers.EpidemicDiseaseController
             ViewData["WoredaId"] = new SelectList(
                 _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive),
-                "Id", "LocationAmharicName", epidemicDisease.WoredaId);
+                "Id", nameof(EarlyWarning.Models.Locations.DisplayName), epidemicDisease.WoredaId);
 
             ViewBag.EpidemicDiseaseTypes = await _context.EpidemicDiseaseTypes
                 .Where(d => d.IsActive)
@@ -216,7 +216,7 @@ namespace EarlyWarning.Controllers.EpidemicDiseaseController
             {
                 return NotFound();
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", epidemicDisease.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), epidemicDisease.WoredaId);
             return View(epidemicDisease);
         }
 
@@ -252,7 +252,7 @@ namespace EarlyWarning.Controllers.EpidemicDiseaseController
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", "LocationAmharicName", epidemicDisease.WoredaId);
+            ViewData["WoredaId"] = new SelectList(_context.Locations, "Id", nameof(EarlyWarning.Models.Locations.DisplayName), epidemicDisease.WoredaId);
             return View(epidemicDisease);
         }
 

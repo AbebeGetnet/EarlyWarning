@@ -538,7 +538,7 @@
                         @* var origins = item.MigrationDetails?.Select(d => d.OriginLocation?.LocationAmharicName).Where(o => !string.IsNullOrEmpty(o)).Distinct().ToList() ?? new List<string>(); *@
                         var origins = item.MigrationDetails?
                         .Where(d => d.OriginLocation != null)
-                        .Select(d => d.OriginLocation.LocationAmharicName)
+                        .Select(d => d.OriginLocation.DisplayName)
                         .Distinct()
                         .ToList() ?? new List<string>();
                         <tr>

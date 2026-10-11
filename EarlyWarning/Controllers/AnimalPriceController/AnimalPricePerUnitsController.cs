@@ -87,7 +87,7 @@ namespace EarlyWarning.Controllers.AnimalPriceController
 
             ViewBag.Woredas = await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .Select(x => new { x.Id, x.LocationAmharicName })
+                .Select(x => new { x.Id, LocationAmharicName = x.LocationAmharicName ?? x.LocationName })
                 .ToListAsync();
 
             ViewBag.AnimalTypes = await _context.AnimalTypes
@@ -167,7 +167,7 @@ namespace EarlyWarning.Controllers.AnimalPriceController
                     .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
                     .ToListAsync(),
                 "Id",
-                "LocationAmharicName",
+                nameof(EarlyWarning.Models.Locations.DisplayName),
                 animalPricePerUnit.WoredaId
             );
 
@@ -198,7 +198,7 @@ namespace EarlyWarning.Controllers.AnimalPriceController
             // Reload ViewBag data in case of error
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", animalPricePerUnit.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), animalPricePerUnit.WoredaId);
 
             ViewBag.AnimalTypes = await _context.AnimalTypes
                 .Where(a => a.IsActive)
@@ -316,7 +316,7 @@ namespace EarlyWarning.Controllers.AnimalPriceController
 
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", animalPrice.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), animalPrice.WoredaId);
 
             ViewBag.AnimalTypes = await _context.AnimalTypes
                 .Where(a => a.IsActive)
@@ -378,7 +378,7 @@ namespace EarlyWarning.Controllers.AnimalPriceController
 
             ViewData["WoredaId"] = new SelectList(await _context.Locations
                 .Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive)
-                .ToListAsync(), "Id", "LocationAmharicName", animalPricePerUnit.WoredaId);
+                .ToListAsync(), "Id", nameof(EarlyWarning.Models.Locations.DisplayName), animalPricePerUnit.WoredaId);
 
             ViewBag.AnimalTypes = await _context.AnimalTypes
                 .Where(a => a.IsActive)
