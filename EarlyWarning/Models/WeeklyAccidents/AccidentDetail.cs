@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using EarlyWarning.Enums;
 
 namespace EarlyWarning.Models.WeeklyAccidents
 {
@@ -79,6 +80,21 @@ namespace EarlyWarning.Models.WeeklyAccidents
         [Display(Name = "ማስታወሻ")]
         [StringLength(500)]
         public string? Notes { get; set; }
+
+        [Display(Name = "የጉዳት ምድቦች")]
+        public AccidentDamageCategory DamageCategories { get; set; }
+
+        [Display(Name = "ሌላ የጉዳት ምድብ")]
+        [StringLength(200)]
+        public string? OtherDamageDescription { get; set; }
+
+        // Posted by the wizard's damage-category checkboxes; stored as the DamageCategories flags.
+        [NotMapped]
+        public List<AccidentDamageCategory> SelectedDamageCategories
+        {
+            get => Enum.GetValues<AccidentDamageCategory>().Where(x => x != AccidentDamageCategory.None && DamageCategories.HasFlag(x)).ToList();
+            set => DamageCategories = (value ?? []).Aggregate(AccidentDamageCategory.None, (all, x) => all | x);
+        }
 
         // Computed Properties
         [Display(Name = "አጠቃላይ የተጎዱ ቤተሰቦች")]

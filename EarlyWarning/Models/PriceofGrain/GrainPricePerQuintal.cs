@@ -74,6 +74,14 @@ namespace EarlyWarning.Models.PriceofGrain
         Decreased = 2,
 
         [Display(Name = "ተመሳሳይ ነው")]
-        Same = 3
+        Same = 3,
+
+        // First price ever recorded for the item, so there is nothing to compare against.
+        [Display(Name = "አዲስ")]
+        New = 4,
+
+        // Earlier prices exist, but not for the immediately preceding week.
+        [Display(Name = "ያልተነጻጸረ")]
+        Uncompared = 5
     }
 }

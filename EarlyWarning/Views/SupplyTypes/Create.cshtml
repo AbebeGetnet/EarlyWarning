@@ -253,6 +253,13 @@
                         </div>
                     </div>
 
+                    <!-- Aid category -->
+                    <div class="form-group">
+                        <label asp-for="Category" class="form-label"></label>
+                        <select asp-for="Category" asp-items="Html.GetEnumSelectList<EarlyWarning.Enums.AidCategory>()" class="form-select"></select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+
                     <!-- Status -->
                     <div class="form-group">
                         <div class="checkbox-group">

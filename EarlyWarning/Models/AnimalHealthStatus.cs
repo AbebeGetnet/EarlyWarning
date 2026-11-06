@@ -13,10 +13,11 @@ namespace EarlyWarning.Models
 
         [DisplayName("ወንድ አባወራ")]
         public int MaleHouseHold { get; set; }
-        [DisplayName("አለ ከተባለ የተጎዱ እንስሳት ብዛት")]
+        // Filled by the wizard as the sum of the per-disease affected animals; it is no longer entered directly.
+        [DisplayName("የተጎዱ እንስሳት ጠቅላላ ድምር")]
         public int NoOfKebeliesWithWaterSupply { get; set; }
 
-        [DisplayName("የበሽታው አይነት")]
+        [DisplayName("የእንስሣት አይነት")]
         [MaxLength(500)]
         public string? DiseaseType { get; set; }
 

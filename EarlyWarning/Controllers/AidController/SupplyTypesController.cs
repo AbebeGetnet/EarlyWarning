@@ -54,7 +54,7 @@ namespace EarlyWarning.Controllers.AidController
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SupplyTypeId,SupplyTypeName,IsActive")] SupplyType supplyType)
+        public async Task<IActionResult> Create([Bind("SupplyTypeId,SupplyTypeName,Category,IsActive")] SupplyType supplyType)
         {
             if (ModelState.IsValid)
             {
@@ -87,7 +87,7 @@ namespace EarlyWarning.Controllers.AidController
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("SupplyTypeId,SupplyTypeName,IsActive")] SupplyType supplyType)
+        public async Task<IActionResult> Edit(Guid id, [Bind("SupplyTypeId,SupplyTypeName,Category,IsActive")] SupplyType supplyType)
         {
             if (id != supplyType.SupplyTypeId)
             {

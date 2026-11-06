@@ -20,8 +20,8 @@
  }
  else
  {
- <div class="card shadow-sm mb-4"><div class="card-header fw-bold">የወረዳ ዝርዝር</div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>ዞን</th><th>ወረዳ</th><th>ሳምንት</th><th>ሁኔታ</th><th>ዝርዝር</th>@if(ViewBag.WorkflowMode == "approval" && User.IsInRole("ZoneAdmin")){<th style="min-width:330px">የዞን ውሳኔ</th>}</tr></thead><tbody>
- @foreach (var r in Model.Reports) { <tr><td>@r.Zone</td><td class="fw-bold">@r.Woreda</td><td>@r.StartDate.ToString("yyyy-MM-dd") — @r.EndDate.ToString("yyyy-MM-dd")</td><td><span class="badge bg-secondary">@r.Status</span></td><td><a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-primary">ሙሉ ዝርዝር / ግምገማ</a></td>@if(ViewBag.WorkflowMode == "approval" && User.IsInRole("ZoneAdmin")){<td><form asp-action="Act" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@r.Id"/><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(r.RowVersion)"/><textarea name="comment" class="form-control form-control-sm mb-2" rows="2" maxlength="2000" placeholder="አስተያየት (ለውድቅ ግዴታ)"></textarea><button name="decision" value="Approve" class="btn btn-sm btn-success me-1">ፍቀድ</button><button name="decision" value="Reject" class="btn btn-sm btn-danger">ውድቅ አድርግ</button></form></td>}</tr> }
+ <div class="card shadow-sm mb-4"><div class="card-header fw-bold">የወረዳ ዝርዝር</div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>ዞን</th><th>ወረዳ</th><th>ሳምንት</th><th>ሁኔታ</th><th>ዝርዝር</th></tr></thead><tbody>
+ @foreach (var r in Model.Reports) { <tr><td>@r.Zone</td><td class="fw-bold">@r.Woreda</td><td>@r.StartDate.ToString("yyyy-MM-dd") — @r.EndDate.ToString("yyyy-MM-dd")</td><td><span class="badge bg-secondary">@r.Status</span></td><td><a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-primary">@(ViewBag.WorkflowMode == "approval" ? "ዝርዝሩን ከፍተው ይወስኑ" : "ሙሉ ዝርዝር / ግምገማ")</a></td></tr> }
  </tbody></table></div></div>
  }
 </div>

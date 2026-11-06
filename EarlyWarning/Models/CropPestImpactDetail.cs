@@ -23,6 +23,7 @@ public class CropPestImpactDetail
     [Range(0, int.MaxValue)] public int MaleDisabled { get; set; }
     [Range(0, int.MaxValue)] public int FemaleDisabled { get; set; }
     [Range(0, 1000000)] public decimal AffectedLandInHectares { get; set; }
+    [Range(0, 100)] public decimal DamagePercentage { get; set; }
     [StringLength(200)] public string? AffectedCropType { get; set; }
     [StringLength(500)] public string? Notes { get; set; }
 }

@@ -27,9 +27,16 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
         bool Match(Guid id, DateTime? start, DateTime? end) => start.HasValue && end.HasValue && keys.Contains((id, start.Value.Date, end.Value.Date));
         bool MatchRequired(Guid id, DateTime start, DateTime end) => keys.Contains((id, start.Date, end.Date));
         AggregateSectionViewModel Section(string name, params AggregateMetricViewModel[] metrics) => new() { Name = name, Metrics = metrics.ToList() };
-        static AggregateMetricViewModel M(string name, decimal value, string unit = "", string method = "SUM") => new(name, value, unit, method);
         static decimal People(IEnumerable<(int mh, int fh, int mf, int ff, int cm, int cf, int ym, int yf, int em, int ef, int dm, int df)> rows) =>
             rows.Sum(x => (decimal)x.mh + x.fh + x.mf + x.ff + x.cm + x.cf + x.ym + x.yf + x.em + x.ef + x.dm + x.df);
+        static DateTime? Day(DateTime? value) => value?.Date;
+        // Prices: a missing or non-positive price is "no data", never a zero observation.
+        static AggregateMetricViewModel? Average(string name, IReadOnlyCollection<decimal> values, string unit) =>
+            values.Count == 0 ? null : M(name, values.Average(), unit, "AVERAGE", values.Count);
+        static AggregateMetricViewModel M(string name, decimal value, string unit = "", string method = "SUM", decimal weight = 0) => new(name, value, unit, method, weight);
+        var places = await AffectedLocations.LoadPlacesAsync(db, ids);
+        string WoredaName(Guid id) => places.GetValueOrDefault(id)?.Woreda ?? "";
+        string ZoneName(Guid id) => places.GetValueOrDefault(id)?.Zone ?? "";
 
         var rain = (await db.RainfallReports
             .Include(x => x.Woreda).ThenInclude(x => x.Parent)
@@ -37,7 +44,7 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
             .Where(x => ids.Contains(x.WoredaId))
             .ToListAsync())
             .Where(x => Match(x.WoredaId, x.StartDate, x.EndDate))
-            .ToList();
+            .LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         result.FullRainCoverageKebeles = rain.Sum(x => x.FullCoverageKebeles); result.PartialRainCoverageKebeles = rain.Sum(x => x.PartialCoverageKebeles); result.NoRainKebeles = rain.Sum(x => x.NoRainKebeles);
         result.RainfallZones = rain
             .Where(x => x.Woreda.Parent != null)
@@ -54,7 +61,7 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
                 g.Sum(x => x.NoDataKebeles)))
             .OrderBy(x => x.Zone)
             .ToList();
-        result.Sections.Add(Section("1. የዝናብ ሁኔታ", M("ዝናብ ሙሉ በሙሉ ያገኙ ወረዳዎች ብዛት", result.FullRainCoverageKebeles), M("ዝናብ በከፊል ያገኙ ወረዳዎች ብዛት", result.PartialRainCoverageKebeles), M("ዝናብ ያላገኙ ወረዳዎች ብዛት", result.NoRainKebeles), M("መረጃ ያልተገኘላቸው ወረዳዎች ብዛትና ዝርዝር", rain.Sum(x => x.NoDataKebeles)), M("ዝቅተኛ", rain.Sum(x => x.LowAmountKebeles)), M("መካከለኛ", rain.Sum(x => x.MediumAmountKebeles)), M("ከፍተኛ", rain.Sum(x => x.HighAmountKebeles))));
+        result.Sections.Add(Section("1. የዝናብ ሁኔታ", M("ዝናብ ሙሉ በሙሉ ያገኙ ቀበሌዎች ብዛት", result.FullRainCoverageKebeles), M("ዝናብ በከፊል ያገኙ ቀበሌዎች ብዛት", result.PartialRainCoverageKebeles), M("ዝናብ ያላገኙ ቀበሌዎች ብዛት", result.NoRainKebeles), M("መረጃ ያልተገኘላቸው ቀበሌዎች ብዛት", rain.Sum(x => x.NoDataKebeles)), M("ዝቅተኛ", rain.Sum(x => x.LowAmountKebeles)), M("መካከለኛ", rain.Sum(x => x.MediumAmountKebeles)), M("ከፍተኛ", rain.Sum(x => x.HighAmountKebeles))));
 
         var farming = (await db.FarmingActivities
             .Include(x => x.Woreda).ThenInclude(x => x.Parent)
@@ -62,7 +69,7 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
             .Where(x => ids.Contains(x.WoredaId))
             .ToListAsync())
             .Where(x => Match(x.WoredaId, x.StartDate, x.EndDate))
-            .ToList();
+            .LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         result.FarmingZones = farming
             .Where(x => x.Woreda.Parent != null)
             .GroupBy(x => new
@@ -83,66 +90,74 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
             .ToList();
         result.Sections.Add(Section("2. የመኸር የእርሻ ሥራ እንቅስቃሴ", M("ዕቅድ በሄ/ር", (decimal)farming.Sum(x => x.MeherFarmPlan), "ሄ/ር"), M("የታረሰ በሄ/ር", (decimal)farming.Sum(x => x.MeherPloughed), "ሄ/ር"), M("የተዘራ በሄ/ር", (decimal)farming.Sum(x => x.MeherSown), "ሄ/ር"), M("አጨዳና ስብሰባ በሄ/ር", (decimal)farming.Sum(x => x.MeherHarvestingHHarvesting), "ሄ/ር"), M("በቀሪ እርጥበት የተዘራ በሄ/ር", (decimal)farming.Sum(x => x.MeherSownWithResidualMoisture), "ሄ/ር"), M("የበልግ ዕቅድ በሄ/ር", (decimal)farming.Sum(x => x.AutumnFarmPlan), "ሄ/ር"), M("የበልግ የተዘራ በሄ/ር", (decimal)farming.Sum(x => x.AutumnSown), "ሄ/ር")));
 
-        var pests = (await db.CropPestAndDeseaseReports.Include(x => x.Woreda).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).ToList();
-        result.AffectedCropLandHectares = pests.Sum(x => x.AffectedLandInHectar) ?? 0;
+        var pests = (await db.CropPestAndDeseaseReports.Include(x => x.Woreda).Include(x => x.ImpactDetails).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
+        // Damaged land is entered per pest; older reports only have the report-level figure.
+        result.AffectedCropLandHectares = pests.Sum(x => x.ImpactDetails.Count > 0 ? (float)x.ImpactDetails.Sum(d => d.AffectedLandInHectares) : x.AffectedLandInHectar ?? 0);
         result.CropAffectedPeople = (int)People(pests.Select(x => (x.MaleHouseHold,x.FemaleHouseHold,x.MaleFamily,x.FemaleFamily,x.ChildhMale,x.ChildFemale,x.YouthMale,x.YouthFemale,x.ElderlyMale,x.ElderlyFemale,x.DisabledMale,x.DisabledFemale)));
         result.Sections.Add(Section("3.2 የሰብል ተባይ ክስተት", M("በሰብል ተባይ የተጎዳ መሬት ሄ/ር", (decimal)result.AffectedCropLandHectares, "ሄ/ር"), M("በሰብል ተባይ የተጎዳ ማህበረሰብ", result.CropAffectedPeople)));
 
-        var pasture = (await db.PastureStatuses.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var pasture = (await db.PastureStatuses.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         result.Sections.Add(Section("4.1 የእንስሳት ግጦሽ ሁኔታ", M("ዝቅተኛ ከሆነ የተጎዳ የእንስሳት ቁጥር", pasture.Sum(x => x.NumberOfAnimalsAffected)), M("የግጦሽ ሁኔታ ዝቅተኛ የሆነባቸው ወረዳዎች", pasture.Count(x => !x.Enough), "", "COUNT"), M("በእንስሳት የመኖ እጥረት የተጎዳ ማህበረሰብ", People(pasture.Select(x => (x.MaleHouseHold,x.FemaleHouseHold,x.MaleFamily,x.FemaleFamily,x.ChildhMale,x.ChildFemale,x.YouthMale,x.YouthFemale,x.ElderlyMale,x.ElderlyFemale,x.DisabledMale,x.DisabledFemale))))));
 
-        var water = (await db.AnimalWaterSupplyStatuses.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var water = (await db.AnimalWaterSupplyStatuses.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         result.Sections.Add(Section("4.2 የእንስሳት ውሃ አቅርቦት ሁኔታ", M("በሳምንቱ የግጦሽ ችግር ያለባቸው ቀበሌዎች በቁጥር", water.Sum(x => x.NoOfKebeliesWithPastureShortage)), M("በሳምንቱ የውሃ ችግር ያለባቸው ቀበሌዎች በቁጥር", water.Sum(x => x.NoOfKebeliesWithWaterSupply)), M("የውሃ አቅርቦት ዝቅተኛ የሆነባቸው ወረዳዎች", water.Count(x => !x.Enough), "", "COUNT"), M("በውሃ እጥረት የተጎዳ ማህበረሰብ", People(water.Select(x => (x.MaleHouseHold,x.FemaleHouseHold,x.MaleFamily,x.FemaleFamily,x.ChildhMale,x.ChildFemale,x.YouthMale,x.YouthFemale,x.ElderlyMale,x.ElderlyFemale,x.DisabledMale,x.DisabledFemale))))));
         result.Sections.Add(Section("4.3 የእንስሳት አቋም", M("የእንስሳት አቋም መካከለኛ የሆነባቸው ወረዳዎች", water.Count(x => x.AnimalBodyCondition == AnimalBodyCondition.መካከለኛ), "", "COUNT"), M("የእንስሳት አቋም ዝቅተኛ የሆነባቸው ወረዳዎች", water.Count(x => x.AnimalBodyCondition == AnimalBodyCondition.ዝቅተኛ), "", "COUNT"), M("አቋማቸው ዝቅተኛ የሆነ የተጎዱ እንስሳት ብዛት", water.Sum(x => x.LowBodyConditionAnimalsAffected))));
 
-        var health = (await db.AnimalHealthStatuses.Include(x => x.Woreda).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var health = (await db.AnimalHealthStatuses.Include(x => x.Woreda).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         result.AnimalDiseaseAffectedPeople = (int)People(health.Select(x => (x.MaleHouseHold,x.FemaleHouseHold,x.MaleFamily,x.FemaleFamily,x.ChildhMale,x.ChildFemale,x.YouthMale,x.YouthFemale,x.ElderlyMale,x.ElderlyFemale,x.DisabledMale,x.DisabledFemale)));
         result.Sections.Add(Section("4.3 የእንስሳት ጤና በወረርሽኝ መልክ የተከሰተ በሽታ", M("በችግሩ የተጎዳ ማህበረሰብ", result.AnimalDiseaseAffectedPeople), M("በሽታ የተከሰተባቸው ወረዳዎች", health.Count(x => !x.Enough), "", "COUNT")));
 
-        var epidemics = (await db.EpidemicDiseases.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var epidemics = (await db.EpidemicDiseases.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         result.Sections.Add(Section("6. የሰው ጤና በሳምንቱ በወረርሽኝ መልኩ የተከሰተ በሽታ", M("የተጎዱ ቀበሌዎች ብዛት በቁጥር", epidemics.Sum(x => x.NumberOfAffectedKebeles)), M("በወረርሽኝ መልኩ በተከሰተ በሽታ የተጎዳ ማህበረሰብ", People(epidemics.Select(x => (x.MaleHouseholdHeads,x.FemaleHouseholdHeads,x.MaleFamilyMembers,x.FemaleFamilyMembers,x.MaleChildren,x.FemaleChildren,x.MaleYouth,x.FemaleYouth,x.MaleElderly,x.FemaleElderly,x.MaleDisabled,x.FemaleDisabled)))), M("ነፍሰ ጡር እናቶች በቁጥር", epidemics.Sum(x => x.PregnantWomen)), M("አጥቢ እናቶች በቁጥር", epidemics.Sum(x => x.LactatingMothers))));
 
-        var humanWater = (await db.HumanDrinkWaterIssues.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var humanWater = (await db.HumanDrinkWaterIssues.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         result.Sections.Add(Section("5. የሰው መጠጥ ውሃ ሁኔታ", M("ችግር ያለባቸው ቀበሌዎች በቁጥር", humanWater.Sum(x => x.NumberOfAffectedKebeles)), M("በመጠጥ ውሃ የተጎዳ ማህበረሰብ", People(humanWater.Select(x => (x.MaleHouseholdHeads,x.FemaleHouseholdHeads,x.MaleFamilyMembers,x.FemaleFamilyMembers,x.MaleChildren,x.FemaleChildren,x.MaleYouth,x.FemaleYouth,x.MaleElderly,x.FemaleElderly,x.MaleDisabled,x.FemaleDisabled))))));
 
-        var recipients = (await db.AssistanceRecipients.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var recipients = (await db.AssistanceRecipients.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         result.Sections.Add(Section("10. የእርዳታ አቅርቦትና ስርጭት", M("የዕለት እርዳታ ተጠቃሚ", People(recipients.Select(x => (x.MaleHouseholdHeads,x.FemaleHouseholdHeads,x.MaleFamilyMembers,x.FemaleFamilyMembers,x.MaleChildren,x.FemaleChildren,x.MaleYouth,x.FemaleYouth,x.MaleElderly,x.FemaleElderly,x.MaleDisabled,x.FemaleDisabled))))));
 
-        var migrations = (await db.Migrations.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var migrations = (await db.Migrations.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         var migrationIds = migrations.Select(x => x.MigrationId).ToList();
         var migrationPeople = await db.MigrationDetails.AsNoTracking().Where(x => migrationIds.Contains(x.MigrationId)).ToListAsync();
         result.Sections.Add(Section("በተለያዩ ምክንያት ስደት", M("የተሰደዱ ማህበረሰብ", People(migrationPeople.Select(x => (x.MaleHouseholdHeads,x.FemaleHouseholdHeads,x.MaleFamilyMembers,x.FemaleFamilyMembers,x.MaleChildren,x.FemaleChildren,x.MaleYouth,x.FemaleYouth,x.MaleElderly,x.FemaleElderly,x.MaleDisabled,x.FemaleDisabled))))));
 
-        var deaths = (await db.Deaths.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var deaths = (await db.Deaths.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         var deathIds = deaths.Select(x => x.DeathId).ToList(); var deathRows = await db.DeathDetails.AsNoTracking().Where(x => deathIds.Contains(x.DeathId)).ToListAsync();
         result.Sections.Add(Section("የሞተ ካለ", M("የሞተ ማህበረሰብ", People(deathRows.Select(x => (x.MaleHouseholdHeads,x.FemaleHouseholdHeads,x.MaleFamilyMembers,x.FemaleFamilyMembers,x.MaleChildren,x.FemaleChildren,x.MaleYouth,x.FemaleYouth,x.MaleElderly,x.FemaleElderly,x.MaleDisabled,x.FemaleDisabled))))));
 
-        var accidents = (await db.WeeklyAccidents.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var accidents = (await db.WeeklyAccidents.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         var accidentIds = accidents.Select(x => x.WeeklyAccidentsId).ToList(); var accidentRows = await db.AccidentDetails.AsNoTracking().Where(x => accidentIds.Contains(x.WeeklyAccidentsId)).ToListAsync();
         result.Sections.Add(Section("9. በሳምንቱ የታዩ ወቅታዊ አደጋዎች", M("የተጎዳ መሬት በሄ/ር", accidentRows.Sum(x => x.DamagedLandInHectares) ?? 0, "ሄ/ር"), M("የተጎዳ ቤተሰብ", accidentRows.Sum(x => x.AffectedHouseholdsMale + x.AffectedHouseholdsFemale)), M("በእያንዳንዱ ጉዳት የተጎዳ ማህበረሰብ", accidentRows.Sum(x => x.AffectedChildrenMale+x.AffectedChildrenFemale+x.AffectedYouthMale+x.AffectedYouthFemale+x.AffectedElderlyMale+x.AffectedElderlyFemale+x.AffectedDisabledMale+x.AffectedDisabledFemale))));
 
-        var other = (await db.OtherProblems.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var other = (await db.OtherProblems.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         result.Sections.Add(Section("11. ሌላ ያልተገለፀ በሳምንቱ ያጋጠመ ችግር ካለ", M("ችግር የተመዘገበባቸው ወረዳዎች", other.Count(x => x.HasOtherProblem), "", "COUNT"), M("በጉዳቱ የተጎዳ ማህበረሰብ", People(other.Select(x => (x.MaleHouseholdHeads,x.FemaleHouseholdHeads,x.MaleFamilyMembers,x.FemaleFamilyMembers,x.MaleChildren,x.FemaleChildren,x.MaleYouth,x.FemaleYouth,x.MaleElderly,x.FemaleElderly,x.MaleDisabled,x.FemaleDisabled))))));
 
-        var aid = (await db.WeeklyProvideds.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var aid = (await db.WeeklyProvideds.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         var aidIds = aid.Select(x => x.WeeklyProvidedId).ToList(); var aidRows = await db.WeeklyProvidedDetails.AsNoTracking().Where(x => aidIds.Contains(x.WeeklyProvidedId)).ToListAsync();
-        result.Sections.Add(Section("10.1 በሳምንቱ የቀረበ", M("የቀረበ", aidRows.Sum(x => x.ProvidedQuantity)), M("የተሰራጨ", aidRows.Sum(x => x.DistributedQuantity)), M("ከቀረበው የተሰራጨው በፐርሰንት", aidRows.Sum(x => x.ProvidedQuantity) == 0 ? 0 : aidRows.Sum(x => x.DistributedQuantity) / aidRows.Sum(x => x.ProvidedQuantity) * 100, "%", "RECALCULATED")));
+        result.Sections.Add(Section("10.1 በሳምንቱ የቀረበ", M("የቀረበ", aidRows.Sum(x => x.ProvidedQuantity)), M("የተሰራጨ", aidRows.Sum(x => x.DistributedQuantity)), M("ከቀረበው የተሰራጨው በፐርሰንት", aidRows.Sum(x => x.ProvidedQuantity) == 0 ? 0 : aidRows.Sum(x => x.DistributedQuantity) / aidRows.Sum(x => x.ProvidedQuantity) * 100, "%", "RECALCULATED", aidRows.Sum(x => x.ProvidedQuantity))));
 
-        var grainPrices = (await db.GrainPricePerQuintals.Include(x => x.GrainType).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
-        var grainSupply = (await db.GrainSupplys.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        // Each item is averaged on its own, over the woredas that reported a valid price for it.
+        List<AggregateMetricViewModel> PriceMetrics(IEnumerable<(string Item, decimal? Previous, decimal? Current)> rows) =>
+            rows.GroupBy(x => x.Item).OrderBy(g => g.Key).SelectMany(g => new[]
+            {
+                Average($"{g.Key} — ያለፈው ሳምንት", g.Where(x => x.Previous > 0).Select(x => x.Previous!.Value).ToList(), "ብር"),
+                Average($"{g.Key} — በዚህ ሳምንት", g.Where(x => x.Current > 0).Select(x => x.Current!.Value).ToList(), "ብር")
+            }).OfType<AggregateMetricViewModel>().ToList();
+        var grainPrices = (await db.GrainPricePerQuintals.Include(x => x.GrainType).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date, x.GrainTypeId), x => x.ReportDate);
+        var grainSupply = (await db.GrainSupplys.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         result.Sections.Add(new AggregateSectionViewModel { Name = "8.1 የእህል አቅርቦት ከባለፈው ሳምንት ጋር ሲነጻጸር", Metrics = grainSupply.GroupBy(x => x.GrainSupplyStatus).Select(g => M(g.Key.ToString(), g.Count(), "ወረዳ", "COUNT")).ToList() });
-        result.Sections.Add(new AggregateSectionViewModel { Name = "8.2 የእህል ዋጋ ከባለፈው ሳምንት ጋር ሲነጻጸር", Metrics = grainPrices.GroupBy(x => x.GrainType?.GrainName ?? x.GrainTypeId.ToString()).SelectMany(g => new[] { M($"{g.Key} — ያለፈው ሳምንት", g.Where(x => x.PreviousWeekPrice.HasValue).Select(x => x.PreviousWeekPrice!.Value).DefaultIfEmpty().Average(), "ብር", "AVERAGE"), M($"{g.Key} — በዚህ ሳምንት", g.Average(x => x.WeeklyPrice), "ብር", "AVERAGE") }).ToList() });
-        var animalPrices = (await db.AnimalPricePerUnits.Include(x => x.AnimalType).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
-        var animalSupply = (await db.AnimalSupplys.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        result.Sections.Add(new AggregateSectionViewModel { Name = "8.2 የእህል ዋጋ ከባለፈው ሳምንት ጋር ሲነጻጸር", Metrics = PriceMetrics(grainPrices.Select(x => (x.GrainType?.GrainName ?? x.GrainTypeId.ToString(), WeeklyFormReportService.PreviousPrice(x.WeeklyPrice, x.PriceDifference), (decimal?)x.WeeklyPrice))) });
+        var animalPrices = (await db.AnimalPricePerUnits.Include(x => x.AnimalType).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date, x.AnimalTypeId), x => x.ReportDate);
+        var animalSupply = (await db.AnimalSupplys.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         result.Sections.Add(new AggregateSectionViewModel { Name = "8.3 የእንስሳት አቅርቦት ከባለፈው ሳምንት ጋር ሲነጻጸር", Metrics = animalSupply.GroupBy(x => x.GrainSupplyStatus).Select(g => M(g.Key.ToString(), g.Count(), "ወረዳ", "COUNT")).ToList() });
-        result.Sections.Add(new AggregateSectionViewModel { Name = "8.4 የእንስሳት ዋጋ ከባለፈው ሳምንት ጋር ሲነጻጸር", Metrics = animalPrices.GroupBy(x => x.AnimalType?.AnimalTypeName ?? x.AnimalTypeId.ToString()).SelectMany(g => new[] { M($"{g.Key} — ያለፈው ሳምንት", g.Where(x => x.PreviousWeekPrice.HasValue).Select(x => x.PreviousWeekPrice!.Value).DefaultIfEmpty().Average(), "ብር", "AVERAGE"), M($"{g.Key} — በዚህ ሳምንት", g.Average(x => x.WeeklyPrice), "ብር", "AVERAGE") }).ToList() });
+        result.Sections.Add(new AggregateSectionViewModel { Name = "8.4 የእንስሳት ዋጋ ከባለፈው ሳምንት ጋር ሲነጻጸር", Metrics = PriceMetrics(animalPrices.Select(x => (x.AnimalType?.AnimalTypeName ?? x.AnimalTypeId.ToString(), WeeklyFormReportService.PreviousPrice(x.WeeklyPrice, x.PriceDifference), (decimal?)x.WeeklyPrice))) });
 
         var submissionIds = reports.Select(x => x.Id).ToList();
         var movements = await db.AnimalMigrationRecords.Include(x => x.OriginLocation).Include(x => x.DestinationLocation).AsNoTracking().Where(x => submissionIds.Contains(x.WeeklyReportSubmissionId)).ToListAsync();
         result.AnimalMigrationRoutes = movements.GroupBy(x => new { x.Direction,x.OriginLocationId,x.DestinationLocationId,x.AnimalType,x.OtherAnimalType }).Select(g => new AnimalMigrationAggregateViewModel { Direction=g.Key.Direction.ToString(), Origin=g.First().OriginLocation.LocationAmharicName??g.First().OriginLocation.LocationName??"", Destination=g.First().DestinationLocation.LocationAmharicName??g.First().DestinationLocation.LocationName??"", AnimalType=g.Key.AnimalType==MigratingAnimalType.Other?g.Key.OtherAnimalType??"Other":g.Key.AnimalType.ToString().Replace('_',' '), NumberOfAnimals=g.Sum(x=>(long)x.NumberOfAnimals)}).ToList();
         result.Sections.Add(Section("በተለያዩ ምክንያት ስደት — የእንስሳት ስደት", M("የተሰደዱ እንስሳት ብዛት", result.AnimalMigrationRoutes.Sum(x => x.NumberOfAnimals))));
 
-        var schools = (await db.SchoolReports.Include(x => x.Woreda).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).ToList();
+        var schools = (await db.SchoolReports.Include(x => x.Woreda).AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), null);
         var dropoutCount = schools.Sum(x => x.MaleStudentDropouts + x.FemaleStudentDropouts);
         var weightedAgePopulation = schools.Where(x => x.AverageDropoutAge.HasValue).Sum(x => x.MaleStudentDropouts + x.FemaleStudentDropouts);
         var weightedAverageAge = weightedAgePopulation == 0 ? 0 : schools.Where(x => x.AverageDropoutAge.HasValue)
@@ -152,8 +167,8 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
             M("ያቋረጡ ተማሪዎች — ወንድ", schools.Sum(x => x.MaleStudentDropouts), "ተማሪ"),
             M("ያቋረጡ ተማሪዎች — ሴት", schools.Sum(x => x.FemaleStudentDropouts), "ተማሪ"),
             M("ጠቅላላ ከትምህርት የወጡ", dropoutCount, "ተማሪ"),
-            M("አማካይ የማቋረጥ ጥምርታ/ምጣኔ", schools.Any(x => x.DropoutRatePercent.HasValue) ? schools.Where(x => x.DropoutRatePercent.HasValue).Average(x => x.DropoutRatePercent!.Value) : 0, "%", "AVERAGE"),
-            M("የወጡ ተማሪዎች የተመዘነ አማካይ ዕድሜ", weightedAverageAge, "ዓመት", "WEIGHTED AVERAGE"),
+            M("አማካይ የማቋረጥ ጥምርታ/ምጣኔ", schools.Any(x => x.DropoutRatePercent.HasValue) ? schools.Where(x => x.DropoutRatePercent.HasValue).Average(x => x.DropoutRatePercent!.Value) : 0, "%", "AVERAGE", schools.Count(x => x.DropoutRatePercent.HasValue)),
+            M("የወጡ ተማሪዎች የተመዘነ አማካይ ዕድሜ", weightedAverageAge, "ዓመት", "WEIGHTED AVERAGE", weightedAgePopulation),
             M("የተዘጉ ትምህርት ቤቶች ብዛት", schools.Sum(x => x.ClosedSchools), "ትምህርት ቤት"),
             M("እርምጃው አጥጋቢ የነበረባቸው", schools.Count(x => x.WasActionSatisfactory == true), "ወረዳ", "COUNT"),
             M("የተማሪ ጉዳይ መፍትሄ", schools.Count(x => x.StudentRelatedSolution), "ወረዳ", "COUNT"),
@@ -163,12 +178,33 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
             M("ሌላ መፍትሄ", schools.Count(x => x.OtherSolution), "ወረዳ", "COUNT")));
 
         var comments = await db.WeeklyReportWorkflowHistories.Include(x=>x.Submission).ThenInclude(x=>x.Woreda).AsNoTracking().Where(x=>submissionIds.Contains(x.WeeklyReportSubmissionId)&&x.Comment!=null&&x.Comment!="").ToListAsync();
+        AggregatedTextViewModel Text(string source, Guid woredaId, string text) => new(source, WoredaName(woredaId), text.Trim(), ZoneName(woredaId));
         var schoolTexts = schools.Where(x => x.HasTeachingLearningProblem).SelectMany(x => new[]
         {
-            new AggregatedTextViewModel("የትምህርት ችግር ምክንያት", x.Woreda?.LocationAmharicName ?? x.Woreda?.LocationName ?? "", x.Cause ?? "-"),
-            new AggregatedTextViewModel("ሶስት ዋና መፍትሄዎች", x.Woreda?.LocationAmharicName ?? x.Woreda?.LocationName ?? "", string.Join(" | ", new[] { x.MajorSolutionOne, x.MajorSolutionTwo, x.MajorSolutionThree }.Where(v => !string.IsNullOrWhiteSpace(v))))
-        }).Concat(schools.Where(x => x.OtherSolution && !string.IsNullOrWhiteSpace(x.OtherSolutionDescription)).Select(x => new AggregatedTextViewModel("ሌላ የትምህርት መፍትሄ", x.Woreda?.LocationAmharicName ?? x.Woreda?.LocationName ?? "", x.OtherSolutionDescription!)));
-        result.TextEntries = pests.Where(x=>!string.IsNullOrWhiteSpace(x.Remarks)).Select(x=>new AggregatedTextViewModel("የሰብል ተባይ/በሽታ",x.Woreda?.LocationAmharicName??"",x.Remarks!)).Concat(health.Where(x=>!string.IsNullOrWhiteSpace(x.Remarks)).Select(x=>new AggregatedTextViewModel("የእንስሳት ጤና",x.Woreda?.LocationAmharicName??"",x.Remarks!))).Concat(schoolTexts).Concat(comments.Select(x=>new AggregatedTextViewModel("የፍቃድ/ውድቅ አስተያየት",x.Submission.Woreda.LocationAmharicName??x.Submission.Woreda.LocationName??"",x.Comment!))).ToList();
+            Text("የትምህርት ችግር ምክንያት", x.WoredaId, x.Cause ?? "-"),
+            Text("ሶስት ዋና መፍትሄዎች", x.WoredaId, string.Join(" | ", new[] { x.MajorSolutionOne, x.MajorSolutionTwo, x.MajorSolutionThree }.Where(v => !string.IsNullOrWhiteSpace(v))))
+        }).Concat(schools.Where(x => x.OtherSolution && !string.IsNullOrWhiteSpace(x.OtherSolutionDescription)).Select(x => Text("ሌላ የትምህርት መፍትሄ", x.WoredaId, x.OtherSolutionDescription!)));
+        // Text keeps its woreda and zone; empty and repeated entries are dropped.
+        result.TextEntries = pests.Where(x => !string.IsNullOrWhiteSpace(x.Remarks)).Select(x => Text("የሰብል ተባይ/በሽታ", x.WoredaId, x.Remarks!))
+            .Concat(health.Where(x => !string.IsNullOrWhiteSpace(x.Remarks)).Select(x => Text("የእንስሳት ጤና", x.WoredaId, x.Remarks!)))
+            .Concat(schoolTexts)
+            .Concat(comments.Select(x => Text("የፍቃድ/ውድቅ አስተያየት", x.Submission.WoredaId, x.Comment!)))
+            .Where(x => !string.IsNullOrWhiteSpace(x.Text))
+            .Distinct()
+            .ToList();
+
+        // Event-affected locations: kebeles, woredas and zones are counted separately (see AffectedLocations).
+        foreach (var report in rain) { report.DeserializeKebeles(); report.DeserializeDroughtKebeles(); }
+        result.AffectedLocations =
+        [
+            AffectedLocations.Summarize(AffectedLocations.Events.Flood, rain.Select(x => (x.WoredaId, AffectedLocations.KebeleListCount(x.SelectedKebeleIds))), places),
+            AffectedLocations.Summarize(AffectedLocations.Events.Drought, rain.Select(x => (x.WoredaId, AffectedLocations.KebeleListCount(x.SelectedDroughtKebeleIds))), places),
+            AffectedLocations.Summarize(AffectedLocations.Events.NoRain, rain.Select(x => (x.WoredaId, x.NoRainKebeles)), places),
+            AffectedLocations.Summarize(AffectedLocations.Events.PastureShortage, water.Select(x => (x.WoredaId, x.NoOfKebeliesWithPastureShortage)), places),
+            AffectedLocations.Summarize(AffectedLocations.Events.AnimalWaterShortage, water.Select(x => (x.WoredaId, x.NoOfKebeliesWithWaterSupply)), places),
+            AffectedLocations.Summarize(AffectedLocations.Events.HumanWaterShortage, humanWater.Select(x => (x.WoredaId, x.NumberOfAffectedKebeles)), places),
+            AffectedLocations.Summarize(AffectedLocations.Events.Epidemic, epidemics.Select(x => (x.WoredaId, x.NumberOfAffectedKebeles)), places)
+        ];
         result.WoredaReports=reports.Count; result.ApprovedReports=reports.Count(x=>x.Status is WeeklySubmissionStatus.ZoneApproved or WeeklySubmissionStatus.RegionApproved or WeeklySubmissionStatus.RegionRejectedToZone); result.PendingReports=reports.Count-result.ApprovedReports;
         return result;
     }

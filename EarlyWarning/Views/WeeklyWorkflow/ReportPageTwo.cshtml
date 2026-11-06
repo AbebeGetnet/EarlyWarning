@@ -19,13 +19,23 @@
     .weekly-matrix thead .number-column, .weekly-matrix thead .activity-column { z-index: 4; background: #e9f1fb; }
     .weekly-matrix .section-row th { position: static; background: #dbeafe; }
     .weekly-matrix .summary-column { background: #f8f9fa; font-weight: 700; }
+    /* The zone-by-zone matrix is wide, so this page prints on A4 landscape (297 × 210 mm). */
+    @@page { size: A4 landscape; margin: 10mm; }
     @@media print {
-        .report-actions, nav, footer { display: none !important; }
-        .container-fluid { margin: 0 !important; padding: 0 !important; max-width: none !important; }
-        .weekly-matrix { font-size: 7pt; }
-        .weekly-matrix th, .weekly-matrix td { min-width: 85px; }
-        .weekly-matrix .activity-column { min-width: 180px; }
+        .report-actions, nav, footer, .main-header, .main-sidebar, .preloader, #toast-container { display: none !important; }
+        html, body { width: auto !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+        .wrapper, .content-wrapper, .content, .container-fluid { margin: 0 !important; padding: 0 !important; min-height: 0 !important; max-width: none !important; background: #fff !important; }
+        .card { border: 0 !important; box-shadow: none !important; }
+        .table-responsive { overflow: visible !important; }
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        /* Fit the page width: columns share the width and long text wraps instead of running off the page. */
+        .weekly-matrix { font-size: 7pt; width: 100% !important; min-width: 0 !important; table-layout: auto; }
+        .weekly-matrix th, .weekly-matrix td { min-width: 0; padding: .1rem .2rem; overflow-wrap: anywhere; }
+        .weekly-matrix .number-column { min-width: 0; width: 28px; }
+        .weekly-matrix .activity-column { min-width: 0; width: 22%; max-width: none; }
         .weekly-matrix thead th, .weekly-matrix .number-column, .weekly-matrix .activity-column { position: static; }
+        thead { display: table-header-group; }
+        tr { break-inside: avoid; }
     }
 </style>
 
@@ -52,7 +62,7 @@
     {
         <div class="card shadow-sm border-0 mb-4">
             <div class="table-responsive">
-                <table class="table table-sm table-bordered text-center align-middle mb-0 weekly-matrix">
+                <table class="table table-sm table-bordered text-start align-middle mb-0 weekly-matrix">
                     <thead>
                         <tr>
                             <th class="number-column">ተ.ቁ</th>
@@ -85,9 +95,13 @@
                                 .Where(m => m != null)
                                 .ToList();
                             var firstMetric = metrics.FirstOrDefault();
-                            var summary = firstMetric?.Method == "AVERAGE"
-                                ? (metrics.Any() ? metrics.Average(m => m!.Value) : 0)
-                                : metrics.Sum(m => m!.Value);
+                            // Sums and counts add up across zones. Averages and rates are combined as a mean weighted by
+                            // the observations (or quantity) behind each zone's value, not as an average of averages.
+                            var weight = metrics.Sum(m => m!.Weight);
+                            var summary = firstMetric == null || firstMetric.Method is "SUM" or "COUNT"
+                                ? metrics.Sum(m => m!.Value)
+                                : weight > 0 ? metrics.Sum(m => m!.Value * m.Weight) / weight
+                                : metrics.Any() ? metrics.Average(m => m!.Value) : 0;
                             <tr>
                                 <td class="number-column">@(sectionIndex + 1).@(metricIndex + 1)</td>
                                 <td class="activity-column text-start fw-semibold">@metricName</td>
@@ -104,6 +118,32 @@
                 </table>
             </div>
         </div>
+
+        var affectedEvents = Model.Zones.SelectMany(z => z.Aggregate.AffectedLocations).GroupBy(x => x.Event)
+            .Select(g => EarlyWarning.Services.AffectedLocations.Combine(g.Key, g)).Where(x => x.Woredas > 0).ToList();
+        @if (affectedEvents.Any())
+        {
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary bg-opacity-10 fw-bold">በክስተት የተጎዱ አካባቢዎች (ክልል)</div>
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light"><tr><th>ክስተት</th><th>የተጎዱ ዞኖች</th><th>የተጎዱ ወረዳዎች</th><th>የተጎዱ ቀበሌዎች</th><th>የተጎዱ ዞኖችና ወረዳዎች</th></tr></thead>
+                        <tbody>
+                            @foreach (var affected in affectedEvents)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@affected.Event</td>
+                                    <td>@affected.Zones.ToString("N0")</td>
+                                    <td>@affected.Woredas.ToString("N0")</td>
+                                    <td>@affected.Kebeles.ToString("N0")</td>
+                                    <td>@foreach (var zone in EarlyWarning.Services.AffectedLocations.ByZone(affected)) { <div><strong>@EarlyWarning.Services.AffectedLocations.ZoneWithWoredas(zone.Key, zone.Count())፡</strong> @EarlyWarning.Services.AffectedLocations.WoredaList(zone)</div> }</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
 
         var narratives = Model.Zones.SelectMany(z => z.Aggregate.TextEntries.Select(x => new { z.Zone, x.Source, x.Text })).ToList();
         @if (narratives.Any())

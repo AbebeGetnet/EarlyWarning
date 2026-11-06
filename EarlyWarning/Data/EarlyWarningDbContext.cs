@@ -1,4 +1,5 @@
 ﻿using EarlyWarning.Enums;
+using EarlyWarning.Enums;
 using EarlyWarning.Models;
 using EarlyWarning.Models.Aid;
 using EarlyWarning.Models.AnimalPrice;
@@ -74,6 +75,7 @@ namespace EarlyWarning.Data
         public DbSet<AnimalWaterSupplyStatus> AnimalWaterSupplyStatuses { get; set; } = default!;
         public DbSet<AnimalHealthStatus> AnimalHealthStatuses { get; set; } = default!;
         public DbSet<CropPestImpactDetail> CropPestImpactDetails { get; set; } = default!;
+        public DbSet<CropDefensiveActivity> CropDefensiveActivities { get; set; } = default!;
         public DbSet<AnimalDiseaseImpactDetail> AnimalDiseaseImpactDetails { get; set; } = default!;
         public DbSet<WeeklyReportSubmission> WeeklyReportSubmissions { get; set; } = default!;
         public DbSet<WeeklyReportWorkflowHistory> WeeklyReportWorkflowHistories { get; set; } = default!;
@@ -144,6 +146,9 @@ namespace EarlyWarning.Data
                 .HasForeignKey(e => e.EpidemicDiseaseTypeId);
 
             modelBuilder.Entity<CropPestImpactDetail>().HasIndex(x => new { x.CropPestAndDeseaseReportId, x.CropPestAndDeseaseId }).IsUnique();
+            modelBuilder.Entity<CropPestImpactDetail>().Property(x => x.DamagePercentage).HasPrecision(5, 2);
+            modelBuilder.Entity<CropDefensiveActivity>().Property(x => x.AreaCoveredInHectares).HasPrecision(18, 2);
+            modelBuilder.Entity<SupplyType>().Property(x => x.Category).HasDefaultValue(AidCategory.Food).HasSentinel((AidCategory)0);
             modelBuilder.Entity<AnimalDiseaseImpactDetail>().HasIndex(x => new { x.AnimalHealthStatusId, x.AnimalDiseaseId }).IsUnique();
             modelBuilder.Entity<WeeklyReportSubmission>().HasIndex(x => new { x.WoredaId, x.StartDate, x.EndDate }).IsUnique();
             modelBuilder.Entity<WeeklyReportSubmission>().HasIndex(x => new { x.WoredaId, x.ReportingWeekStart }).IsUnique();

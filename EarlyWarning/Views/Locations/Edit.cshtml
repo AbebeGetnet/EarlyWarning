@@ -44,6 +44,7 @@
                     <div class="form-group col-md-3">
                         <label class="control-label">እናት ተቋም</label>
                         <select asp-for="ParentId" class="form-control">
+                            <option value=""></option>
                             @foreach (var location in ViewBag.Locations)
                             {
                                 <option value="@location.Id" name="@location.DisplayName">@location.DisplayName</option>
@@ -79,4 +80,12 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <link rel="stylesheet" href="~/AdminLte/plugins/select2/css/select2.min.css" />
+    <link rel="stylesheet" href="~/AdminLte/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css" />
+    <script src="~/AdminLte/plugins/select2/js/select2.full.min.js"></script>
+    <script>
+        $(function () {
+            $('#ParentId').select2({ theme: 'bootstrap4', width: '100%', placeholder: '-- እናት ተቋም ይፈልጉ --', allowClear: true });
+        });
+    </script>
 }

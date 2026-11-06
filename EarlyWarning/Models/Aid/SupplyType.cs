@@ -1,4 +1,5 @@
-﻿using EarlyWarning.Models.SupplyofGrain;
+﻿using EarlyWarning.Enums;
+using EarlyWarning.Models.SupplyofGrain;
 using System.ComponentModel.DataAnnotations;
 
 namespace EarlyWarning.Models.Aid
@@ -12,6 +13,9 @@ namespace EarlyWarning.Models.Aid
         [Display(Name = "የአቅርቦት አይነት ስም")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "የአቅርቦት አይነት ስም ከ2 እስከ 100 ቁምፊዎች መሆን አለበት")]
         public string SupplyTypeName { get; set; } = string.Empty;
+
+        [Display(Name = "የእርዳታ ምድብ")]
+        public AidCategory Category { get; set; } = AidCategory.Food;
 
         [Display(Name = "ንቁ ነው?")]
         public bool IsActive { get; set; } = true;

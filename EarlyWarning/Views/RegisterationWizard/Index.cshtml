@@ -5,6 +5,18 @@
     var serverErrorFields = ViewData.ModelState.Where(x => x.Value?.Errors.Count > 0)
         .Select(x => x.Key).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
     var zoneReviewSubmission = ViewBag.ReviewSubmission as WeeklyReportSubmission;
+    var cropImpactViewData = new ViewDataDictionary(ViewData)
+    {
+        ["ImpactExtras"] = new (string, string, string, string, string)[]
+        {
+            ("AffectedLandInHectares", "የተጎዳ የሰብል መጠን (ሄ/ር)", "0.01", "1000000", "0.01"),
+            ("DamagePercentage", "የጉዳት መጠን (%)", "0.01", "100", "0.01")
+        }
+    };
+    var animalImpactViewData = new ViewDataDictionary(ViewData)
+    {
+        ["ImpactExtras"] = new (string, string, string, string, string)[] { ("NumberOfAffectedAnimals", "የተጎዱ እንስሳት ብዛት", "1", "1000000000", "1") }
+    };
 }
 
 @section Styles {
@@ -273,6 +285,7 @@
                         </div>
                         <div class="p-3 bg-light rounded shadow-sm border mt-3">
                             <label class="form-label fw-bold text-dark"><i class="fas fa-sun me-1"></i>በድርቅ የተጎዱ ከበሌዎችን ይምረጡ</label>
+                            <small class="text-muted d-block">በከፍተኛ ዝናብ የተጎዱ ተብለው የተመረጡ ቀበሌዎች እዚህ አይታዩም።</small>
                             <div class="row pt-2 ms-1">
                                 @if (Model.Kebelies != null)
                                 {
@@ -293,7 +306,7 @@
                     <div class="p-4 bg-white rounded shadow-sm border-top border-success border-4">
                         <h4 class="text-success mb-3"><i class="fas fa-seedling me-2"></i>ደረጃ 2፡ የግብርና ስራዎች ክንውን (ሄክታር)</h4>
                         <div class="alert alert-warning p-2 d-none" id="farmPlanValidationError">
-                            <i class="fas fa-exclamation-triangle me-2"></i><strong>ስህተት፡</strong> የእቅድ መጠን ከተከናወኑት ማናቸውም መስኮች ማነስ አይችልም።
+                            <i class="fas fa-exclamation-triangle me-2"></i><strong>ስህተት፡</strong> <span id="farmPlanValidationMessage"></span>
                         </div>
                         <hr />
                         <div class="row g-3">
@@ -352,10 +365,6 @@
                         <div id="cropPestFields" class="d-none">
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label asp-for="CropPestAndDeseaseReport.AffectedLandInHectar" class="form-label"></label>
-                                    <input asp-for="CropPestAndDeseaseReport.AffectedLandInHectar" id="pestHectars" class="form-control" value="0" />
-                                </div>
-                                <div class="col-md-6">
                                     <label asp-for="CropPestAndDeseaseReport.TypeOfCropAffected" class="form-label"></label>
                                     <input asp-for="CropPestAndDeseaseReport.TypeOfCropAffected" id="pestCropType" class="form-control" />
                                 </div>
@@ -378,7 +387,23 @@
                             </div>
 
                             <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በእያንዳንዱ ተባይ/በሽታ የተጎዱ አርሶ አደሮች ስብጥር</h5>
-                            <div id="cropImpactCards">@for (var i = 0; i < Model.CropPestImpactDetails.Count; i++) { var item = Model.CropPestImpactDetails[i]; var type = Model.CropPestAndDeseases.First(x => x.Id == item.CropPestAndDeseaseId); <input type="hidden" name="CropPestImpactDetails[@i].CropPestAndDeseaseId" value="@item.CropPestAndDeseaseId" /><partial name="_PerTypeDemographicCard" model='($"CropPestImpactDetails[{i}]", type.Name, item.CropPestAndDeseaseId.ToString(), (object)item)' /> }</div>
+                            <div id="cropImpactCards">@for (var i = 0; i < Model.CropPestImpactDetails.Count; i++) { var item = Model.CropPestImpactDetails[i]; var type = Model.CropPestAndDeseases.First(x => x.Id == item.CropPestAndDeseaseId); <input type="hidden" name="CropPestImpactDetails[@i].CropPestAndDeseaseId" value="@item.CropPestAndDeseaseId" /><partial name="_PerTypeDemographicCard" model='($"CropPestImpactDetails[{i}]", type.Name, item.CropPestAndDeseaseId.ToString(), (object)item)' view-data="cropImpactViewData" /> }</div>
+                            <div class="p-3 bg-light rounded mb-3 shadow-sm border">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label fw-bold mb-0"><i class="fas fa-shield-alt me-1"></i>ለጉዳቱ ምላሽ የተወሰዱ የመከላከል ተግባራት</label>
+                                    <button type="button" class="btn btn-sm btn-outline-success" id="addDefensiveActivity"><i class="fas fa-plus me-1"></i>ተግባር ጨምር</button>
+                                </div>
+                                <table class="table table-sm table-bordered bg-white mb-0">
+                                    <thead class="table-light"><tr><th>#</th><th>የተወሰደ የመከላከል ተግባር</th><th style="width: 25%;">የተሸፈነ መሬት (ሄ/ር)</th><th style="width: 1%;"></th></tr></thead>
+                                    <tbody id="defensiveActivityRows">
+                                        @for (var i = 0; i < Model.CropDefensiveActivities.Count; i++)
+                                        {
+                                            <tr class="defensive-activity-row"><td class="defensive-activity-index">@(i + 1)</td><td><input name="CropDefensiveActivities[@i].Activity" value="@Model.CropDefensiveActivities[i].Activity" class="form-control" maxlength="300" data-required-when-visible="true" /></td><td><input name="CropDefensiveActivities[@i].AreaCoveredInHectares" value="@Model.CropDefensiveActivities[i].AreaCoveredInHectares?.ToString(System.Globalization.CultureInfo.InvariantCulture)" type="number" min="0" step="0.01" class="form-control" /></td><td><button type="button" class="btn btn-sm btn-outline-danger remove-defensive-activity" title="አስወግድ"><i class="fas fa-trash"></i></button></td></tr>
+                                        }
+                                    </tbody>
+                                </table>
+                                <small class="text-muted">ምንም ተግባር ካልተወሰደ ዝርዝሩን ባዶ ይተዉት።</small>
+                            </div>
                             <div class="table-responsive bg-white rounded shadow-sm d-none">
                                 <table class="table table-bordered text-center align-middle m-0 calc-table" id="pestTable">
                                     <thead class="table-warning text-dark">
@@ -591,10 +616,6 @@
                         <div id="animalHealthFields" class="d-none">
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label asp-for="AnimalHealthStatus.NoOfKebeliesWithWaterSupply" class="form-label fw-bold"></label>
-                                    <input asp-for="AnimalHealthStatus.NoOfKebeliesWithWaterSupply" id="healthAnimalsMale" class="form-for-int form-control" type="number" min="0" value="0" />
-                                </div>
-                                <div class="col-md-6">
                                     <label asp-for="AnimalHealthStatus.DiseaseType" class="form-label fw-bold"></label>
                                     <input asp-for="AnimalHealthStatus.DiseaseType" id="healthDiseaseType" class="form-control" maxlength="500" />
                                     <span asp-validation-for="AnimalHealthStatus.DiseaseType" class="text-danger"></span>
@@ -617,7 +638,7 @@
                             </div>
 
                             <h5 class="text-muted mt-4 mb-2"><i class="fas fa-users me-2"></i>በእያንዳንዱ የእንስሳት በሽታ የተጎዱ አርብቶ አደሮች ስብጥር</h5>
-                            <div id="animalImpactCards">@for (var i = 0; i < Model.AnimalDiseaseImpactDetails.Count; i++) { var item = Model.AnimalDiseaseImpactDetails[i]; var type = Model.AnimalDiseases.First(x => x.Id == item.AnimalDiseaseId); <input type="hidden" name="AnimalDiseaseImpactDetails[@i].AnimalDiseaseId" value="@item.AnimalDiseaseId" /><partial name="_PerTypeDemographicCard" model='($"AnimalDiseaseImpactDetails[{i}]", type.Name, item.AnimalDiseaseId.ToString(), (object)item)' /> }</div>
+                            <div id="animalImpactCards">@for (var i = 0; i < Model.AnimalDiseaseImpactDetails.Count; i++) { var item = Model.AnimalDiseaseImpactDetails[i]; var type = Model.AnimalDiseases.First(x => x.Id == item.AnimalDiseaseId); <input type="hidden" name="AnimalDiseaseImpactDetails[@i].AnimalDiseaseId" value="@item.AnimalDiseaseId" /><partial name="_PerTypeDemographicCard" model='($"AnimalDiseaseImpactDetails[{i}]", type.Name, item.AnimalDiseaseId.ToString(), (object)item)' view-data="animalImpactViewData" /> }</div>
                             <div class="table-responsive bg-white rounded shadow-sm d-none">
                                 <table class="table table-bordered text-center align-middle m-0 calc-table" id="healthTable">
                                     <thead class="table-danger text-dark">
@@ -667,16 +688,12 @@
                     </div>
                 </div>
 
-                @if (ViewBag.CanZoneDecision == true)
+                @if (ViewBag.CanZoneDecision == true && zoneReviewSubmission != null)
                 {
-                    <div class="card border-primary shadow-sm mt-4 mb-2">
-                        <div class="card-header fw-bold">የዞን ግምገማ ውሳኔ</div>
-                        <div class="card-body">
-                            <label for="zoneReviewComment" class="form-label">አስተያየት (ለውድቅ ግዴታ ነው)</label>
-                            <textarea id="zoneReviewComment" name="comment" form="zoneDecisionForm" class="form-control mb-3" rows="3" maxlength="2000"></textarea>
-                            <button type="submit" form="zoneDecisionForm" name="decision" value="Approve" class="btn btn-success me-2"><i class="fas fa-check me-1"></i>ፍቀድ</button>
-                            <button type="submit" form="zoneDecisionForm" name="decision" value="Reject" class="btn btn-danger"><i class="fas fa-times me-1"></i>ውድቅ አድርግ</button>
-                        </div>
+                    @* Approval is only available on the record's details page. *@
+                    <div class="alert alert-primary mt-4 mb-2">
+                        የዞን ማጽደቂያ የሚሰጠው በሪፖርቱ ዝርዝር ገጽ ላይ ብቻ ነው።
+                        <a asp-controller="WeeklyWorkflow" asp-action="Details" asp-route-id="@zoneReviewSubmission.Id" class="alert-link">የሪፖርቱን ዝርዝር ገጽ ይክፈቱ</a>
                     </div>
                 }
 
@@ -689,14 +706,6 @@
                     </button>
                 </div>
             </form>
-            @if (ViewBag.CanZoneDecision == true && zoneReviewSubmission != null)
-            {
-                <form id="zoneDecisionForm" asp-controller="WeeklyWorkflow" asp-action="Act" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@zoneReviewSubmission.Id" />
-                    <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(zoneReviewSubmission.RowVersion)" />
-                </form>
-            }
         </div>
     </div>
 </div>
@@ -833,12 +842,129 @@
         function updateMarketComparison(event) {
             const row = event.target.closest('tr');
             const current = Number(event.target.value) || 0;
-            const previous = Number(row.querySelector('.market-previous-price')?.value) || 0;
+            const previousInput = row.querySelector('.market-previous-price');
+            // Only the immediately preceding week is compared. Without it the row is
+            // New (no history at all) or Uncompared (older history only).
+            if (!previousInput || previousInput.value === '') {
+                row.querySelectorAll('.market-status').forEach(x => x.value = previousInput?.dataset.noComparisonStatus || 4);
+                row.querySelector('.market-difference').value = '';
+                row.querySelector('.market-percentage').value = '';
+                return;
+            }
+            const previous = Number(previousInput.value) || 0;
             const status = current > previous ? 1 : current < previous ? 2 : 3;
             row.querySelectorAll('.market-status').forEach(x => x.value = status);
             row.querySelector('.market-difference').value = (current - previous).toFixed(2);
             row.querySelector('.market-percentage').value = previous > 0 ? ((current - previous) / previous * 100).toFixed(2) : '0';
         }
+
+        async function refreshPreviousWeekPrices() {
+            const woredaId = document.getElementById('WoredaId')?.value;
+            const startDate = document.getElementById('StartDate')?.value;
+            if (!woredaId || !startDate) return;
+            try {
+                const response = await fetch(`@Url.Action("GetPreviousWeekPrices", "RegisterationWizard")?${new URLSearchParams({ woredaId, startDate })}`, {
+                    headers: { 'Accept': 'application/json' }, cache: 'no-store'
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                const applyRows = (prefix, key, rows) => (rows || []).forEach(item => {
+                    const hidden = [...document.querySelectorAll(`input[name^="${prefix}["][name$="].${key}"]`)]
+                        .find(x => x.value.toLowerCase() === String(item.id).toLowerCase());
+                    const row = hidden?.closest('tr');
+                    const previousInput = row?.querySelector('.market-previous-price');
+                    if (!previousInput) return;
+                    previousInput.value = item.previousWeekPrice ?? '';
+                    previousInput.dataset.noComparisonStatus = item.noComparisonStatus ?? '';
+                    updateMarketComparison({ target: row.querySelector('.market-current-price') });
+                });
+                applyRows('GrainPriceRows', 'GrainTypeId', data.grainPriceRows);
+                applyRows('AnimalPriceRows', 'AnimalTypeId', data.animalPriceRows);
+            } catch (error) {
+                console.error('Previous week price load failed:', error);
+            }
+        }
+
+        // A kebele already selected under high rainfall cannot also be reported as drought-affected.
+        function syncDroughtKebeleOptions() {
+            const highRainfallIds = new Set([...document.querySelectorAll('.kebele-checkbox:checked')].map(cb => cb.value));
+            document.querySelectorAll('.drought-kebele-checkbox').forEach(cb => {
+                const excluded = highRainfallIds.has(cb.value);
+                if (excluded) cb.checked = false;
+                cb.closest('.form-check')?.classList.toggle('d-none', excluded);
+            });
+        }
+        document.querySelectorAll('.kebele-checkbox').forEach(cb => cb.addEventListener('change', syncDroughtKebeleOptions));
+
+        // Per-disease damage fields and defensive activities are mandatory only while their card/section is shown
+        // (an inactive wizard step does not count as hidden).
+        function syncConditionalRequired() {
+            document.querySelectorAll('[data-required-when-visible]').forEach(input => {
+                input.required = !input.parentElement.closest('.d-none:not(.wizard-step)');
+            });
+        }
+
+        function addDefensiveActivityRow(activity = '', area = '') {
+            const body = document.getElementById('defensiveActivityRows');
+            const row = document.createElement('tr');
+            row.className = 'defensive-activity-row';
+            row.innerHTML = `<td class="defensive-activity-index"></td>
+                <td><input class="form-control" maxlength="300" data-required-when-visible="true" data-field="Activity" /></td>
+                <td><input class="form-control" type="number" min="0" step="0.01" data-field="AreaCoveredInHectares" /></td>
+                <td><button type="button" class="btn btn-sm btn-outline-danger remove-defensive-activity" title="አስወግድ"><i class="fas fa-trash"></i></button></td>`;
+            row.querySelector('[data-field="Activity"]').value = activity ?? '';
+            row.querySelector('[data-field="AreaCoveredInHectares"]').value = area ?? '';
+            body.appendChild(row);
+            renumberDefensiveActivities();
+            return row;
+        }
+
+        // Keeps posted names contiguous (CropDefensiveActivities[0..n]) so MVC binds every row.
+        function renumberDefensiveActivities() {
+            document.querySelectorAll('#defensiveActivityRows .defensive-activity-row').forEach((row, index) => {
+                row.querySelector('.defensive-activity-index').textContent = index + 1;
+                row.querySelectorAll('input').forEach(input => {
+                    const field = input.dataset.field || input.name.split('.').pop();
+                    input.dataset.field = field;
+                    input.name = `CropDefensiveActivities[${index}].${field}`;
+                });
+            });
+            syncConditionalRequired();
+        }
+
+        function setDefensiveActivities(items) {
+            document.getElementById('defensiveActivityRows').innerHTML = '';
+            (items || []).forEach(x => addDefensiveActivityRow(x.activity, x.areaCoveredInHectares));
+            renumberDefensiveActivities();
+        }
+
+        // Draft snapshots store field names only, so recreate enough rows before their values are applied.
+        function ensureDefensiveActivityRows(names) {
+            const highest = Math.max(-1, ...names.map(name => Number(/^CropDefensiveActivities\[(\d+)\]/.exec(name)?.[1] ?? -1)));
+            while (document.querySelectorAll('#defensiveActivityRows .defensive-activity-row').length <= highest) addDefensiveActivityRow();
+        }
+
+        document.getElementById('addDefensiveActivity')?.addEventListener('click', () => {
+            addDefensiveActivityRow().querySelector('input')?.focus();
+        });
+        document.getElementById('defensiveActivityRows')?.addEventListener('click', event => {
+            const button = event.target.closest('.remove-defensive-activity');
+            if (!button) return;
+            button.closest('tr').remove();
+            renumberDefensiveActivities();
+            document.getElementById('earlyWarningForm').dispatchEvent(new Event('change'));
+        });
+        renumberDefensiveActivities();
+
+        // A danger's "Other" damage category needs a description.
+        function syncAccidentOtherDamage() {
+            document.querySelectorAll('.accident-damage-other').forEach(box => {
+                box.closest('.impact-card')?.querySelector('.accident-other-damage')?.classList.toggle('d-none', !box.checked);
+            });
+            syncConditionalRequired();
+        }
+        document.querySelectorAll('.accident-damage-other').forEach(box => box.addEventListener('change', syncAccidentOtherDamage));
+        document.getElementById('earlyWarningForm')?.addEventListener('change', syncConditionalRequired);
 
         function updateMaxKebeleLimit() {
             const totalKebelesInput = document.getElementById("totalWoredaKebeles");
@@ -992,9 +1118,11 @@
                 } else {
                     hydrateWizardForm(data);
                 }
+                syncDroughtKebeleOptions();
             } finally {
                 isHydratingWeeklyData = false;
             }
+            await refreshPreviousWeekPrices();
             serverDraftEnabled = Boolean(data.canEdit);
             if (!data.canEdit) {
                 document.querySelectorAll("#earlyWarningForm input, #earlyWarningForm select, #earlyWarningForm textarea, #earlyWarningForm button[type='submit']")
@@ -1060,6 +1188,7 @@
                     return false;
                 }
                 const form = document.getElementById("earlyWarningForm");
+                syncConditionalRequired();
                 document.querySelectorAll('#earlyWarningForm input[type="number"]').forEach(x => x.dispatchEvent(new Event('input')));
                 if (!form.checkValidity()) {
                     const invalidField = form.querySelector(':invalid');
@@ -1143,6 +1272,7 @@
         async function validateCurrentStep() {
             let valid = true;
             updateMaxKebeleLimit();
+            syncConditionalRequired();
             const nativeInvalid = Array.from(steps[currentStep].querySelectorAll('input, select, textarea'))
                 .find(field => field.type !== 'hidden' && field.offsetParent !== null && !field.checkValidity());
             if (nativeInvalid) {
@@ -1229,16 +1359,27 @@
                 errorAlert.classList.add("d-none");
                 document.querySelectorAll(".farm-val-meher, .farm-val-autumn, #meherPlan, #autumnPlan").forEach(el => el.classList.remove("is-invalid"));
 
-                let meherPlanVal = parseFloat(document.getElementById("meherPlan").value) || 0;
-                document.querySelectorAll(".farm-val-meher").forEach(input => {
-                    if ((parseFloat(input.value) || 0) > meherPlanVal) { input.classList.add("is-invalid"); document.getElementById("meherPlan").classList.add("is-invalid"); valid = false; }
+                // Ploughed may exceed the plan; seeded <= ploughed and harvested <= seeded.
+                // Residual-moisture sowing keeps its existing limit of the plan.
+                const farmErrors = [];
+                const areaValue = id => parseFloat(document.getElementById(id).value) || 0;
+                const flagArea = (id, limitId, message) => {
+                    if (areaValue(id) <= areaValue(limitId)) return;
+                    document.getElementById(id).classList.add("is-invalid");
+                    document.getElementById(limitId).classList.add("is-invalid");
+                    farmErrors.push(message);
+                    valid = false;
+                };
+                [["meher", "መኸር"], ["autumn", "በልግ"]].forEach(([season, seasonName]) => {
+                    flagArea(`${season}Sown`, `${season}Ploughed`, `የ${seasonName} የተዘራ መሬት ከታረሰው መሬት መብለጥ አይችልም።`);
+                    flagArea(`${season}Harvesting`, `${season}Sown`, `የ${seasonName} የተሰበሰበ መሬት ከተዘራው መሬት መብለጥ አይችልም።`);
+                    flagArea(`${season}Residual`, `${season}Plan`, `የ${seasonName} በቀሪ እርጥበት የተዘራ መሬት ከእቅዱ መብለጥ አይችልም።`);
                 });
-
-                let autumnPlanVal = parseFloat(document.getElementById("autumnPlan").value) || 0;
-                document.querySelectorAll(".farm-val-autumn").forEach(input => {
-                    if ((parseFloat(input.value) || 0) > autumnPlanVal) { input.classList.add("is-invalid"); document.getElementById("autumnPlan").classList.add("is-invalid"); valid = false; }
-                });
-                if (!valid) { errorAlert.classList.remove("d-none"); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+                if (!valid) {
+                    document.getElementById("farmPlanValidationMessage").textContent = farmErrors.join(" ");
+                    errorAlert.classList.remove("d-none");
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
             }
 
             // STEP 5 VALIDATION: PASTURE-SHORTAGE KEBELE BOUNDARY CHECK
@@ -1340,6 +1481,7 @@
                 document.querySelectorAll(".kebele-checkbox").forEach(cb => cb.checked = kebeleIds.map(String).includes(cb.value));
                 const droughtKebeleIds = data.rainfall.droughtKebeleIds || [];
                 document.querySelectorAll(".drought-kebele-checkbox").forEach(cb => cb.checked = droughtKebeleIds.map(String).includes(cb.value));
+                syncDroughtKebeleOptions();
             }
 
             if (data.farming) {
@@ -1365,7 +1507,6 @@
 
             if (data.pest) {
                 document.getElementById(`hasPest${data.pest.hasOccured ? 'Yes' : 'No'}`).checked = true;
-                document.getElementById("pestHectars").value = data.pest.hectars;
                 document.getElementById("pestCropType").value = data.pest.cropType || "";
                 const pestIds = data.pest.pestIds || [];
                 document.querySelectorAll(".pest-checkbox").forEach(cb => { cb.checked = pestIds.map(String).includes(cb.value); cb.dispatchEvent(new Event('change')); });
@@ -1413,7 +1554,6 @@
 
             if (data.health) {
                 document.getElementById(`healthEnough${data.health.enough ? 'Yes' : 'No'}`).checked = true;
-                document.getElementById("healthAnimalsMale").value = data.health.infectedMale;
                 document.getElementById("healthDiseaseType").value = data.health.diseaseType ?? "";
                 const healthFemale = document.getElementById("healthAnimalsFemale");
                 if (healthFemale) healthFemale.value = data.health.infectedFemale || 0;
@@ -1452,6 +1592,8 @@
             hydrateCollectionRows('AnimalDiseaseImpactDetails', 'AnimalDiseaseId', data.animalDiseaseImpactDetails);
             hydrateCollectionRows('EpidemicImpactDetails', 'EpidemicDiseaseTypeId', data.epidemicImpactDetails);
             hydrateCollectionRows('AccidentDetails', 'AccidentTypeId', data.accidentImpactDetails);
+            setDefensiveActivities(data.cropDefensiveActivities);
+            syncAccidentOtherDamage();
             if (data.inwardAnimalMigrationOriginId) document.querySelector('[name="InwardAnimalMigrationOriginId"]').value = data.inwardAnimalMigrationOriginId;
             if (data.outwardAnimalMigrationDestinationId) document.querySelector('[name="OutwardAnimalMigrationDestinationId"]').value = data.outwardAnimalMigrationDestinationId;
             const savedAnimalDirection = data.animalMigrationDirection || 'Inward';
@@ -1480,6 +1622,12 @@
                 if (!row) return;
                 Object.entries(item).forEach(([property, value]) => {
                     const pascal = property.charAt(0).toUpperCase() + property.slice(1);
+                    const checkboxes = row.querySelectorAll(`input[type="checkbox"][name$="].${pascal}"]`);
+                    if (checkboxes.length) {
+                        const selected = (Array.isArray(value) ? value : [value]).map(String);
+                        checkboxes.forEach(box => box.checked = selected.includes(box.value));
+                        return;
+                    }
                     const input = row.querySelector(`[name$="].${pascal}"]`);
                     if (input) input.value = value ?? '';
                 });
@@ -1582,7 +1730,11 @@
             let selectedKebeles = Array.from(document.querySelectorAll(".kebele-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
             let selectedDroughtKebeles = Array.from(document.querySelectorAll(".drought-kebele-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
             let selectedPests = Array.from(document.querySelectorAll(".pest-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
+            const totalPestHectares = Array.from(document.querySelectorAll(".pest-checkbox:checked")).reduce((sum, box) =>
+                sum + (parseFloat(document.querySelector(`.impact-card[data-impact-key="${box.value}"] [name$=".AffectedLandInHectares"]`)?.value) || 0), 0);
             let selectedDiseases = Array.from(document.querySelectorAll(".health-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
+            const totalAffectedAnimals = Array.from(document.querySelectorAll(".health-checkbox:checked")).reduce((sum, box) =>
+                sum + (parseInt(document.querySelector(`.impact-card[data-impact-key="${box.value}"] [name$=".NumberOfAffectedAnimals"]`)?.value) || 0), 0);
 
             let isPestActive = document.getElementById("hasPestSwitch").value === "true";
             let isPastureShort = document.getElementById("pastureEnoughSwitch").value === "false";
@@ -1593,10 +1745,10 @@
                 (parseInt(row.querySelector('.val-male')?.value) || 0) > 0 ||
                 (parseInt(row.querySelector('.val-female')?.value) || 0) > 0);
 
-            let hasPestData = isPestActive || parseFloat(document.getElementById("pestHectars").value) > 0 || selectedPests !== "ምንም አልተመረጠም" || gridHasData('pestTable');
+            let hasPestData = isPestActive || totalPestHectares > 0 || selectedPests !== "ምንም አልተመረጠም" || gridHasData('pestTable');
             let hasPastureShortage = isPastureShort || parseInt(document.getElementById("pastureAnimalsAffected").value) > 0 || parseInt(document.getElementById("pastureKebelesCount").value) > 0 || gridHasData('pastureTable');
             let hasWaterShortage = isWaterShort || parseInt(document.getElementById("waterKebelesCount").value) > 0 || gridHasData('waterTable');
-            let hasHealthIssues = isHealthIssues || parseInt(document.getElementById("healthAnimalsMale")?.value || 0) > 0 || selectedDiseases !== "ምንም አልተመረጠም" || gridHasData('healthTable');
+            let hasHealthIssues = isHealthIssues || totalAffectedAnimals > 0 || selectedDiseases !== "ምንም አልተመረጠም" || gridHasData('healthTable');
 
             let html = `
                 <div class="row g-3 mb-4">
@@ -1658,7 +1810,7 @@
                     <div class="card-body bg-white">
                         <p><strong>የተከሰተ ተባይ/በሽታ አለ?</strong> ${isPestActive ? '<span class="badge bg-danger">አዎ ተከስቷል</span>' : '<span class="badge bg-success">አልተከሰተም</span>'}</p>
                         ${hasPestData ? `
-                            <p><strong>የተጎዳ መሬት (ሄክታር)፡</strong> <span class="fw-bold text-danger">${document.getElementById("pestHectars").value}</span> | <strong>የሰብል አይነት፡</strong> <span class="fw-bold">${document.getElementById("pestCropType").value || "-"}</span></p>
+                            <p><strong>የተጎዳ መሬት (ሄክታር)፡</strong> <span class="fw-bold text-danger">${totalPestHectares.toLocaleString()}</span> <small class="text-muted">(የተባዮቹ ድምር)</small> | <strong>የሰብል አይነት፡</strong> <span class="fw-bold">${document.getElementById("pestCropType").value || "-"}</span></p>
                             <p><strong>የበሽታ አይነቶች፡</strong> <span class="text-danger fw-bold">${selectedPests}</span></p>
                             ${compileSelectedImpactTables('cropImpactCards', '.pest-checkbox:checked', 'warning')}
                         ` : ''}
@@ -1696,8 +1848,8 @@
                     <div class="card-body bg-white">
                         <p><strong>የእንስሳት ጤና ሁኔታ አጥጋቢ ነው?</strong> ${!isHealthIssues ? '<span class="badge bg-success">አዎ አጥጋቢ ነው</span>' : '<span class="badge bg-danger">አጥጋቢ አይደለም (ችግር አለ)</span>'}</p>
                         ${hasHealthIssues ? `
-                            <p><strong>የታመሙ/የተጎዱ እንስሳት፡</strong> <span class="fw-bold text-danger">${document.getElementById("healthAnimalsMale")?.value || 0}</span></p>
-                            <p><strong>የበሽታው አይነት፡</strong> ${(document.getElementById("healthDiseaseType")?.value || '-').replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';')}</p>
+                            <p><strong>የታመሙ/የተጎዱ እንስሳት፡</strong> <span class="fw-bold text-danger">${totalAffectedAnimals.toLocaleString()}</span> <small class="text-muted">(የበሽታዎቹ ድምር)</small></p>
+                            <p><strong>የእንስሣት አይነት፡</strong> ${(document.getElementById("healthDiseaseType")?.value || '-').replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';')}</p>
                             <p><strong>የተከሰቱ በሽታዎች፡</strong> <span class="text-danger fw-bold">${selectedDiseases}</span></p>
                             ${compileSelectedImpactTables('animalImpactCards', '.health-checkbox:checked', 'danger')}
                         ` : ''}
@@ -1713,6 +1865,7 @@
         }
 
         function applyServerDraftFields(fields) {
+            ensureDefensiveActivityRows(Object.keys(fields || {}));
             Object.entries(fields || {}).forEach(([name, rawValues]) => {
                 const values = Array.isArray(rawValues) ? rawValues.map(String) : [String(rawValues ?? '')];
                 Array.from(document.getElementById('earlyWarningForm').elements).filter(x => x.name === name).forEach(field => {
@@ -1868,6 +2021,7 @@
                 const raw = sessionStorage.getItem(draftKey); if (!raw) return;
                 try {
                     const draft = JSON.parse(raw);
+                    ensureDefensiveActivityRows(draft.fields.map(x => x.name));
                     draft.fields.forEach(saved => {
                         const matches = Array.from(form.elements).filter(x => x.name === saved.name &&
                             ((x.type === 'checkbox' || x.type === 'radio') ? x.value === saved.value : true));
@@ -1910,10 +2064,12 @@
                 } else {
                     serverDraftEnabled = false;
                     document.getElementById('RecordId').value = '0';
+                    await refreshPreviousWeekPrices();
                 }
             });
             form.addEventListener('submit', async event => {
                 event.preventDefault();
+                syncConditionalRequired();
                 document.querySelectorAll('#earlyWarningForm input[type="number"]').forEach(x => x.dispatchEvent(new Event('input')));
                 const invalidFields = Array.from(form.querySelectorAll('input, select, textarea')).filter(x => x.type !== 'hidden' && !x.checkValidity());
                 const invalidField = invalidFields.find(x => x.offsetParent !== null) || invalidFields[0];
@@ -1951,7 +2107,10 @@
                     console.error('Initial weekly data load failed:', error);
                     showWizardMessage('የተቀመጠውን የሳምንት መረጃ መጫን አልተቻለም። ገጹን እንደገና ይጫኑ።', 'danger');
                 }
+            } else {
+                await refreshPreviousWeekPrices();
             }
+            syncDroughtKebeleOptions();
             showStep(currentStep);
             updateMaxKebeleLimit();
             toggleCropPestFields();
@@ -1960,6 +2119,7 @@
             toggleBodyConditionFields();
             toggleAnimalHealthFields();
             initMatrixCalculations();
+            syncAccidentOtherDamage();
             navigateToServerValidationError();
         });
     </script>

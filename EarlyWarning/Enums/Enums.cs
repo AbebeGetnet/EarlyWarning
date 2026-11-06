@@ -30,28 +30,28 @@ namespace EarlyWarning.Enums
 
     public enum WeeklySubmissionStatus
     {
-        SubmittedToZone = 0,
-        ZoneApproved = 1,
-        RegionRejectedToZone = 2,
-        ZoneRejectedToWoreda = 3,
-        RegionApproved = 4,
-        Draft = 5
+        [Display(Name = "ለዞን ተልኳል")] SubmittedToZone = 0,
+        [Display(Name = "በዞን ጸድቋል")] ZoneApproved = 1,
+        [Display(Name = "በክልል ተመልሷል")] RegionRejectedToZone = 2,
+        [Display(Name = "ወደ ወረዳ ተመልሷል")] ZoneRejectedToWoreda = 3,
+        [Display(Name = "በክልል ጸድቋል")] RegionApproved = 4,
+        [Display(Name = "ረቂቅ")] Draft = 5
     }
 
     public enum WeeklyWorkflowAction
     {
-        Submit,
-        Resubmit,
-        ZoneApprove,
-        ZoneReject,
-        ZoneResubmit,
-        RegionApprove,
-        RegionReject,
-        DraftSaved
+        [Display(Name = "ለዞን ተልኳል")] Submit,
+        [Display(Name = "ተስተካክሎ እንደገና ተልኳል")] Resubmit,
+        [Display(Name = "በዞን ጸድቆ ለክልል ተልኳል")] ZoneApprove,
+        [Display(Name = "በዞን ውድቅ ተደርጓል")] ZoneReject,
+        [Display(Name = "በዞን ተስተካክሎ ለክልል ተልኳል")] ZoneResubmit,
+        [Display(Name = "በክልል ጸድቋል")] RegionApprove,
+        [Display(Name = "በክልል ውድቅ ተደርጓል")] RegionReject,
+        [Display(Name = "ረቂቅ ተቀምጧል")] DraftSaved
     }
 
     public enum AnimalMigrationDirection { Inward, Outward }
-    public enum MigratingAnimalType { Sheep, Goat, የቀንድ_ከብት, የጋማ_ከብት, Other }
+    public enum MigratingAnimalType { [Display(Name = "በግ")] Sheep, [Display(Name = "ፍየል")] Goat, የቀንድ_ከብት, የጋማ_ከብት, [Display(Name = "ሌላ")] Other }
    
     public enum Gender
     {
@@ -95,6 +95,25 @@ namespace EarlyWarning.Enums
         መካከለኛ = 1,
         ዝቅተኛ = 2
     }
+    public enum AidCategory
+    {
+        [Display(Name = "የምግብ እርዳታ")] Food = 1,
+        [Display(Name = "የምግብ ያልሆነ እርዳታ")] NonFood = 2
+    }
+
+    // What a natural or human-made danger damaged; several can apply to one danger.
+    [Flags]
+    public enum AccidentDamageCategory
+    {
+        None = 0,
+        [Display(Name = "ሰው")] Human = 1,
+        [Display(Name = "እንስሳት")] Animal = 2,
+        [Display(Name = "ቤት")] House = 4,
+        [Display(Name = "ሰብል/ማሳ")] Crop = 8,
+        [Display(Name = "መሰረተ ልማት")] Infrastructure = 16,
+        [Display(Name = "ሌላ")] Other = 32
+    }
+
     public enum Measurement
     {
         ኪሎ , ሊትር, ኩንታል, ሌላ 

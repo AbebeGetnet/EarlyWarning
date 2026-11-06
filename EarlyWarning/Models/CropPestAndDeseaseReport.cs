@@ -78,7 +78,8 @@ namespace EarlyWarning.Models
 
         public int TotalAffected => TotalFemale + TotalMale;
 
-        [DisplayName("በሰብል ተባይ የተጎዳ መሬት (በሄክታር)")]
+        // Filled by the wizard as the sum of the per-pest damaged land; it is no longer entered there directly.
+        [DisplayName("በሰብል ተባይ የተጎዳ መሬት ጠቅላላ ድምር (በሄክታር)")]
         public float? AffectedLandInHectar { get; set; }
 
         [DisplayName("በሰብል ተባይ የተጎዳ ሰብል አይነት")]
@@ -143,6 +144,7 @@ namespace EarlyWarning.Models
         [DisplayName("የሰብል በሽታዎች / ተባዮች (JSON)")]
         public string? CropDiseasesJson { get; set; }
         public ICollection<CropPestImpactDetail> ImpactDetails { get; set; } = new List<CropPestImpactDetail>();
+        public ICollection<CropDefensiveActivity> DefensiveActivities { get; set; } = new List<CropDefensiveActivity>();
 
         [NotMapped]
         public List<Guid> SelectedDiseaseIds { get; set; } = new List<Guid>();

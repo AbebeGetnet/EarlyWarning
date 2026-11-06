@@ -233,6 +233,10 @@
                         {
                             <span>ቀንሷል 📉</span>
                         }
+                        else if (Model.WeeklyMarketStatus is WeeklyStatus.New or WeeklyStatus.Uncompared)
+                        {
+                            <span>@(Model.WeeklyMarketStatus == WeeklyStatus.New ? "አዲስ" : "ያልተነጻጸረ")</span>
+                        }
                         else
                         {
                             <span>ተመሳሳይ ➡️</span>

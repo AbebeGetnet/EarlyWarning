@@ -219,6 +219,32 @@ namespace EarlyWarning.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetPreviousWeekPrices(Guid woredaId, DateTime startDate)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Challenge();
+            var target = await _context.Locations.Include(x => x.Parent).AsNoTracking().FirstOrDefaultAsync(x => x.Id == woredaId);
+            var allowed = (User.IsInRole("Data Encoder") && currentUser.LocationId == woredaId) ||
+                (User.IsInRole("ZoneAdmin") && target?.ParentId == currentUser.LocationId) ||
+                (User.IsInRole("RegionAdmin") && target?.Parent?.ParentId == currentUser.LocationId);
+            if (!allowed) return Forbid();
+
+            var grainPriceRows = new List<object>();
+            foreach (var id in await _context.GrainTypes.Where(x => x.IsActive).Select(x => x.GrainTypeId).ToListAsync())
+            {
+                var previous = await FindPreviousWeekPriceAsync(GrainPriceHistory(woredaId, id), startDate);
+                grainPriceRows.Add(new { id, previousWeekPrice = previous.Price, noComparisonStatus = previous.Price.HasValue ? (int?)null : (int)previous.NoComparisonStatus });
+            }
+            var animalPriceRows = new List<object>();
+            foreach (var id in await _context.AnimalTypes.Where(x => x.IsActive).Select(x => x.AnimalTypeId).ToListAsync())
+            {
+                var previous = await FindPreviousWeekPriceAsync(AnimalPriceHistory(woredaId, id), startDate);
+                animalPriceRows.Add(new { id, previousWeekPrice = previous.Price, noComparisonStatus = previous.Price.HasValue ? (int?)null : (int)previous.NoComparisonStatus });
+            }
+            return Json(new { grainPriceRows, animalPriceRows });
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetExistingWizardData(Guid woredaId, DateTime startDate, DateTime endDate)
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -281,7 +307,7 @@ namespace EarlyWarning.Controllers
             var cropGrowth = await _context.CropGrowths.AsNoTracking()
                 .FirstOrDefaultAsync(x => x.WoredaId == woredaId && x.StartDate == sDate && x.EndDate == eDate);
 
-            var pest = await _context.CropPestAndDeseaseReports.AsNoTracking().Include(x => x.ImpactDetails)
+            var pest = await _context.CropPestAndDeseaseReports.AsNoTracking().Include(x => x.ImpactDetails).Include(x => x.DefensiveActivities)
                 .FirstOrDefaultAsync(p => p.WoredaId == woredaId && p.StartDate == sDate && p.EndDate == eDate);
 
             var pasture = await _context.PastureStatuses.AsNoTracking()
@@ -375,6 +401,7 @@ namespace EarlyWarning.Controllers
                 animalPriceRows = animalPriceRows.Select(x => new { x.AnimalTypeId, PreviousWeekPrice = x.PriceDifference.HasValue ? x.WeeklyPrice - x.PriceDifference.Value : (decimal?)null, x.WeeklyPrice, x.WeeklyMarketStatus, x.PriceDifference, x.PriceChangePercentage, x.Notes }),
                 aidDistributionDetails = aid?.WeeklyProvidedDetail?.Select(x => new { x.SupplyTypeId, x.Measurement, x.ProvidedQuantity, x.DistributedQuantity, x.PercentageOfDistributedFromProvided, x.Donor }),
                 cropPestImpactDetails = pest?.ImpactDetails,
+                cropDefensiveActivities = pest?.DefensiveActivities.Select(x => new { x.Activity, x.AreaCoveredInHectares }),
                 animalDiseaseImpactDetails = health?.ImpactDetails,
                 epidemicImpactDetails = epidemic?.EpidemicDiseaseSelections,
                 accidentImpactDetails = accidents?.AccidentDetails,
@@ -597,6 +624,14 @@ namespace EarlyWarning.Controllers
             foreach (var row in model.AidDistributionDetails) ValidateNumericValues(row, "የዕርዳታ ዝርዝር");
             if (selectedAccidentDetails.Any(x => x.DamageRateInPercent is < 0 or > 100))
                 ModelState.AddModelError(nameof(model.AccidentDetails), "የጉዳት መጠን (%) ከ0 እስከ 100 ብቻ መሆን አለበት።");
+            for (var i = 0; i < model.AccidentDetails.Count; i++)
+            {
+                var detail = model.AccidentDetails[i];
+                if (!detail.DamageCategories.HasFlag(AccidentDamageCategory.Other)) detail.OtherDamageDescription = null;
+                else if (model.WeeklyAccidents.HasAccident && selectedAccidentDetails.Contains(detail) && string.IsNullOrWhiteSpace(detail.OtherDamageDescription))
+                    ModelState.AddModelError($"AccidentDetails[{i}].OtherDamageDescription", "'ሌላ' የጉዳት ምድብ ሲመረጥ ምን እንደተጎዳ ይግለጹ።");
+            }
+            await ValidatePerDiseaseDamageAsync(model);
 
             if (woredaId == Guid.Empty) ModelState.AddModelError(nameof(model.WoredaId), "ወረዳ ያስፈልጋል።");
             if (!sDate.HasValue || !eDate.HasValue || sDate > eDate) ModelState.AddModelError(nameof(model.StartDate), "ትክክለኛ የሪፖርት ቀን ክልል ያስፈልጋል።");
@@ -638,6 +673,18 @@ namespace EarlyWarning.Controllers
                 (SelectedDroughtKebeleIds ?? []).Any(id => !woredaKebeleIds.Contains(id)) ||
                 model.SelectedHumanWaterKebeleIds.Any(id => !woredaKebeleIds.Contains(id)))
                 ModelState.AddModelError(nameof(model.Kebelies), "ለዚህ ወረዳ ያልተመደበ ቀበሌ ተመርጧል።");
+            if ((SelectedKebeliesIds ?? []).Intersect(SelectedDroughtKebeleIds ?? []).Any())
+                ModelState.AddModelError("SelectedDroughtKebeleIds", "በከፍተኛ ዝናብ የተጎዳ ተብሎ የተመረጠ ቀበሌ በድርቅ የተጎዳ ተብሎ መመዝገብ አይችልም።");
+            // Ploughed area may exceed the plan; seeded <= ploughed and harvested <= seeded.
+            var farming = model.FarmingActivity;
+            if (farming.MeherSown > farming.MeherPloughed)
+                ModelState.AddModelError("FarmingActivity.MeherSown", "የመኸር የተዘራ መሬት ከታረሰው መሬት መብለጥ አይችልም።");
+            if (farming.MeherHarvestingHHarvesting > farming.MeherSown)
+                ModelState.AddModelError("FarmingActivity.MeherHarvestingHHarvesting", "የመኸር የተሰበሰበ መሬት ከተዘራው መሬት መብለጥ አይችልም።");
+            if (farming.AutumnSown > farming.AutumnPloughed)
+                ModelState.AddModelError("FarmingActivity.AutumnSown", "የበልግ የተዘራ መሬት ከታረሰው መሬት መብለጥ አይችልም።");
+            if (farming.AutumnHarvestingHHarvesting > farming.AutumnSown)
+                ModelState.AddModelError("FarmingActivity.AutumnHarvestingHHarvesting", "የበልግ የተሰበሰበ መሬት ከተዘራው መሬት መብለጥ አይችልም።");
             if (model.HumanDrinkWaterIssue.NumberOfAffectedKebeles > woredaKebeleCount)
                 ModelState.AddModelError("HumanDrinkWaterIssue.NumberOfAffectedKebeles", $"የቀበሌዎች ቁጥር ከወረዳው ጠቅላላ {woredaKebeleCount} ቀበሌዎች ሊበልጥ አይችልም።");
             if (model.AnimalWaterSupplyStatus.NoOfKebeliesWithWaterSupply > woredaKebeleCount)
@@ -765,6 +812,9 @@ namespace EarlyWarning.Controllers
             // ----------------------------------------------------
             // 3. DOMAIN LAYER: CROP PEST AND DISEASE REPORT (UPSERT)
             // ----------------------------------------------------
+            // Damaged land is entered per pest; the report-level hectares are their total.
+            model.CropPestAndDeseaseReport.AffectedLandInHectar = !model.CropPestAndDeseaseReport.HasPestAndDeseasOccured ? 0 :
+                (float)model.CropPestImpactDetails.Where(x => model.SelectedCropDiseaseIds.Contains(x.CropPestAndDeseaseId)).Sum(x => x.AffectedLandInHectares);
             var existingPest = await _context.CropPestAndDeseaseReports
                 .FirstOrDefaultAsync(p => p.WoredaId == woredaId && p.StartDate == sDate && p.EndDate == eDate);
 
@@ -783,6 +833,10 @@ namespace EarlyWarning.Controllers
                     .Where(x => x.CropPestAndDeseaseReportId == existingPest.Id)
                     .ExecuteDeleteAsync();
                 existingPest.ImpactDetails = BuildCropImpactDetails(model, existingPest.Id);
+                await _context.CropDefensiveActivities
+                    .Where(x => x.CropPestAndDeseaseReportId == existingPest.Id)
+                    .ExecuteDeleteAsync();
+                existingPest.DefensiveActivities = BuildDefensiveActivities(model, existingPest.Id);
             }
             else
             {
@@ -792,6 +846,7 @@ namespace EarlyWarning.Controllers
                 model.CropPestAndDeseaseReport.Remarks = model.Remarks;
                 _context.CropPestAndDeseaseReports.Add(model.CropPestAndDeseaseReport);
                 model.CropPestAndDeseaseReport.ImpactDetails = BuildCropImpactDetails(model, model.CropPestAndDeseaseReport.Id);
+                model.CropPestAndDeseaseReport.DefensiveActivities = BuildDefensiveActivities(model, model.CropPestAndDeseaseReport.Id);
             }
 
             // ----------------------------------------------------
@@ -849,6 +904,9 @@ namespace EarlyWarning.Controllers
             // ----------------------------------------------------
             // 6. DOMAIN LAYER: ANIMAL HEALTH STATUS REPORT (UPSERT)
             // ----------------------------------------------------
+            // Affected animals are entered per disease; the report-level count is their total.
+            model.AnimalHealthStatus.NoOfKebeliesWithWaterSupply = model.AnimalHealthStatus.Enough ? 0 :
+                model.AnimalDiseaseImpactDetails.Where(x => model.SelectedAnimalDiseaseIds.Contains(x.AnimalDiseaseId)).Sum(x => x.NumberOfAffectedAnimals);
             var existingHealth = await _context.AnimalHealthStatuses
                 .FirstOrDefaultAsync(h => h.WoredaId == woredaId && h.StartDate == sDate && h.EndDate == eDate);
 
@@ -1134,16 +1192,16 @@ namespace EarlyWarning.Controllers
             foreach (var row in model.GrainPriceRows.Where(x => x.GrainTypeId != Guid.Empty))
             {
                 row.GrainPricePerQuintalId = Guid.NewGuid(); row.WoredaId = woredaId; row.StartDate = startDate; row.EndDate = endDate; row.ReportedBy = reportedBy;
-                var previous = await _context.GrainPricePerQuintals.Where(x => x.WoredaId == woredaId && x.GrainTypeId == row.GrainTypeId && x.EndDate < startDate).OrderByDescending(x => x.EndDate).FirstOrDefaultAsync();
-                if (previous != null) { row.PriceDifference = row.WeeklyPrice - previous.WeeklyPrice; row.PriceChangePercentage = previous.WeeklyPrice == 0 ? null : row.PriceDifference / previous.WeeklyPrice * 100; row.WeeklyMarketStatus = row.WeeklyPrice > previous.WeeklyPrice ? Models.PriceofGrain.WeeklyStatus.Increased : row.WeeklyPrice < previous.WeeklyPrice ? Models.PriceofGrain.WeeklyStatus.Decreased : Models.PriceofGrain.WeeklyStatus.Same; }
+                var previous = await FindPreviousWeekPriceAsync(GrainPriceHistory(woredaId, row.GrainTypeId), startDate);
+                (row.PriceDifference, row.PriceChangePercentage, row.WeeklyMarketStatus) = ComparePrices(row.WeeklyPrice, previous);
                 _context.GrainPricePerQuintals.Add(row);
             }
             await _context.AnimalPricePerUnits.Where(x => x.WoredaId == woredaId && x.StartDate == startDate && x.EndDate == endDate).ExecuteDeleteAsync();
             foreach (var row in model.AnimalPriceRows.Where(x => x.AnimalTypeId != Guid.Empty))
             {
                 row.AnimalPricePerUnitId = Guid.NewGuid(); row.WoredaId = woredaId; row.StartDate = startDate; row.EndDate = endDate; row.ReportedBy = reportedBy;
-                var previous = await _context.AnimalPricePerUnits.Where(x => x.WoredaId == woredaId && x.AnimalTypeId == row.AnimalTypeId && x.EndDate < startDate).OrderByDescending(x => x.EndDate).FirstOrDefaultAsync();
-                if (previous != null) { row.PriceDifference = row.WeeklyPrice - previous.WeeklyPrice; row.PriceChangePercentage = previous.WeeklyPrice == 0 ? null : row.PriceDifference / previous.WeeklyPrice * 100; row.WeeklyMarketStatus = row.WeeklyPrice > previous.WeeklyPrice ? Models.PriceofGrain.WeeklyStatus.Increased : row.WeeklyPrice < previous.WeeklyPrice ? Models.PriceofGrain.WeeklyStatus.Decreased : Models.PriceofGrain.WeeklyStatus.Same; }
+                var previous = await FindPreviousWeekPriceAsync(AnimalPriceHistory(woredaId, row.AnimalTypeId), startDate);
+                (row.PriceDifference, row.PriceChangePercentage, row.WeeklyMarketStatus) = ComparePrices(row.WeeklyPrice, previous);
                 _context.AnimalPricePerUnits.Add(row);
             }
 
@@ -1233,6 +1291,45 @@ namespace EarlyWarning.Controllers
                 x.Id = Guid.NewGuid(); x.CropPestAndDeseaseReportId = reportId; return x;
             }).ToList();
 
+        // Every selected crop pest/disease needs its damaged land and damage percentage, and every selected
+        // animal disease needs its number of affected animals.
+        private async Task ValidatePerDiseaseDamageAsync(RegistrationWithardViewModel model)
+        {
+            if (model.CropPestAndDeseaseReport.HasPestAndDeseasOccured)
+            {
+                var names = await _context.CropPestAndDesease.AsNoTracking().ToDictionaryAsync(x => x.Id, x => x.Name);
+                for (var i = 0; i < model.CropPestImpactDetails.Count; i++)
+                {
+                    var row = model.CropPestImpactDetails[i];
+                    if (!model.SelectedCropDiseaseIds.Contains(row.CropPestAndDeseaseId)) continue;
+                    var name = names.GetValueOrDefault(row.CropPestAndDeseaseId, "የሰብል ተባይ/በሽታ");
+                    if (row.AffectedLandInHectares <= 0)
+                        ModelState.AddModelError($"CropPestImpactDetails[{i}].AffectedLandInHectares", $"{name}፡ የተጎዳ የሰብል መጠን (ሄ/ር) ያስገቡ።");
+                    if (row.DamagePercentage is <= 0 or > 100)
+                        ModelState.AddModelError($"CropPestImpactDetails[{i}].DamagePercentage", $"{name}፡ የጉዳት መጠን (%) ከ0 በላይ እስከ 100 ያስገቡ።");
+                }
+            }
+            if (!model.AnimalHealthStatus.Enough)
+            {
+                var names = await _context.Set<AnimalDisease>().AsNoTracking().ToDictionaryAsync(x => x.Id, x => x.Name);
+                for (var i = 0; i < model.AnimalDiseaseImpactDetails.Count; i++)
+                {
+                    var row = model.AnimalDiseaseImpactDetails[i];
+                    if (model.SelectedAnimalDiseaseIds.Contains(row.AnimalDiseaseId) && row.NumberOfAffectedAnimals <= 0)
+                        ModelState.AddModelError($"AnimalDiseaseImpactDetails[{i}].NumberOfAffectedAnimals",
+                            $"{names.GetValueOrDefault(row.AnimalDiseaseId, "የእንስሳት በሽታ")}፡ የተጎዱ እንስሳት ብዛት ያስገቡ።");
+                }
+            }
+        }
+
+        // Defensive activities only apply when crop damage was reported; blank rows are dropped.
+        private static List<CropDefensiveActivity> BuildDefensiveActivities(RegistrationWithardViewModel model, Guid reportId) =>
+            !model.CropPestAndDeseaseReport.HasPestAndDeseasOccured ? [] :
+            model.CropDefensiveActivities.Where(x => !string.IsNullOrWhiteSpace(x.Activity)).Select(x => new CropDefensiveActivity
+            {
+                Id = Guid.NewGuid(), CropPestAndDeseaseReportId = reportId, Activity = x.Activity.Trim(), AreaCoveredInHectares = x.AreaCoveredInHectares
+            }).ToList();
+
         private static List<AnimalDiseaseImpactDetail> BuildAnimalImpactDetails(RegistrationWithardViewModel model, Guid reportId) =>
             model.AnimalDiseaseImpactDetails.Where(x => model.SelectedAnimalDiseaseIds.Contains(x.AnimalDiseaseId)).Select(x =>
             {
@@ -1270,9 +1367,59 @@ namespace EarlyWarning.Controllers
         private async Task PopulatePreviousPricesAsync(RegistrationWithardViewModel model, Guid woredaId, DateTime startDate)
         {
             foreach (var row in model.GrainPriceRows)
-                row.PreviousWeekPrice = (await _context.GrainPricePerQuintals.Where(x => x.WoredaId == woredaId && x.GrainTypeId == row.GrainTypeId && x.EndDate < startDate).OrderByDescending(x => x.EndDate).Select(x => (decimal?)x.WeeklyPrice).FirstOrDefaultAsync());
+            {
+                var previous = await FindPreviousWeekPriceAsync(GrainPriceHistory(woredaId, row.GrainTypeId), startDate);
+                row.PreviousWeekPrice = previous.Price;
+                if (previous.Price == null) row.WeeklyMarketStatus = previous.NoComparisonStatus;
+            }
             foreach (var row in model.AnimalPriceRows)
-                row.PreviousWeekPrice = (await _context.AnimalPricePerUnits.Where(x => x.WoredaId == woredaId && x.AnimalTypeId == row.AnimalTypeId && x.EndDate < startDate).OrderByDescending(x => x.EndDate).Select(x => (decimal?)x.WeeklyPrice).FirstOrDefaultAsync());
+            {
+                var previous = await FindPreviousWeekPriceAsync(AnimalPriceHistory(woredaId, row.AnimalTypeId), startDate);
+                row.PreviousWeekPrice = previous.Price;
+                if (previous.Price == null) row.WeeklyMarketStatus = previous.NoComparisonStatus;
+            }
+        }
+
+        private sealed class PriceHistoryPoint
+        {
+            public DateTime StartDate { get; set; }
+            public decimal WeeklyPrice { get; set; }
+        }
+
+        private sealed record PreviousWeekPriceLookup(decimal? Price, Models.PriceofGrain.WeeklyStatus NoComparisonStatus);
+
+        private IQueryable<PriceHistoryPoint> GrainPriceHistory(Guid woredaId, Guid grainTypeId) =>
+            _context.GrainPricePerQuintals.Where(x => x.WoredaId == woredaId && x.GrainTypeId == grainTypeId)
+                .Select(x => new PriceHistoryPoint { StartDate = x.StartDate, WeeklyPrice = x.WeeklyPrice });
+
+        private IQueryable<PriceHistoryPoint> AnimalPriceHistory(Guid woredaId, Guid animalTypeId) =>
+            _context.AnimalPricePerUnits.Where(x => x.WoredaId == woredaId && x.AnimalTypeId == animalTypeId)
+                .Select(x => new PriceHistoryPoint { StartDate = x.StartDate, WeeklyPrice = x.WeeklyPrice });
+
+        /// <summary>
+        /// Finds the price recorded in the reporting week immediately before <paramref name="startDate"/>.
+        /// Older weeks are never used as a fallback: without an exact previous-week price the row is
+        /// New (no earlier price at all) or Uncompared (only older prices exist).
+        /// </summary>
+        private static async Task<PreviousWeekPriceLookup> FindPreviousWeekPriceAsync(IQueryable<PriceHistoryPoint> history, DateTime startDate)
+        {
+            var weekStart = GetReportingWeekStart(startDate);
+            var previousWeekStart = weekStart.AddDays(-7);
+            var price = await history.Where(x => x.StartDate >= previousWeekStart && x.StartDate < weekStart)
+                .OrderByDescending(x => x.StartDate).Select(x => (decimal?)x.WeeklyPrice).FirstOrDefaultAsync();
+            if (price.HasValue) return new(price, default);
+            var hasOlderPrices = await history.AnyAsync(x => x.StartDate < previousWeekStart);
+            return new(null, hasOlderPrices ? Models.PriceofGrain.WeeklyStatus.Uncompared : Models.PriceofGrain.WeeklyStatus.New);
+        }
+
+        private static (decimal? Difference, decimal? Percentage, Models.PriceofGrain.WeeklyStatus Status) ComparePrices(decimal current, PreviousWeekPriceLookup previous)
+        {
+            if (previous.Price is not decimal before) return (null, null, previous.NoComparisonStatus);
+            var difference = current - before;
+            var status = current > before ? Models.PriceofGrain.WeeklyStatus.Increased
+                : current < before ? Models.PriceofGrain.WeeklyStatus.Decreased
+                : Models.PriceofGrain.WeeklyStatus.Same;
+            return (difference, before == 0 ? null : difference / before * 100, status);
         }
     }
 }

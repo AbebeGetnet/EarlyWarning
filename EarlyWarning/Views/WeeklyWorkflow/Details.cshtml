@@ -1,12 +1,38 @@
 @model EarlyWarning.ViewModels.WeeklyWorkflowDetailsViewModel
 @using EarlyWarning.Enums
-@{ ViewData["Title"] = "የሪፖርት ግምገማ"; var canZone = User.IsInRole("ZoneAdmin") && (Model.Report.Status == WeeklySubmissionStatus.SubmittedToZone || Model.Report.Status == WeeklySubmissionStatus.RegionRejectedToZone); var canRegion = User.IsInRole("RegionAdmin") && Model.Report.Status == WeeklySubmissionStatus.ZoneApproved; }
+@using EarlyWarning.Extensions
+@{ ViewData["Title"] = "የሪፖርት ዝርዝርና ማጽደቂያ"; }
 <div class="container mt-4">
  <a asp-action="Index" class="btn btn-link">← ወደ ዝርዝር</a>
  @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
- <div class="card shadow-sm mb-4"><div class="card-header"><h4 class="mb-0">@Model.Report.Zone / @Model.Report.Woreda</h4></div><div class="card-body"><div class="row"><div class="col-md-4"><b>ሳምንት:</b> @Model.Report.StartDate.ToString("yyyy-MM-dd") — @Model.Report.EndDate.ToString("yyyy-MM-dd")</div><div class="col-md-4"><b>ሁኔታ:</b> @Model.Report.Status</div><div class="col-md-4"><b>የመጨረሻ እርምጃ:</b> @Model.Report.LastActionAt.ToLocalTime()</div></div><a asp-controller="RegisterationWizard" asp-action="Index" asp-route-woredaId="@Model.Report.WoredaId" asp-route-startDate="@Model.Report.StartDate.ToString("yyyy-MM-dd")" asp-route-endDate="@Model.Report.EndDate.ToString("yyyy-MM-dd")" class="btn btn-outline-primary mt-3">ሙሉ የወረዳ ዊዛርድ መረጃ ይመልከቱ</a></div></div>
- <div class="card shadow-sm mb-4"><div class="card-header fw-bold">የወረዳው ዋና የሳምንት ድምሮች</div><div class="table-responsive"><table class="table table-bordered mb-0"><thead class="table-light"><tr><th>ሙሉ ዝናብ</th><th>ከፊል ዝናብ</th><th>ዝናብ ያላገኙ</th><th>የተጎዳ መሬት</th><th>የሰብል ተጎጂዎች</th><th>የእንስሳት በሽታ ተጎጂዎች</th></tr></thead><tbody><tr><td>@Model.Aggregate.FullRainCoverageKebeles</td><td>@Model.Aggregate.PartialRainCoverageKebeles</td><td>@Model.Aggregate.NoRainKebeles</td><td>@Model.Aggregate.AffectedCropLandHectares</td><td>@Model.Aggregate.CropAffectedPeople</td><td>@Model.Aggregate.AnimalDiseaseAffectedPeople</td></tr></tbody></table></div></div>
- <partial name="_AggregateSections" model="Model.Aggregate" />
- @if (canZone || canRegion) { <div class="card shadow-sm mb-4"><div class="card-header fw-bold">ውሳኔ</div><div class="card-body"><form asp-action="Act" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@Model.Report.Id"/><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(Model.Report.RowVersion)"/><label class="form-label">አስተያየት (ውድቅ ለማድረግ ግዴታ ነው)</label><textarea name="comment" class="form-control mb-3" maxlength="2000" rows="3"></textarea><button name="decision" value="Approve" class="btn btn-success me-2">ፍቀድና ወደ ቀጣይ ደረጃ ላክ</button><button name="decision" value="Reject" class="btn btn-danger">ውድቅ አድርግና መልስ</button></form></div></div> }
- <div class="card shadow-sm"><div class="card-header fw-bold">ሙሉ የፍቃድና ውድቅ ታሪክ</div><div class="table-responsive"><table class="table table-striped mb-0"><thead><tr><th>ቀን</th><th>ተጠቃሚ / ቦታ</th><th>እርምጃ</th><th>የሁኔታ ለውጥ</th><th>አስተያየት</th></tr></thead><tbody>@foreach(var h in Model.History){<tr><td>@h.PerformedAt.ToLocalTime()</td><td>@h.User<br/><small>@h.Location</small></td><td>@h.Action</td><td>@h.PreviousStatus → @h.NewStatus</td><td>@h.Comment</td></tr>}</tbody></table></div></div>
+ @if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+ <div class="card shadow-sm mb-4"><div class="card-header"><h4 class="mb-0">@Model.Report.Zone / @Model.Report.Woreda</h4></div><div class="card-body"><div class="row"><div class="col-md-4"><b>ሳምንት:</b> @Model.Report.StartDate.ToString("yyyy-MM-dd") — @Model.Report.EndDate.ToString("yyyy-MM-dd")</div><div class="col-md-4"><b>ሁኔታ:</b> @ReadOnlyFields.EnumLabel(Model.Report.Status)</div><div class="col-md-4"><b>የመጨረሻ እርምጃ:</b> @Model.Report.LastActionAt.ToLocalTime()</div></div></div></div>
+
+ <h5 class="mb-3"><i class="fas fa-file-alt me-2"></i>የተላከው ሙሉ ቅጽ (ለንባብ ብቻ)</h5>
+ <partial name="_SubmissionForm" model="Model.Form" />
+
+ @if (Model.ZoneDecisionWindowClosed)
+ {
+  <div class="alert alert-warning">የዞን ፍቃድ/ውድቅ ጊዜው ሐሙስ ማብቂያ ላይ አልፏል። ሪፖርቱን ማየት ይቻላል፣ ውሳኔ መስጠት ግን አይቻልም።</div>
+ }
+ @if ((Model.CanZoneApprove || Model.CanRegionApprove) && Model.ApprovalToken != null)
+ {
+  var level = Model.CanZoneApprove ? "የዞን" : "የክልል";
+  <div class="card shadow-sm mb-4 border-success" id="approvalPanel">
+   <div class="card-header fw-bold bg-success bg-opacity-10">@level ማጽደቂያ</div>
+   <div class="card-body">
+    <form asp-action="Act" method="post">
+     @Html.AntiForgeryToken()
+     <input type="hidden" name="id" value="@Model.Report.Id" />
+     <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(Model.Report.RowVersion)" />
+     <input type="hidden" name="approvalToken" value="@Model.ApprovalToken" />
+     <label class="form-label">አስተያየት (ውድቅ ለማድረግ ግዴታ ነው)</label>
+     <textarea name="comment" class="form-control mb-3" maxlength="2000" rows="3"></textarea>
+     <button name="decision" value="Approve" class="btn btn-success me-2"><i class="fas fa-check me-1"></i>@level ማጽደቂያ፡ ፍቀድ@(Model.CanZoneApprove ? "ና ለክልል ላክ" : "")</button>
+     <button name="decision" value="Reject" class="btn btn-danger"><i class="fas fa-undo me-1"></i>ውድቅ አድርግና @(Model.CanZoneApprove ? "ለወረዳ" : "ለዞን") መልስ</button>
+    </form>
+   </div>
+  </div>
+ }
+ <div class="card shadow-sm"><div class="card-header fw-bold">ሙሉ የፍቃድና ውድቅ ታሪክ</div><div class="table-responsive"><table class="table table-striped mb-0"><thead><tr><th>ቀን</th><th>ተጠቃሚ / ቦታ</th><th>እርምጃ</th><th>የሁኔታ ለውጥ</th><th>አስተያየት</th></tr></thead><tbody>@foreach(var h in Model.History){<tr><td>@h.PerformedAt.ToLocalTime()</td><td>@h.User<br/><small>@h.Location</small></td><td>@ReadOnlyFields.EnumLabel(h.Action)</td><td>@(h.PreviousStatus.HasValue ? ReadOnlyFields.EnumLabel(h.PreviousStatus.Value) : "-") → @ReadOnlyFields.EnumLabel(h.NewStatus)</td><td>@h.Comment</td></tr>}</tbody></table></div></div>
 </div>

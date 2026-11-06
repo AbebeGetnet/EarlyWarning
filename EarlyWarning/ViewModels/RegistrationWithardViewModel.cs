@@ -51,6 +51,7 @@ namespace EarlyWarning.ViewModels
         public List<DeathDetail> DeathDetails { get; set; } = new();
         public List<WeeklyProvidedDetail> AidDistributionDetails { get; set; } = new();
         public List<CropPestImpactDetail> CropPestImpactDetails { get; set; } = new();
+        public List<CropDefensiveActivity> CropDefensiveActivities { get; set; } = new();
         public List<AnimalDiseaseImpactDetail> AnimalDiseaseImpactDetails { get; set; } = new();
         public List<EpidemicDiseaseSelection> EpidemicImpactDetails { get; set; } = new();
 

@@ -178,6 +178,11 @@ namespace EarlyWarning.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("Category")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -973,6 +978,31 @@ namespace EarlyWarning.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.CropDefensiveActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Activity")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<decimal?>("AreaCoveredInHectares")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("CropPestAndDeseaseReportId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CropPestAndDeseaseReportId");
+
+                    b.ToTable("CropDefensiveActivities");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.CropGrowth", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1220,6 +1250,10 @@ namespace EarlyWarning.Migrations
 
                     b.Property<Guid>("CropPestAndDeseaseReportId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("DamagePercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("FemaleChildren")
                         .HasColumnType("int");
@@ -2596,6 +2630,9 @@ namespace EarlyWarning.Migrations
                     b.Property<int>("AffectedYouthMale")
                         .HasColumnType("int");
 
+                    b.Property<int>("DamageCategories")
+                        .HasColumnType("int");
+
                     b.Property<decimal?>("DamageRateInPercent")
                         .HasColumnType("decimal(18,2)");
 
@@ -2605,6 +2642,10 @@ namespace EarlyWarning.Migrations
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("OtherDamageDescription")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<Guid>("WeeklyAccidentsId")
                         .HasColumnType("uniqueidentifier");
@@ -3175,6 +3216,17 @@ namespace EarlyWarning.Migrations
                     b.Navigation("Location");
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.CropDefensiveActivity", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.CropPestAndDeseaseReport", "Report")
+                        .WithMany("DefensiveActivities")
+                        .HasForeignKey("CropPestAndDeseaseReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Report");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.CropGrowth", b =>
                 {
                     b.HasOne("EarlyWarning.Models.Locations", "Woreda")
@@ -3640,6 +3692,8 @@ namespace EarlyWarning.Migrations
 
             modelBuilder.Entity("EarlyWarning.Models.CropPestAndDeseaseReport", b =>
                 {
+                    b.Navigation("DefensiveActivities");
+
                     b.Navigation("ImpactDetails");
                 });
 

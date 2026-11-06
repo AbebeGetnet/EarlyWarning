@@ -592,6 +592,10 @@
                                         <i class="fas fa-arrow-down"></i> ቀንሷል
                                     </span>
                                 }
+                                else if (report.WeeklyMarketStatus is WeeklyStatus.New or WeeklyStatus.Uncompared)
+                                {
+                                    <span class="badge-same">@(report.WeeklyMarketStatus == WeeklyStatus.New ? "አዲስ" : "ያልተነጻጸረ")</span>
+                                }
                                 else
                                 {
                                     <span class="badge-same">

@@ -288,6 +288,7 @@
                 <thead>
                     <tr>
                         <th>የአቅርቦት አይነት</th>
+                        <th>የእርዳታ ምድብ</th>
                         <th>ሁኔታ</th>
                         <th>ድርጊቶች</th>
                     </tr>
@@ -297,6 +298,7 @@
                     {
                         <tr>
                             <td><strong><i class="fas fa-boxes text-success"></i> @item.SupplyTypeName</strong></td>
+                            <td>@(item.Category == EarlyWarning.Enums.AidCategory.NonFood ? "የምግብ ያልሆነ" : "ምግብ")</td>
                             <td>
                                 @if (item.IsActive)
                                 {

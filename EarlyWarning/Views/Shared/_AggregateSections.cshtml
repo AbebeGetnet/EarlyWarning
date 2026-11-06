@@ -1,4 +1,17 @@
 @model EarlyWarning.ViewModels.WeeklyAggregateViewModel
+@{
+    // Word-style numbered heading: "3.2 Title" → number in a fixed column, title at the same indent for every
+    // heading (wrapped lines included); headings without a number keep their title in that same column.
+    (string Number, string Title) SplitNumber(string name)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(name, @"^(\d+(?:\.\d+)*\.?)\s+(.+)$");
+        return match.Success ? (match.Groups[1].Value.Contains('.') ? match.Groups[1].Value : match.Groups[1].Value + ".", match.Groups[2].Value) : ("", name);
+    }
+}
+<style>
+    .aggregate-review .ew-numbered { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); align-items: baseline; }
+    .aggregate-review .ew-numbered .ew-num { white-space: nowrap; }
+</style>
 
 <div class="aggregate-review mt-4">
     <h4 class="border-bottom pb-2 mb-3">ሁሉም የተጠቃለሉ መረጃዎች — የማጠቃለያ ግምገማ</h4>
@@ -9,11 +22,11 @@
         var noRainTotal = Model.RainfallZones.Sum(x => x.NoRainWoredas);
         var noDataTotal = Model.RainfallZones.Sum(x => x.NoDataWoredas);
         <section class="card mb-4 shadow-sm border-0">
-            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3">1. የዝናብ ሁኔታ</div>
+            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3 ew-numbered"><span class="ew-num">1.</span><span>የዝናብ ሁኔታ</span></div>
             <div class="table-responsive">
-                <table class="table table-sm table-bordered text-center align-middle mb-0">
+                <table class="table table-sm table-bordered text-start align-middle mb-0">
                     <thead class="table-light">
-                        <tr><th>ተ/ቁ</th><th class="text-start">ዞን</th><th>ሙሉ በሙሉ ዝናብ ያገኙ ወረዳዎች</th><th>በከፊል ዝናብ ያገኙ ወረዳዎች</th><th>ዝናብ ያላገኙ ወረዳዎች</th><th>መረጃ ያልተገኘላቸው ወረዳዎች</th><th>ድምር</th></tr>
+                        <tr><th>ተ/ቁ</th><th class="text-start">ዞን</th><th>ሙሉ በሙሉ ዝናብ ያገኙ ቀበሌዎች</th><th>በከፊል ዝናብ ያገኙ ቀበሌዎች</th><th>ዝናብ ያላገኙ ቀበሌዎች</th><th>መረጃ ያልተገኘላቸው ቀበሌዎች</th><th>ድምር</th></tr>
                     </thead>
                     <tbody>
                         @for (var i = 0; i < Model.RainfallZones.Count; i++)
@@ -36,9 +49,9 @@
         var autumnPlanTotal = Model.FarmingZones.Sum(x => x.AutumnFarmPlan);
         var autumnSownTotal = Model.FarmingZones.Sum(x => x.AutumnSown);
         <section class="card mb-4 shadow-sm border-0">
-            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3">2. የመኸር የእርሻ ሥራ እንቅስቃሴ</div>
+            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3 ew-numbered"><span class="ew-num">2.</span><span>የመኸር የእርሻ ሥራ እንቅስቃሴ</span></div>
             <div class="table-responsive">
-                <table class="table table-sm table-bordered text-center align-middle mb-0">
+                <table class="table table-sm table-bordered text-start align-middle mb-0">
                     <thead class="table-light">
                         <tr><th>ተ/ቁ</th><th class="text-start">ዞን</th><th>ዕቅድ በሄ/ር</th><th>የታረሰ በሄ/ር</th><th>የተዘራ በሄ/ር</th><th>የበልግ ዕቅድ በሄ/ር</th><th>የበልግ የተዘራ በሄ/ር</th></tr>
                     </thead>
@@ -60,7 +73,7 @@
         && (x.Name != "2. የመኸር የእርሻ ሥራ እንቅስቃሴ" || !Model.FarmingZones.Any())))
     {
         <section class="card mb-4 shadow-sm border-0">
-            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3">@aggregateSection.Name</div>
+            @{ var heading = SplitNumber(aggregateSection.Name); }<div class="card-header bg-primary bg-opacity-10 fw-bold py-3 ew-numbered"><span class="ew-num">@heading.Number</span><span>@heading.Title</span></div>
             <div class="card-body">
                 <div class="row g-3">
                     @foreach (var metric in aggregateSection.Metrics)
@@ -83,16 +96,51 @@
         </section>
     }
 
+    @{ var affectedEvents = Model.AffectedLocations.Where(x => x.Woredas > 0).ToList(); }
+    @if (affectedEvents.Any())
+    {
+        <section class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3 ew-numbered"><span class="ew-num"></span><span>በክስተት የተጎዱ አካባቢዎች</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0">
+                    <thead class="table-light">
+                        <tr><th>ክስተት</th><th class="text-start">የተጎዱ ቀበሌዎች</th><th class="text-start">የተጎዱ ወረዳዎች</th><th class="text-start">የተጎዱ ዞኖች</th><th>የተጎዱ ዞኖችና ወረዳዎች</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var affected in affectedEvents)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@affected.Event</td>
+                                <td class="text-start">@affected.Kebeles.ToString("N0")</td>
+                                <td class="text-start">@affected.Woredas.ToString("N0")</td>
+                                <td class="text-start">@affected.Zones.ToString("N0")</td>
+                                <td>
+                                    @foreach (var zone in EarlyWarning.Services.AffectedLocations.ByZone(affected))
+                                    {
+                                        <div><strong>@EarlyWarning.Services.AffectedLocations.ZoneWithWoredas(zone.Key, zone.Count())፡</strong> @EarlyWarning.Services.AffectedLocations.WoredaList(zone)</div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+
     @if (Model.TextEntries.Any())
     {
         <section class="card mb-4 shadow-sm border-0">
-            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3">የተጠቃለለ ጽሑፋዊ መረጃ</div>
+            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3 ew-numbered"><span class="ew-num"></span><span>የተጠቃለለ ጽሑፋዊ መረጃ</span></div>
             <div class="card-body">
                 @foreach (var narrative in Model.TextEntries.GroupBy(x => x.Source))
                 {
                     <div class="mb-3">
                         <div class="fw-semibold mb-1">@narrative.Key</div>
-                        <p class="border rounded-3 bg-light p-3 mb-0">@string.Join("፤ ", narrative.Select(x => $"{x.Location}፡ {x.Text.Trim().TrimEnd('።', '.', '፤', ';')}"))።</p>
+                        @foreach (var zoneText in narrative.GroupBy(x => x.Zone))
+                        {
+                            <p class="border rounded-3 bg-light p-3 mb-1">@if (!string.IsNullOrEmpty(zoneText.Key) && narrative.Select(x => x.Zone).Distinct().Count() > 1) { <strong>@zoneText.Key ዞን — </strong> }@string.Join("፤ ", zoneText.Select(x => $"{x.Location}፡ {x.Text.Trim().TrimEnd('።', '.', '፤', ';')}"))።</p>
+                        }
                     </div>
                 }
             </div>
@@ -102,9 +150,9 @@
     @if (Model.AnimalMigrationRoutes.Any())
     {
         <section class="card mb-4 shadow-sm border-0">
-            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3">በተለያዩ ምክንያት ስደት — የእንስሳት ስደት</div>
+            <div class="card-header bg-primary bg-opacity-10 fw-bold py-3 ew-numbered"><span class="ew-num"></span><span>በተለያዩ ምክንያት ስደት — የእንስሳት ስደት</span></div>
             <div class="table-responsive">
-                <table class="table table-sm table-bordered text-center mb-0">
+                <table class="table table-sm table-bordered text-start mb-0">
                     <thead class="table-light"><tr><th>አቅጣጫ</th><th>ከየት ቦታ ተሰደዱ</th><th>ወደ የት ሄዱ / የሄዱበት ቦታ</th><th>የእንስሳት አይነት</th><th>ብዛት</th></tr></thead>
                     <tbody>@foreach (var route in Model.AnimalMigrationRoutes) { <tr><td>@route.Direction</td><td>@route.Origin</td><td>@route.Destination</td><td>@route.AnimalType</td><td class="fw-bold">@route.NumberOfAnimals.ToString("N0")</td></tr> }</tbody>
                 </table>

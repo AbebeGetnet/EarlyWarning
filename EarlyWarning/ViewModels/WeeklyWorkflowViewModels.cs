@@ -38,6 +38,8 @@ public class WeeklyAggregateViewModel
     public List<AggregatedTextViewModel> TextEntries { get; set; } = [];
     public List<AnimalMigrationAggregateViewModel> AnimalMigrationRoutes { get; set; } = [];
     public List<AggregateSectionViewModel> Sections { get; set; } = [];
+    // One entry per event (flood, drought, …): affected kebeles, woredas and zones are counted separately.
+    public List<AffectedLocationSummaryViewModel> AffectedLocations { get; set; } = [];
     public bool IsSnapshot { get; set; }
     public DateTime? GeneratedAt { get; set; }
 }
@@ -68,7 +70,31 @@ public class AggregateSectionViewModel
     public List<AggregateMetricViewModel> Metrics { get; set; } = [];
 }
 
-public record AggregateMetricViewModel(string Name, decimal Value, string Unit = "", string Method = "SUM");
+// Weight: how many underlying observations (or how much quantity) an averaged value stands for, so that a
+// higher-level summary can combine averages as a weighted mean instead of an average of averages.
+public record AggregateMetricViewModel(string Name, decimal Value, string Unit = "", string Method = "SUM", decimal Weight = 0);
+
+/// <summary>
+/// Locations affected by one event. Kebeles is the sum of the woredas' reported kebeles; Woredas counts each
+/// woreda with at least one affected kebele once; Zones counts each zone holding at least one such woreda once.
+/// </summary>
+public class AffectedLocationSummaryViewModel
+{
+    public string Event { get; set; } = "";
+    public int Kebeles { get; set; }
+    public int Woredas { get; set; }
+    public int Zones { get; set; }
+    public List<AffectedWoredaViewModel> Locations { get; set; } = [];
+}
+
+public class AffectedWoredaViewModel
+{
+    public Guid? ZoneId { get; set; }
+    public string Zone { get; set; } = "";
+    public Guid WoredaId { get; set; }
+    public string Woreda { get; set; } = "";
+    public int Kebeles { get; set; }
+}
 
 public class AnimalMigrationAggregateViewModel
 {
@@ -79,13 +105,19 @@ public class AnimalMigrationAggregateViewModel
     public long NumberOfAnimals { get; set; }
 }
 
-public record AggregatedTextViewModel(string Source, string Location, string Text);
+public record AggregatedTextViewModel(string Source, string Location, string Text, string Zone = "");
 
 public class WeeklyWorkflowDetailsViewModel
 {
     public WeeklyWorkflowRowViewModel Report { get; set; } = new();
     public List<WeeklyWorkflowHistoryViewModel> History { get; set; } = [];
     public WeeklyAggregateViewModel Aggregate { get; set; } = new();
+    public WeeklySubmissionFormViewModel Form { get; set; } = new();
+    public bool CanZoneApprove { get; set; }
+    public bool CanRegionApprove { get; set; }
+    public bool ZoneDecisionWindowClosed { get; set; }
+    // Issued only by the details page; the approve/reject action rejects requests without it.
+    public string? ApprovalToken { get; set; }
 }
 
 public class ZoneWeeklyQueueViewModel

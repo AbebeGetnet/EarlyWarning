@@ -3,7 +3,9 @@ using EarlyWarning.Enums;
 using EarlyWarning.Models;
 using EarlyWarning.ViewModels;
 using EarlyWarning.Services;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +18,14 @@ public class WeeklyWorkflowController : Controller
     private readonly EarlyWarningDbContext _db;
     private readonly UserManager<ApplicationUser> _users;
     private readonly IWeeklyAggregationService _aggregation;
-    public WeeklyWorkflowController(EarlyWarningDbContext db, UserManager<ApplicationUser> users, IWeeklyAggregationService aggregation) { _db = db; _users = users; _aggregation = aggregation; }
+    private readonly IWeeklySubmissionFormLoader _formLoader;
+    private readonly ITimeLimitedDataProtector _approvalTokens;
+    public WeeklyWorkflowController(EarlyWarningDbContext db, UserManager<ApplicationUser> users, IWeeklyAggregationService aggregation,
+        IWeeklySubmissionFormLoader formLoader, IDataProtectionProvider dataProtection)
+    {
+        _db = db; _users = users; _aggregation = aggregation; _formLoader = formLoader;
+        _approvalTokens = dataProtection.CreateProtector("WeeklyWorkflow.DetailsApproval").ToTimeLimitedDataProtector();
+    }
 
     public async Task<IActionResult> Index(string? mode = null)
     {
@@ -127,9 +136,18 @@ public class WeeklyWorkflowController : Controller
             .Include(x => x.History).ThenInclude(x => x.User).ThenInclude(x => x.Location).AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
         if (report == null) return NotFound();
         var singleReports = new List<WeeklyReportSubmission> { report };
+        var zoneWindowClosed = ZoneDecisionWindowClosed(report);
+        var canZone = User.IsInRole("ZoneAdmin") && !zoneWindowClosed &&
+            report.Status is WeeklySubmissionStatus.SubmittedToZone or WeeklySubmissionStatus.RegionRejectedToZone;
+        var canRegion = User.IsInRole("RegionAdmin") && report.Status == WeeklySubmissionStatus.ZoneApproved;
         return View(new WeeklyWorkflowDetailsViewModel
         {
             Report = ToRow(report),
+            Form = await _formLoader.LoadAsync(report),
+            CanZoneApprove = canZone,
+            CanRegionApprove = canRegion,
+            ZoneDecisionWindowClosed = User.IsInRole("ZoneAdmin") && zoneWindowClosed,
+            ApprovalToken = canZone || canRegion ? IssueApprovalToken(report.Id, user.Id) : null,
             Aggregate = await BuildAggregate([report.WoredaId], [(report.WoredaId, report.StartDate.Date, report.EndDate.Date)], singleReports),
             History = report.History.OrderByDescending(x => x.PerformedAt).Select(x => new WeeklyWorkflowHistoryViewModel
             { User = $"{x.User.FirstName} {x.User.LastName}", Location = x.User.Location.LocationAmharicName ?? x.User.Location.LocationName ?? "", Action = x.Action,
@@ -180,46 +198,18 @@ public class WeeklyWorkflowController : Controller
         });
     }
 
-    [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "RegionAdmin")]
-    public async Task<IActionResult> ActZone(Guid zoneId, DateTime startDate, DateTime endDate, string decision, string? comment)
-    {
-        var user = await _users.GetUserAsync(User); if (user == null) return Challenge();
-        if (decision == "Reject" && string.IsNullOrWhiteSpace(comment))
-        { TempData["Error"] = "የዞን ሪፖርት ውድቅ ሲደረግ አስተያየት ግዴታ ነው።"; return RedirectToAction(nameof(ZoneDetails), new { zoneId, startDate, endDate }); }
-        var reports = await ScopedReports(user).Where(x => x.Woreda.ParentId == zoneId && x.StartDate == startDate && x.EndDate == endDate && x.Status == WeeklySubmissionStatus.ZoneApproved).ToListAsync();
-        if (reports.Count == 0) return NotFound();
-        var next = decision == "Approve" ? WeeklySubmissionStatus.RegionApproved : WeeklySubmissionStatus.RegionRejectedToZone;
-        var action = decision == "Approve" ? WeeklyWorkflowAction.RegionApprove : WeeklyWorkflowAction.RegionReject;
-        if (decision is not ("Approve" or "Reject")) return BadRequest();
-        var now = DateTime.UtcNow;
-        foreach (var report in reports)
-        {
-            report.Status = next; report.LastActionAt = now;
-            _db.WeeklyReportWorkflowHistories.Add(new WeeklyReportWorkflowHistory
-            {
-                WeeklyReportSubmissionId = report.Id, UserId = user.Id, ActorLocationId = user.LocationId,
-                ActorLocationLevel = user.UserLocationLevl, Action = action, PreviousStatus = WeeklySubmissionStatus.ZoneApproved,
-                NewStatus = next, Comment = comment?.Trim(), PerformedAt = now
-            });
-        }
-        await _db.SaveChangesAsync();
-        if (next == WeeklySubmissionStatus.RegionApproved)
-        {
-            var regionalReports = await ScopedReports(user).AsNoTracking()
-                .Where(x => x.StartDate == startDate && x.EndDate == endDate && x.Status == WeeklySubmissionStatus.RegionApproved)
-                .ToListAsync();
-            await _aggregation.SaveSnapshotAsync(user.LocationId, user.UserLocationLevl, startDate, endDate, next, user.Id, regionalReports);
-        }
-        TempData["Success"] = decision == "Approve" ? "የዞኑ የሳምንት ድምር ጸድቋል።" : "የዞኑ ሪፖርት ለዞን ዳግም ግምገማ ተመልሷል።";
-        return RedirectToAction(nameof(RegionalQueue));
-    }
-
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Act(Guid id, string decision, string? comment, byte[] rowVersion)
+    public async Task<IActionResult> Act(Guid id, string decision, string? comment, byte[] rowVersion, string? approvalToken)
     {
         var user = await _users.GetUserAsync(User); if (user == null) return Challenge();
         var report = await ScopedReports(user).FirstOrDefaultAsync(x => x.Id == id); if (report == null) return NotFound();
-        if (User.IsInRole("ZoneAdmin") && DateTime.Today.Date > report.ReportingWeekStart.Date.AddDays(3))
+        // Decisions are only accepted from the record's details page, which issues the token.
+        if (!IsValidApprovalToken(approvalToken, report.Id, user.Id))
+        {
+            TempData["Error"] = "ውሳኔ መስጠት የሚቻለው የሪፖርቱን ሙሉ ዝርዝር ገጽ ከፍተው ከገመገሙ በኋላ ብቻ ነው።";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+        if (User.IsInRole("ZoneAdmin") && ZoneDecisionWindowClosed(report))
         {
             TempData["Error"] = "የዞን ፍቃድ/ውድቅ ጊዜው ሐሙስ ማብቂያ ላይ አልፏል። ሪፖርቱን ማየት ይቻላል፣ ውሳኔ መስጠት ግን አይቻልም።";
             return RedirectToAction(nameof(Details), new { id });
@@ -252,7 +242,34 @@ public class WeeklyWorkflowController : Controller
                 (x.Status == WeeklySubmissionStatus.ZoneApproved || x.Status == WeeklySubmissionStatus.RegionApproved || x.Status == WeeklySubmissionStatus.RegionRejectedToZone)).ToListAsync();
             await _aggregation.SaveSnapshotAsync(user.LocationId, user.UserLocationLevl, report.StartDate, report.EndDate, next, user.Id, zoneReports);
         }
+        else if (next == WeeklySubmissionStatus.RegionApproved)
+        {
+            var regionalReports = await ScopedReports(user).AsNoTracking()
+                .Where(x => x.StartDate == report.StartDate && x.EndDate == report.EndDate && x.Status == WeeklySubmissionStatus.RegionApproved)
+                .ToListAsync();
+            await _aggregation.SaveSnapshotAsync(user.LocationId, user.UserLocationLevl, report.StartDate, report.EndDate, next, user.Id, regionalReports);
+        }
+        TempData["Success"] = next switch
+        {
+            WeeklySubmissionStatus.ZoneApproved => "ሪፖርቱ በዞን ጸድቆ ለክልል ተልኳል።",
+            WeeklySubmissionStatus.RegionApproved => "ሪፖርቱ በክልል ጸድቋል።",
+            _ => "ሪፖርቱ ውድቅ ተደርጎ ተመልሷል።"
+        };
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    // Zone decisions close at the end of Thursday of the reporting week.
+    private static bool ZoneDecisionWindowClosed(WeeklyReportSubmission report) =>
+        DateTime.Today.Date > report.ReportingWeekStart.Date.AddDays(3);
+
+    private string IssueApprovalToken(Guid reportId, string userId) =>
+        _approvalTokens.Protect($"{reportId:N}|{userId}", TimeSpan.FromHours(4));
+
+    private bool IsValidApprovalToken(string? token, Guid reportId, string userId)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return false;
+        try { return _approvalTokens.Unprotect(token) == $"{reportId:N}|{userId}"; }
+        catch (CryptographicException) { return false; }
     }
 
     private IQueryable<WeeklyReportSubmission> ScopedReports(ApplicationUser user)

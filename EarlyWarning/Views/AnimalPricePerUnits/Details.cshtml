@@ -328,6 +328,10 @@
                             <i class="fas fa-arrow-down"></i> ቀንሷል
                         </span>
                     }
+                    else if (Model.WeeklyMarketStatus is WeeklyStatus.New or WeeklyStatus.Uncompared)
+                    {
+                        <span class="badge-status badge-same">@(Model.WeeklyMarketStatus == WeeklyStatus.New ? "አዲስ" : "ያልተነጻጸረ")</span>
+                    }
                     else
                     {
                         <span class="badge-status badge-same">
