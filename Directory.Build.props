@@ -1,0 +1,8 @@
+<Project>
+  <!--
+    Stops MSBuild from importing Directory.Build.props files from parent folders
+    (e.g. C:\Users\<user>\Directory.Build.props from another solution), which would
+    otherwise change the target framework, analyzers and warnings-as-errors here.
+    Put settings shared by all EarlyWarning projects in this file.
+  -->
+</Project>

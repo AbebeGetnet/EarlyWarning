@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -45,12 +46,8 @@ namespace EarlyWarning.Controllers
                     (User.IsInRole("RegionAdmin") && target.Parent?.ParentId == currentUser.LocationId));
                 if (!allowed) return Forbid();
             }
-            var kebeles = await _context.Locations
-                .Where(l => l.ParentId == targetWoredaId &&
-                            l.Level == LocationLevel.ቀበሌ &&
-                            l.IsActive)
-                .AsNoTracking()
-                .ToListAsync();
+            var kebeles = await NamesOnly(_context.Locations
+                .Where(l => l.ParentId == targetWoredaId && l.Level == LocationLevel.ቀበሌ && l.IsActive)).ToListAsync();
 
             var defaultWeekStart = GetReportingWeekStart(DateTime.Today);
             var selectedStartDate = startDate?.Date ?? defaultWeekStart;
@@ -87,7 +84,7 @@ namespace EarlyWarning.Controllers
                 AccidentTypes = await _context.AccidentTypes.Where(x => x.IsActive).AsNoTracking().ToListAsync()
             };
 
-            model.MigrationLocations = await _context.Locations.Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive && x.Id != targetWoredaId).AsNoTracking().ToListAsync();
+            model.MigrationLocations = await NamesOnly(_context.Locations.Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive && x.Id != targetWoredaId)).ToListAsync();
             model.AnimalMigrationRows = BuildAnimalMigrationRows();
 
             model.GrainTypes = await _context.GrainTypes.Where(x => x.IsActive).AsNoTracking().ToListAsync();
@@ -151,7 +148,7 @@ namespace EarlyWarning.Controllers
                 message = status == WeeklySubmissionStatus.Draft
                     ? "የዚህ ሳምንት ረቂቅ መረጃ ተቀምጧል፤ ከቆሙበት ቀጥለው ያጠናቅቁ።"
                     : editable ? "የዚህ ሳምንት ሪፖርት ለማስተካከያ ተመልሷል፤ ነባሩን መረጃ ያርሙና እንደገና ይላኩ።"
-                    : $"ለ{submission.Woreda} የ{weekStart:yyyy-MM-dd} እስከ {periodEnd:yyyy-MM-dd} (ሰኞ–ረቡዕ) ሪፖርት ቀድሞ ተልኳል (ሁኔታ፡ {status})። ነባሩን ሪፖርት ለግምገማ ይክፈቱ።"
+                    : $"ለ{submission.Woreda} የ{EthiopianDate.FromGregorian(weekStart)} እስከ {EthiopianDate.FromGregorian(periodEnd)} ዓ/ም (ሰኞ–ረቡዕ) ሪፖርት ቀድሞ ተልኳል (ሁኔታ፡ {status})። ነባሩን ሪፖርት ለግምገማ ይክፈቱ።"
             });
         }
 
@@ -332,6 +329,7 @@ namespace EarlyWarning.Controllers
             var aid = await _context.WeeklyProvideds.Include(x => x.WeeklyProvidedDetail).FirstOrDefaultAsync(x => x.WoredaId == woredaId && x.StartDate == sDate && x.EndDate == eDate);
             var other = await _context.OtherProblems.FirstOrDefaultAsync(x => x.WoredaId == woredaId && x.StartDate == sDate && x.EndDate == eDate);
             var school = await _context.SchoolReports.AsNoTracking().FirstOrDefaultAsync(x => x.WoredaId == woredaId && x.StartDate == sDate && x.EndDate == eDate);
+            var malnutrition = await _context.MalnutritionReports.AsNoTracking().FirstOrDefaultAsync(x => x.WoredaId == woredaId && x.StartDate == sDate && x.EndDate == eDate);
             var grainPriceRows = await _context.GrainPricePerQuintals.Where(x => x.WoredaId == woredaId && x.StartDate == sDate && x.EndDate == eDate).ToListAsync();
             var animalPriceRows = await _context.AnimalPricePerUnits.Where(x => x.WoredaId == woredaId && x.StartDate == sDate && x.EndDate == eDate).ToListAsync();
             var animalMigrations = workflow == null ? [] : await _context.AnimalMigrationRecords.AsNoTracking()
@@ -341,7 +339,7 @@ namespace EarlyWarning.Controllers
             bool dataExists = (rainfall != null || farming != null || cropGrowth != null || pest != null ||
                                pasture != null || water != null || health != null || humanWater != null || epidemic != null ||
                                grainSupply != null || animalSupply != null || grainPrice != null || animalPrice != null || accidents != null ||
-                               migration != null || death != null || recipient != null || aid != null || other != null || school != null);
+                               migration != null || death != null || recipient != null || aid != null || other != null || school != null || malnutrition != null);
 
             var extendedFields = new Dictionary<string, object?>();
             AddScalarFields(extendedFields, "HumanDrinkWaterIssue", humanWater);
@@ -360,6 +358,7 @@ namespace EarlyWarning.Controllers
             AddScalarFields(extendedFields, "WeeklyProvided", aid);
             AddScalarFields(extendedFields, "OtherProblem", other);
             AddScalarFields(extendedFields, "SchoolReport", school);
+            AddScalarFields(extendedFields, "MalnutritionReport", malnutrition);
 
             if (!dataExists && workflow == null)
             {
@@ -610,6 +609,9 @@ namespace EarlyWarning.Controllers
             ValidateNumericValues(model.WeeklyProvided, "የቀረበ ዕርዳታ");
             ValidateNumericValues(model.OtherProblem, "ሌላ ችግር");
             ValidateNumericValues(model.SchoolReport, "የትምህርት ቤት ሁኔታ");
+            ValidateNumericValues(model.MalnutritionReport, "የስነ-ምግብ እጥረት");
+            foreach (var error in model.MalnutritionReport.Validate(new ValidationContext(model.MalnutritionReport)))
+                ModelState.AddModelError($"MalnutritionReport.{error.MemberNames.FirstOrDefault()}", error.ErrorMessage ?? "");
             foreach (var row in model.CropPestImpactDetails) ValidateNumericValues(row, "የሰብል ተጎጂ ዝርዝር");
             foreach (var row in model.AnimalDiseaseImpactDetails) ValidateNumericValues(row, "የእንስሳት በሽታ ተጎጂ ዝርዝር");
             foreach (var row in model.EpidemicImpactDetails) ValidateNumericValues(row, "የሰው ጤና ተጎጂ ዝርዝር");
@@ -1242,6 +1244,9 @@ namespace EarlyWarning.Controllers
             weeklyProvided.WeeklyProvidedDetail = model.AidDistributionDetails.Where(x => x.SupplyTypeId != Guid.Empty).Select(x => new WeeklyProvidedDetail { SupplyTypeId = x.SupplyTypeId, Measurement = x.Measurement, ProvidedQuantity = x.ProvidedQuantity, DistributedQuantity = x.DistributedQuantity, PercentageOfDistributedFromProvided = x.ProvidedQuantity == 0 ? 0 : x.DistributedQuantity / x.ProvidedQuantity * 100, Donor = x.Donor }).ToList();
             await UpsertSimpleAsync(_context.OtherProblems, model.OtherProblem, x => x.WoredaId == woredaId && x.StartDate == startDate && x.EndDate == endDate,
                 x => { x.WoredaId = woredaId; x.StartDate = startDate; x.EndDate = endDate; x.ReportedBy = reportedBy; if (string.IsNullOrWhiteSpace(x.ProblemName)) x.ProblemName = "የለም"; });
+            model.MalnutritionReport.CalculateRates();
+            await UpsertSimpleAsync(_context.MalnutritionReports, model.MalnutritionReport, x => x.WoredaId == woredaId && x.StartDate == startDate && x.EndDate == endDate,
+                x => { x.WoredaId = woredaId; x.StartDate = startDate; x.EndDate = endDate; });
             await UpsertSimpleAsync(_context.SchoolReports, model.SchoolReport, x => x.WoredaId == woredaId && x.StartDate == startDate && x.EndDate == endDate,
                 x =>
                 {
@@ -1337,17 +1342,8 @@ namespace EarlyWarning.Controllers
             }).ToList();
         private async Task PopulateLookupListsAsync(RegistrationWithardViewModel model)
         {
-            ViewBag.WoredaSelectList = new SelectList(
-                await _context.Set<Locations>().Where(l => l.Level == LocationLevel.ወረዳ && l.IsActive).ToListAsync(),
-                "Id", nameof(EarlyWarning.Models.Locations.DisplayName), model.WoredaId
-            );
-
-            model.Kebelies = await _context.Set<Locations>()
-                .Where(l => l.ParentId == model.WoredaId &&
-                            l.Level == LocationLevel.ቀበሌ &&
-                            l.IsActive)
-                .AsNoTracking()
-                .ToListAsync();
+            model.Kebelies = await NamesOnly(_context.Locations
+                .Where(l => l.ParentId == model.WoredaId && l.Level == LocationLevel.ቀበሌ && l.IsActive)).ToListAsync();
             model.AnimalDiseases = await _context.Set<AnimalDisease>().ToListAsync();
             model.CropPestAndDeseases = await _context.Set<CropPestAndDesease>().ToListAsync();
             model.EpidemicDiseaseTypes = await _context.EpidemicDiseaseTypes.Where(x => x.IsActive).ToListAsync();
@@ -1355,10 +1351,20 @@ namespace EarlyWarning.Controllers
             model.GrainTypes = await _context.GrainTypes.Where(x => x.IsActive).ToListAsync();
             model.AnimalTypes = await _context.AnimalTypes.Where(x => x.IsActive).ToListAsync();
             model.SupplyTypes = await _context.SupplyTypes.Where(x => x.IsActive).ToListAsync();
-            model.MigrationLocations = await _context.Locations.Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive && x.Id != model.WoredaId).ToListAsync();
+            model.MigrationLocations = await NamesOnly(_context.Locations.Where(x => x.Level == LocationLevel.ወረዳ && x.IsActive && x.Id != model.WoredaId)).ToListAsync();
             if (model.AnimalMigrationRows.Count == 0) model.AnimalMigrationRows = BuildAnimalMigrationRows();
             ViewBag.WoredaName = await _context.Locations.Where(x => x.Id == model.WoredaId).Select(x => x.LocationAmharicName ?? x.LocationName ?? "-").FirstOrDefaultAsync();
         }
+
+        // Checkbox and drop-down lists need only the id and names (DisplayName), not whole location rows,
+        // and are sorted by the name shown.
+        private static IQueryable<Locations> NamesOnly(IQueryable<Locations> query) => query.AsNoTracking()
+            .OrderBy(x => x.LocationAmharicName ?? x.LocationName)
+            .Select(x => new Locations
+            {
+                Id = x.Id, LocationName = x.LocationName, LocationAmharicName = x.LocationAmharicName,
+                ParentId = x.ParentId, Level = x.Level, IsActive = x.IsActive
+            });
 
         private static List<AnimalMigrationEntryViewModel> BuildAnimalMigrationRows() =>
             Enum.GetValues<MigratingAnimalType>()

@@ -1,0 +1,36 @@
+@* Styles for _StandardWeeklyReport: a document page in the commission's report style; prints on A4 portrait. *@
+<style>
+    .ewr-doc {
+        background: #fff; color: #111; max-width: 900px; margin: 0 auto 1.5rem; padding: 2rem 2.4rem;
+        border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,.12);
+        font-family: 'Nyala', 'Ebrima', 'Noto Sans Ethiopic', 'Power Geez Unicode1', serif; font-size: 1.02rem; line-height: 1.75;
+    }
+    .ewr-head { text-align: center; border-bottom: 3px double #173e50; padding-bottom: .9rem; margin-bottom: 1.2rem; }
+    .ewr-org { font-weight: 700; font-size: 1.12rem; color: #173e50; }
+    .ewr-title { font-weight: 700; font-size: 1.35rem; margin-top: .35rem; text-decoration: underline; }
+    .ewr-period { font-weight: 600; margin-top: .25rem; }
+    .ewr-meta { color: #555; font-size: .9rem; }
+    .ewr-section { margin-bottom: .6rem; break-inside: avoid-page; }
+    .ewr-h1 { font-size: 1.12rem; font-weight: 700; color: #173e50; margin: 1.1rem 0 .4rem; }
+    .ewr-h2 { font-size: 1.02rem; font-weight: 700; margin: .7rem 0 .3rem; padding-left: 1rem; }
+    .ewr-level-2 .ewr-p, .ewr-level-2 .ewr-list, .ewr-level-2 .ewr-table-wrap { margin-left: 1rem; }
+    .ewr-num { display: inline-block; min-width: 2rem; }
+    .ewr-p { text-align: justify; margin: 0 0 .5rem; }
+    .ewr-list { margin: 0 0 .5rem 1.2rem; padding-left: 1rem; }
+    .ewr-list li { margin-bottom: .2rem; }
+    .ewr-table-wrap { overflow-x: auto; margin: .4rem 0 .8rem; }
+    .ewr-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .ewr-table th, .ewr-table td { border: 1px solid #555; padding: .25rem .45rem; text-align: center; vertical-align: middle; }
+    .ewr-table th { background: #e8eff3; font-weight: 700; }
+    .ewr-table td:nth-child(2) { text-align: left; }
+    .ewr-table tfoot td { font-weight: 700; background: #f3f3f3; }
+    @@media (max-width: 576px) { .ewr-doc { padding: 1rem; } }
+    @@media print {
+        @@page { size: A4 portrait; margin: 14mm; }
+        .main-header, .main-sidebar, .main-footer, footer.footer, .preloader, #toast-container, .no-print { display: none !important; }
+        .wrapper, .content-wrapper, .content, .container-fluid { margin: 0 !important; padding: 0 !important; background: #fff !important; min-height: 0 !important; }
+        .ewr-doc { box-shadow: none; max-width: none; padding: 0; margin: 0; }
+        .ewr-doc ~ .ewr-doc { break-before: page; }   /* each zone/woreda report starts a new page */
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+</style>

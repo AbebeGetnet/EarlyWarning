@@ -1,4 +1,4 @@
-﻿@model EarlyWarning.ViewModels.RegistrationWithardViewModel
+@model EarlyWarning.ViewModels.RegistrationWithardViewModel
 @using EarlyWarning.Enums
 @using EarlyWarning.Models
 @{
@@ -44,24 +44,30 @@
             font-weight: 700;
             transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
         }
-        #earlyWarningForm label:has(input[type="radio"][value="true"]),
-        #earlyWarningForm .form-check:has(input[type="radio"][value="true"]) { color: #198754; }
-        #earlyWarningForm label:has(input[type="radio"][value="false"]),
-        #earlyWarningForm .form-check:has(input[type="radio"][value="false"]) { color: #dc3545; }
-        #earlyWarningForm label:has(input[type="radio"][value="true"]:checked),
-        #earlyWarningForm .form-check:has(input[type="radio"][value="true"]:checked) {
+        /* Radio colours follow the data entry an answer needs, not whether it sounds good or bad:
+           data-detail="true"  → choosing it opens more fields to fill in → green
+           data-detail="false" → nothing more to enter → red
+           no data-detail      → neither answer opens fields → blue */
+        #earlyWarningForm label:has(input[type="radio"][data-detail="true"]),
+        #earlyWarningForm .form-check:has(input[type="radio"][data-detail="true"]) { color: #198754; }
+        #earlyWarningForm label:has(input[type="radio"][data-detail="false"]),
+        #earlyWarningForm .form-check:has(input[type="radio"][data-detail="false"]) { color: #dc3545; }
+        #earlyWarningForm label:has(input[type="radio"]:not([data-detail])),
+        #earlyWarningForm .form-check:has(input[type="radio"]:not([data-detail])) { color: #0d6efd; }
+        #earlyWarningForm label:has(input[type="radio"][data-detail="true"]:checked),
+        #earlyWarningForm .form-check:has(input[type="radio"][data-detail="true"]:checked) {
             color: #fff;
             background-color: #198754;
             box-shadow: 0 0 0 .18rem rgba(25, 135, 84, .18);
         }
-        #earlyWarningForm label:has(input[type="radio"][value="false"]:checked),
-        #earlyWarningForm .form-check:has(input[type="radio"][value="false"]:checked) {
+        #earlyWarningForm label:has(input[type="radio"][data-detail="false"]:checked),
+        #earlyWarningForm .form-check:has(input[type="radio"][data-detail="false"]:checked) {
             color: #fff;
             background-color: #dc3545;
             box-shadow: 0 0 0 .18rem rgba(220, 53, 69, .18);
         }
-        #earlyWarningForm label:has(input[type="radio"]:checked):not(:has(input[value="true"])):not(:has(input[value="false"])),
-        #earlyWarningForm .form-check:has(input[type="radio"]:checked):not(:has(input[value="true"])):not(:has(input[value="false"])) {
+        #earlyWarningForm label:has(input[type="radio"]:not([data-detail]):checked),
+        #earlyWarningForm .form-check:has(input[type="radio"]:not([data-detail]):checked) {
             color: #fff;
             background-color: #0d6efd;
             box-shadow: 0 0 0 .18rem rgba(13, 110, 253, .18);
@@ -75,8 +81,8 @@
         #earlyWarningForm .form-check:has(input[type="radio"]:not(:checked)) > .form-check-label {
             color: inherit !important;
         }
-        #earlyWarningForm .bool-radio[value="true"] { accent-color: #198754; }
-        #earlyWarningForm .bool-radio[value="false"] { accent-color: #dc3545; }
+        #earlyWarningForm input[type="radio"][data-detail="true"] { accent-color: #198754; }
+        #earlyWarningForm input[type="radio"][data-detail="false"] { accent-color: #dc3545; }
         #earlyWarningForm select.form-select,
         #earlyWarningForm select.form-control {
             display: block;
@@ -125,6 +131,22 @@
             background-color: #eef3f8 !important;
         }
         #earlyWarningForm table tfoot { border-top: 2px solid #536273; }
+        /* Final-submit confirmation (self-contained: the layout loads two Bootstrap versions). */
+        .submit-confirm-backdrop {
+            position: fixed; inset: 0; z-index: 2000;
+            background: rgba(0, 0, 0, .55);
+            display: flex; align-items: center; justify-content: center; padding: 16px;
+        }
+        .submit-confirm-backdrop[hidden] { display: none; }
+        .submit-confirm-dialog {
+            background: #fff; border-radius: .6rem; max-width: 560px; width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .35); overflow: hidden;
+        }
+        .submit-confirm-dialog header { background: #dc3545; color: #fff; padding: .9rem 1.2rem; font-weight: 700; font-size: 1.1rem; }
+        .submit-confirm-dialog .body { padding: 1.2rem; line-height: 1.7; }
+        .submit-confirm-dialog footer { padding: .9rem 1.2rem; background: #f8f9fa; display: flex; gap: .75rem; justify-content: flex-end; flex-wrap: wrap; }
+        .submit-confirm-dialog .ack { display: flex; gap: .6rem; align-items: flex-start; background: #fff3cd; border: 1px solid #ffe08a; border-radius: .4rem; padding: .7rem .8rem; margin-top: .8rem; font-weight: 600; cursor: pointer; }
+        .submit-confirm-dialog .ack input { margin-top: .35rem; transform: scale(1.25); }
         @@media (max-width: 576px) {
             #earlyWarningForm .d-flex > .form-check,
             #earlyWarningForm .d-flex > label:has(input[type="radio"]) { margin-right: 1.25rem !important; }
@@ -136,7 +158,7 @@
     <div class="card shadow border-0 rounded-lg">
         <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
             <h4 class="mb-0"><i class="fas fa-magic me-2"></i>@(ViewBag.IsReviewMode == true ? "የወረዳ ሳምንታዊ ሪፖርት ግምገማ (Review Mode)" : "የተቀናጀ የሳምንታዊ መረጃ መሰብሰቢያ ዊዛርድ (Early Warning Data Wizard)")</h4>
-            <span class="badge bg-info p-2" id="stepIndicator">ደረጃ 1 ከ 18</span>
+            <span class="badge bg-info p-2" id="stepIndicator">ደረጃ 1 ከ 19</span>
         </div>
         
         <div class="progress rounded-0" style="height: 6px;">
@@ -177,7 +199,7 @@
             {
                 <div class="alert alert-primary shadow-sm">
                     <i class="fas fa-eye me-2"></i><strong>Review Mode:</strong>
-                    የ@ViewBag.WoredaName የተላከ መረጃ በንባብ ብቻ ሁኔታ ተከፍቷል። ሁሉንም 17 ደረጃዎች በመመልከት ያረጋግጡ።
+                    የ@ViewBag.WoredaName የተላከ መረጃ በንባብ ብቻ ሁኔታ ተከፍቷል። ሁሉንም 18 ደረጃዎች በመመልከት ያረጋግጡ።
                 </div>
             }
 
@@ -193,7 +215,7 @@
                     <div class="p-4 bg-white rounded shadow-sm border-top border-primary border-4">
                         <h4 class="text-primary mb-3"><i class="fas fa-map-marker-alt me-2"></i>መነሻ ፡ አጠቃላይ የአካባቢ እና የጊዜ መረጃ</h4>
                         <div class="alert alert-danger p-2 d-none" id="dateValidationWarning">
-                            <i class="fas fa-exclamation-triangle me-2"></i><strong>የቀን ስህተት፡</strong> እባክዎ ካለፉት 8 ቀናት እስከ ዛሬ ያለውን ቀን ብቻ ያስገቡ (የወደፊት ቀን ወይም ከ8 ቀን የበለሰ መረጃ ማስገባት አይቻልም)።
+                            <i class="fas fa-exclamation-triangle me-2"></i><strong>የቀን ስህተት፡</strong> እባክዎ ካለፉት 8 ቀናት እስከ ዛሬ (@EarlyWarning.Extensions.EthiopianDate.FromGregorian(DateTime.Today) ዓ/ም) ያለውን ቀን ብቻ ያስገቡ (የወደፊት ቀን ወይም ከ8 ቀን የበለሰ መረጃ ማስገባት አይቻልም)።
                         </div>
                         <hr />
                         <div class="alert alert-secondary"><strong>የመረጃ ባለቤት ወረዳ፡</strong> @ViewBag.WoredaName <span class="ms-2 text-muted">(በተጠቃሚው መለያ የተወሰነ፤ መቀየር አይቻልም)</span></div>
@@ -202,14 +224,24 @@
                                 <label class="fw-bold">በወረዳ ያሉ ቀበሌዎች ብዛት</label>
                                 <input id="totalWoredaKebeles" class="form-control text-center bg-light fw-bold text-primary" value="@ViewBag.TotalKebeles" readonly disabled />
                             </div>
-                            <div class="col-md-4">
-                                <label asp-for="StartDate" class="form-label fw-bold">የሪፖርት መነሻ ቀን (ሰኞ)</label>
-                                <input asp-for="StartDate" id="StartDate" type="date" class="form-control" />
+                            @* Dates are picked in the Ethiopian calendar; the hidden fields carry the Gregorian
+                               value (yyyy-MM-dd) that the server, drafts and reports use. See ethiopianDate.js. *@
+                            <input type="hidden" name="StartDate" id="StartDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" />
+                            <input type="hidden" name="EndDate" id="EndDate" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))" />
+                            <div class="col-md-5">
+                                <label class="form-label fw-bold" for="ethStartDay">የሪፖርት መነሻ ቀን (ሰኞ) — በኢትዮጵያ ዘመን አቆጣጠር</label>
+                                <div class="d-flex gap-2 eth-date-picker" id="ethStartPicker">
+                                    <select id="ethStartDay" class="form-select" aria-label="ቀን" title="ቀን"></select>
+                                    <select id="ethStartMonth" class="form-select" aria-label="ወር" title="ወር"></select>
+                                    <select id="ethStartYear" class="form-select" aria-label="ዓመት" title="ዓመት"></select>
+                                </div>
+                                <small class="text-muted d-block" id="ethStartLong"></small>
                                 <span asp-validation-for="StartDate" class="text-danger"></span>
                             </div>
-                            <div class="col-md-4">
-                                <label asp-for="EndDate" class="form-label fw-bold">የሪፖርት ማጠናቀቂያ ቀን (ረቡዕ)</label>
-                                <input asp-for="EndDate" id="EndDate" type="date" class="form-control" readonly />
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold" for="ethEndDisplay">የሪፖርት ማጠናቀቂያ ቀን (ረቡዕ)</label>
+                                <input id="ethEndDisplay" class="form-control bg-light fw-bold" readonly tabindex="-1" />
+                                <small class="text-muted d-block" id="ethEndLong"></small>
                                 <span asp-validation-for="EndDate" class="text-danger"></span>
                             </div>
                         </div>
@@ -218,7 +250,7 @@
 
                 <div class="wizard-step d-none" id="step2">
                     <div class="p-4 bg-white rounded shadow-sm border-top border-info border-4">
-                        <h4 class="text-info mb-3"><i class="fas fa-cloud-showers-heavy me-2"></i>ደረጃ 1፡ የዝናብ ስርጭት ሁኔታ</h4>
+                        <h4 class="text-info mb-3"><i class="fas fa-cloud-showers-heavy me-2"></i>ደረጃ 1፡ የዝናብ ሁኔታ</h4>
                         <div class="alert alert-info py-1 mb-3 bg-opacity-10 text-dark border-info">
                             <i class="fas fa-info-circle me-2 text-info"></i>የወረዳው ጠቅላላ የቀበሌዎች ብዛት ገደብ፦ <span id="woredaKebeleCountBadge" class="fw-bold text-primary">0</span>
                         </div>
@@ -351,12 +383,12 @@
                             <label class="form-label fw-bold mb-2">የሰብል ተባይ እና በሽታ ተከስቷል?</label>
                             <div class="d-flex gap-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="hasPestRadio" id="hasPestYes" value="true" onchange="toggleCropPestFields()">
-                                    <label class="form-check-label fw-bold text-danger" for="hasPestYes">አዎ ተከስቷል</label>
+                                    <input class="form-check-input" type="radio" name="hasPestRadio" id="hasPestYes" data-detail="true" value="true" onchange="toggleCropPestFields()">
+                                    <label class="form-check-label fw-bold" for="hasPestYes">አዎ ተከስቷል</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="hasPestRadio" id="hasPestNo" value="false" onchange="toggleCropPestFields()" checked>
-                                    <label class="form-check-label fw-bold text-success" for="hasPestNo">አልተከሰተም</label>
+                                    <input class="form-check-input" type="radio" name="hasPestRadio" id="hasPestNo" data-detail="false" value="false" onchange="toggleCropPestFields()" checked>
+                                    <label class="form-check-label fw-bold" for="hasPestNo">አልተከሰተም</label>
                                 </div>
                             </div>
                             <input type="hidden" asp-for="CropPestAndDeseaseReport.HasPestAndDeseasOccured" id="hasPestSwitch" value="false" />
@@ -417,7 +449,7 @@
                                     <tbody>
                                         <tr><td class="bg-light fw-bold" data-label="አባወራ / እማወራ">አባወራ / እማወራ</td><td><input asp-for="CropPestAndDeseaseReport.MaleHouseHold" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.FemaleHouseHold" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="የቤተሰብ አባላት">የቤተሰብ አባላት</td><td><input asp-for="CropPestAndDeseaseReport.MaleFamily" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.FemaleFamily" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
-                                        <tr><td class="bg-light fw-bold" data-label="ህጻናት">ህጻናት</td><td><input asp-for="CropPestAndDeseaseReport.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ህፃናት ከ5 ዓመት በታች">ህፃናት ከ5 ዓመት በታች</td><td><input asp-for="CropPestAndDeseaseReport.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="ወጣቶች">ወጣቶች</td><td><input asp-for="CropPestAndDeseaseReport.YouthMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.YouthFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="አረጋውያን">አረጋውያን</td><td><input asp-for="CropPestAndDeseaseReport.ElderlyMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.ElderlyFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="አካል ጉዳተኞች">አካል ጉዳተኞች</td><td><input asp-for="CropPestAndDeseaseReport.DisabledMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="CropPestAndDeseaseReport.DisabledFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
@@ -438,20 +470,20 @@
 
                 <div class="wizard-step d-none" id="step5">
                     <div class="p-4 bg-white rounded shadow-sm border-top border-success border-4">
-                        <h4 class="text-success mb-3"><i class="fas fa-leaf me-2"></i>ደረጃ 4፡ የእንስሳት ግጦሽና ውሀ አቅርቦት ሁኔታ</h4>
+                        <h4 class="text-success mb-3"><i class="fas fa-leaf me-2"></i>ደረጃ 4፡ የእንስሳት ግጦሽ፣ መኖና ውሀ አቅርቦት ሁኔታ</h4>
                         <hr />
-                        <h5 class="text-success mb-3">4.1፡ የእንስሳት ግጦሽ ሁኔታ</h5>
+                        <h5 class="text-success mb-3">4.1፡ የእንስሳት ግጦሽና መኖ ሁኔታ</h5>
 
                         <div class="card p-3 bg-light mb-3">
                             <label class="form-label fw-bold mb-2">የእንስሳት መኖ አቅርቦት ሁኔታ ምንድነው?</label>
                             <div class="d-flex gap-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="pastureEnoughRadio" id="pastureEnoughYes" value="true" onchange="togglePastureFields()" checked>
-                                    <label class="form-check-label fw-bold text-success" for="pastureEnoughYes">በቂ ነው</label>
+                                    <input class="form-check-input" type="radio" name="pastureEnoughRadio" id="pastureEnoughYes" data-detail="false" value="true" onchange="togglePastureFields()" checked>
+                                    <label class="form-check-label fw-bold" for="pastureEnoughYes">በቂ ነው</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="pastureEnoughRadio" id="pastureEnoughNo" value="false" onchange="togglePastureFields()">
-                                    <label class="form-check-label fw-bold text-danger" for="pastureEnoughNo">እጥረት አለ</label>
+                                    <input class="form-check-input" type="radio" name="pastureEnoughRadio" id="pastureEnoughNo" data-detail="true" value="false" onchange="togglePastureFields()">
+                                    <label class="form-check-label fw-bold" for="pastureEnoughNo">እጥረት አለ</label>
                                 </div>
                             </div>
                             <input type="hidden" asp-for="PastureStatus.Enough" id="pastureEnoughSwitch" value="true" />
@@ -485,7 +517,7 @@
                                     <tbody>
                                         <tr><td class="bg-light fw-bold" data-label="አባወራ / እማወራ">አባወራ / እማወራ</td><td><input asp-for="PastureStatus.MaleHouseHold" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.FemaleHouseHold" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="የቤተሰብ አባላት">የቤተሰብ አባላት</td><td><input asp-for="PastureStatus.MaleFamily" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.FemaleFamily" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
-                                        <tr><td class="bg-light fw-bold" data-label="ህጻናት">ህጻናት</td><td><input asp-for="PastureStatus.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ህፃናት ከ5 ዓመት በታች">ህፃናት ከ5 ዓመት በታች</td><td><input asp-for="PastureStatus.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="ወጣቶች">ወጣቶች</td><td><input asp-for="PastureStatus.YouthMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.YouthFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="አረጋውያን">አረጋውያን</td><td><input asp-for="PastureStatus.ElderlyMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.ElderlyFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="አካል ጉዳተኞች">አካል ጉዳተኞች</td><td><input asp-for="PastureStatus.DisabledMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="PastureStatus.DisabledFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
@@ -514,12 +546,12 @@
                             <label class="form-label fw-bold mb-2">የእንስሳት ውሃ አቅርቦት ሁኔታ ምንድነው?</label>
                             <div class="d-flex gap-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="waterEnoughRadio" id="waterEnoughYes" value="true" onchange="toggleWaterFields()" checked>
-                                    <label class="form-check-label fw-bold text-success" for="waterEnoughYes">በቂ ነው</label>
+                                    <input class="form-check-input" type="radio" name="waterEnoughRadio" id="waterEnoughYes" data-detail="false" value="true" onchange="toggleWaterFields()" checked>
+                                    <label class="form-check-label fw-bold" for="waterEnoughYes">በቂ ነው</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="waterEnoughRadio" id="waterEnoughNo" value="false" onchange="toggleWaterFields()">
-                                    <label class="form-check-label fw-bold text-danger" for="waterEnoughNo">እጥረት አለ</label>
+                                    <input class="form-check-input" type="radio" name="waterEnoughRadio" id="waterEnoughNo" data-detail="true" value="false" onchange="toggleWaterFields()">
+                                    <label class="form-check-label fw-bold" for="waterEnoughNo">እጥረት አለ</label>
                                 </div>
                             </div>
                             <input type="hidden" asp-for="AnimalWaterSupplyStatus.Enough" id="waterEnoughSwitch" value="true" />
@@ -546,7 +578,7 @@
                                     <tbody>
                                         <tr><td class="bg-light fw-bold" data-label="አባወራ / እማወራ">አባወራ / እማወራ</td><td><input asp-for="AnimalWaterSupplyStatus.MaleHouseHold" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.FemaleHouseHold" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="የቤተሰብ አባላት">የቤተሰብ አባላት</td><td><input asp-for="AnimalWaterSupplyStatus.MaleFamily" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.FemaleFamily" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
-                                        <tr><td class="bg-light fw-bold" data-label="ህጻናት">ህጻናት</td><td><input asp-for="AnimalWaterSupplyStatus.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ህፃናት ከ5 ዓመት በታች">ህፃናት ከ5 ዓመት በታች</td><td><input asp-for="AnimalWaterSupplyStatus.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="ወጣቶች">ወጣቶች</td><td><input asp-for="AnimalWaterSupplyStatus.YouthMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.YouthFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="አረጋውያን">አረጋውያን</td><td><input asp-for="AnimalWaterSupplyStatus.ElderlyMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.ElderlyFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="አካል ጉዳተኞች">አካል ጉዳተኞች</td><td><input asp-for="AnimalWaterSupplyStatus.DisabledMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalWaterSupplyStatus.DisabledFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
@@ -568,12 +600,12 @@
                             <label class="form-label fw-bold mb-2">የእንስሳት አቋም ምን ይመስላል?</label>
                             <div class="d-flex gap-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" asp-for="AnimalWaterSupplyStatus.AnimalBodyCondition" id="bodyConditionMedium" value="@AnimalBodyCondition.መካከለኛ" onchange="toggleBodyConditionFields()">
-                                    <label class="form-check-label fw-bold text-warning" for="bodyConditionMedium">መካከለኛ</label>
+                                    <input class="form-check-input" type="radio" asp-for="AnimalWaterSupplyStatus.AnimalBodyCondition" id="bodyConditionMedium" data-detail="false" value="@AnimalBodyCondition.መካከለኛ" onchange="toggleBodyConditionFields()">
+                                    <label class="form-check-label fw-bold" for="bodyConditionMedium">መካከለኛ</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" asp-for="AnimalWaterSupplyStatus.AnimalBodyCondition" id="bodyConditionLow" value="@AnimalBodyCondition.ዝቅተኛ" onchange="toggleBodyConditionFields()">
-                                    <label class="form-check-label fw-bold text-danger" for="bodyConditionLow">ዝቅተኛ</label>
+                                    <input class="form-check-input" type="radio" asp-for="AnimalWaterSupplyStatus.AnimalBodyCondition" id="bodyConditionLow" data-detail="true" value="@AnimalBodyCondition.ዝቅተኛ" onchange="toggleBodyConditionFields()">
+                                    <label class="form-check-label fw-bold" for="bodyConditionLow">ዝቅተኛ</label>
                                 </div>
                             </div>
                             <span asp-validation-for="AnimalWaterSupplyStatus.AnimalBodyCondition" class="text-danger"></span>
@@ -602,12 +634,12 @@
                             <label class="form-label fw-bold mb-2">በወረርሽኝ መልክ የተከሰተ የእንስሳት በሽታ</label>
                             <div class="d-flex flex-row flex-wrap align-items-center gap-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="healthEnoughRadio" id="healthEnoughYes" value="true" onchange="toggleAnimalHealthFields()" checked>
-                                    <label class="form-check-label fw-bold text-success" for="healthEnoughYes">የለም</label>
+                                    <input class="form-check-input" type="radio" name="healthEnoughRadio" id="healthEnoughYes" data-detail="false" value="true" onchange="toggleAnimalHealthFields()" checked>
+                                    <label class="form-check-label fw-bold" for="healthEnoughYes">የለም</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="healthEnoughRadio" id="healthEnoughNo" value="false" onchange="toggleAnimalHealthFields()">
-                                    <label class="form-check-label fw-bold text-danger" for="healthEnoughNo">አለ</label>
+                                    <input class="form-check-input" type="radio" name="healthEnoughRadio" id="healthEnoughNo" data-detail="true" value="false" onchange="toggleAnimalHealthFields()">
+                                    <label class="form-check-label fw-bold" for="healthEnoughNo">አለ</label>
                                 </div>
                             </div>
                             <input type="hidden" asp-for="AnimalHealthStatus.Enough" id="animalHealthEnoughSwitch" value="true" />
@@ -652,7 +684,7 @@
                                     <tbody>
                                         <tr><td class="bg-light fw-bold" data-label="አባወራ / እማወራ">አባወራ / እማወራ</td><td><input asp-for="AnimalHealthStatus.MaleHouseHold" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.FemaleHouseHold" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="የቤተሰብ አባላት">የቤተሰብ አባላት</td><td><input asp-for="AnimalHealthStatus.MaleFamily" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.FemaleFamily" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
-                                        <tr><td class="bg-light fw-bold" data-label="ህጻናት">ህጻናት</td><td><input asp-for="AnimalHealthStatus.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
+                                        <tr><td class="bg-light fw-bold" data-label="ህፃናት ከ5 ዓመት በታች">ህፃናት ከ5 ዓመት በታች</td><td><input asp-for="AnimalHealthStatus.ChildhMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.ChildFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="ወጣቶች">ወጣቶች</td><td><input asp-for="AnimalHealthStatus.YouthMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.YouthFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="አረጋውያን">አረጋውያን</td><td><input asp-for="AnimalHealthStatus.ElderlyMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.ElderlyFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
                                         <tr><td class="bg-light fw-bold" data-label="አካል ጉዳተኞች">አካል ጉዳተኞች</td><td><input asp-for="AnimalHealthStatus.DisabledMale" class="form-for-int form-control text-center val-male" type="number" min="0" value="0" /></td><td><input asp-for="AnimalHealthStatus.DisabledFemale" class="form-for-int form-control text-center val-female" type="number" min="0" value="0" /></td><td class="fw-bold bg-light row-total">0</td></tr>
@@ -706,11 +738,99 @@
                     </button>
                 </div>
             </form>
+
+            @* Shown once every check has passed, just before the report is sent; cancelling returns to the review step. *@
+            <div class="submit-confirm-backdrop" id="submitConfirm" hidden>
+                <div class="submit-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="submitConfirmTitle" aria-describedby="submitConfirmText">
+                    <header id="submitConfirmTitle"><i class="fas fa-exclamation-triangle me-2"></i>ማስጠንቀቂያ፡ ከተላከ በኋላ ማስተካከል አይቻልም</header>
+                    <div class="body">
+                        <p id="submitConfirmText" class="mb-2">
+                            መረጃው አንዴ ከተመዘገበና ለዞን ከተላከ በኋላ <strong>መቀየር ወይም ማስተካከል አይችሉም</strong>።
+                            ማስተካከል የሚቻለው ዞኑ ሪፖርቱን ለማስተካከያ ሲመልሰው ብቻ ነው።
+                            እባክዎ ከመላክዎ በፊት በቅድመ-ዕይታው ላይ ሁሉንም ክፍሎች፣ ቁጥሮችና ቀኖች በጥንቃቄ ያረጋግጡ።
+                        </p>
+                        <div class="small text-muted">
+                            <div><strong>ወረዳ፡</strong> @ViewBag.WoredaName</div>
+                            <div><strong>የሪፖርት ሳምንት፡</strong> <span id="submitConfirmWeek">-</span></div>
+                        </div>
+                        <label class="ack" for="submitConfirmAck">
+                            <input type="checkbox" id="submitConfirmAck" />
+                            <span>ሁሉንም መረጃ አረጋግጫለሁ፤ ከተላከ በኋላ ማስተካከል እንደማልችል ተረድቻለሁ።</span>
+                        </label>
+                    </div>
+                    <footer>
+                        <button type="button" class="btn btn-secondary" id="submitConfirmCancel"><i class="fas fa-arrow-left me-1"></i>ተመለስና አረጋግጥ</button>
+                        <button type="button" class="btn btn-success" id="submitConfirmOk" disabled><i class="fas fa-cloud-upload-alt me-1"></i>አዎ፣ መዝግብና ላክ</button>
+                    </footer>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="~/js/ethiopianDate.js" asp-append-version="true"></script>
+    <script>
+        // Ethiopian-calendar picker for the reporting week. The hidden #StartDate/#EndDate keep the Gregorian
+        // yyyy-MM-dd value; every write to them (user pick, saved week, draft) re-renders the picker.
+        (function () {
+            const E = window.EthiopianDate;
+            const start = document.getElementById('StartDate');
+            const end = document.getElementById('EndDate');
+            const day = document.getElementById('ethStartDay');
+            const month = document.getElementById('ethStartMonth');
+            const year = document.getElementById('ethStartYear');
+            if (!E || !start || !end || !day || !month || !year) return;
+            const native = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+            const option = (value, text) => new Option(text, value);
+
+            month.append(option('', 'ወር'), ...E.monthNames.map((name, i) => option(i + 1, name)));
+            const thisYear = E.fromGregorian(E.todayIso()).year;
+            year.append(option('', 'ዓመት'), option(thisYear, thisYear), option(thisYear - 1, thisYear - 1));
+            const ensureYear = y => { if (![...year.options].some(o => o.value === String(y))) year.append(option(y, y)); };
+            function fillDays(y, m, selected) {
+                const count = y && m ? E.daysInMonth(y, m) : 30;
+                day.replaceChildren(option('', 'ቀን'), ...Array.from({ length: count }, (_, i) => option(i + 1, i + 1)));
+                day.value = selected && selected <= count ? String(selected) : '';
+            }
+
+            function render() {
+                const iso = native.get.call(start);
+                const picked = E.fromGregorian(iso);
+                if (picked) {
+                    ensureYear(picked.year);
+                    year.value = String(picked.year);
+                    month.value = String(picked.month);
+                    fillDays(picked.year, picked.month, picked.day);
+                } else if (!day.value && !month.value && !year.value) {
+                    fillDays(null, null, null);
+                }
+                document.getElementById('ethStartLong').textContent = picked ? E.formatLong(iso) : '';
+                const endIso = native.get.call(end);
+                document.getElementById('ethEndDisplay').value = endIso ? `${E.format(endIso)} ዓ/ም` : '';
+                document.getElementById('ethEndLong').textContent = endIso ? E.formatLong(endIso) : '';
+            }
+
+            // Any code that sets .value on the hidden dates (saved week, draft restore, Monday snapping) re-renders.
+            [start, end].forEach(input => Object.defineProperty(input, 'value', {
+                configurable: true,
+                get() { return native.get.call(this); },
+                set(v) { native.set.call(this, v); render(); }
+            }));
+
+            function pick() {
+                const y = Number(year.value), m = Number(month.value);
+                fillDays(y || null, m || null, Number(day.value) || null);
+                if (!y || !m || !day.value) return;   // wait until day, month and year are all chosen
+                native.set.call(start, E.toGregorian(y, m, Number(day.value)));
+                // The wizard's own handler snaps to Monday, sets the Wednesday end date and loads that week.
+                start.dispatchEvent(new Event('change', { bubbles: true }));
+                render();
+            }
+            [day, month, year].forEach(select => select.addEventListener('change', pick));
+            render();
+        })();
+    </script>
     <script>
         let currentStep = 0;
         const steps = document.getElementsByClassName("wizard-step");
@@ -735,6 +855,26 @@
         ['SchoolReport_MaleStudentDropouts', 'SchoolReport_FemaleStudentDropouts'].forEach(id =>
             document.getElementById(id)?.addEventListener('input', updateSchoolDropoutTotal));
         updateSchoolDropoutTotal();
+        // Malnutrition rates come from the counts (mirrors MalnutritionReport.CalculateRates):
+        // GAM = (severe + moderate) / screened, MAM = moderate / screened. Found may not exceed screened.
+        function updateMalnutritionRates() {
+            const count = id => Number(document.getElementById(id)?.value) || 0;
+            const rate = (found, screened) => screened > 0 ? (Math.round(found * 10000 / screened) / 100).toFixed(2) + ' %' : '-';
+            const check = (ids, found, screened, message) => ids.forEach(id =>
+                document.getElementById(id)?.setCustomValidity(found > screened ? message : ''));
+            const childrenFound = count('malChildrenSevere') + count('malChildrenModerate');
+            const plwFound = count('malPlwModerate');
+            const gam = document.getElementById('malChildrenGamRate');
+            const mam = document.getElementById('malPlwMamRate');
+            if (gam) gam.value = rate(childrenFound, count('malChildrenScreened'));
+            if (mam) mam.value = rate(plwFound, count('malPlwScreened'));
+            check(['malChildrenSevere', 'malChildrenModerate'], childrenFound, count('malChildrenScreened'),
+                'የስነ-ምግብ እጥረት የተገኘባቸው ህጻናት (ከፍተኛ + መካከለኛ) ልየታ ከተደረገላቸው ህጻናት መብለጥ አይችልም።');
+            check(['malPlwModerate'], plwFound, count('malPlwScreened'),
+                'የስነ-ምግብ እጥረት የተገኘባቸው እናቶች ልየታ ከተደረገላቸው እናቶች መብለጥ አይችልም።');
+        }
+        document.querySelectorAll('.malnutrition-count').forEach(input => input.addEventListener('input', updateMalnutritionRates));
+        updateMalnutritionRates();
         let currentWoredaMaxKebeles = 0;
         let serverDraftEnabled = false;
         let serverDraftTimer = null;
@@ -987,6 +1127,7 @@
             // important after a POST validation response restores Step 15.
             steps[n].querySelectorAll('.calc-table').forEach(calculateGridTotals);
             steps[n].querySelectorAll('.migration-summary-table').forEach(calculateMigrationTotals);
+            updateMalnutritionRates();
             document.getElementById("prevBtn").classList.toggle("d-none", n === 0);
 
             if (n === (totalSteps - 1)) {
@@ -1163,9 +1304,49 @@
         }
 
         function scheduleServerDraftSave() {
-            if (!serverDraftEnabled || isSubmittingWizard) return;
+            if (!serverDraftEnabled || isSubmittingWizard || isRestoringDraft) return;
             clearTimeout(serverDraftTimer);
             serverDraftTimer = setTimeout(() => saveServerDraft(false), 900);
+        }
+
+        // Resolves true when the encoder ticks the acknowledgement and confirms; false on cancel, Esc or backdrop click.
+        function confirmFinalSubmit() {
+            const dialog = document.getElementById('submitConfirm');
+            const ack = document.getElementById('submitConfirmAck');
+            const ok = document.getElementById('submitConfirmOk');
+            const cancel = document.getElementById('submitConfirmCancel');
+            if (!dialog || !ack || !ok || !cancel) return Promise.resolve(window.confirm('መረጃው ከተላከ በኋላ ማስተካከል አይቻልም። ለመላክ እርግጠኛ ነዎት?'));
+
+            const start = document.getElementById('StartDate')?.value;
+            const end = document.getElementById('EndDate')?.value;
+            document.getElementById('submitConfirmWeek').textContent = start && end
+                ? `ከ${EthiopianDate.format(start)} እስከ ${EthiopianDate.format(end)} ዓ/ም` : '-';
+            ack.checked = false;
+            ok.disabled = true;
+            dialog.hidden = false;
+            ack.focus();
+
+            return new Promise(resolve => {
+                const onAck = () => { ok.disabled = !ack.checked; };
+                const onKey = event => { if (event.key === 'Escape') finish(false); };
+                const onBackdrop = event => { if (event.target === dialog) finish(false); };
+                const onOk = () => finish(ack.checked);
+                const onCancel = () => finish(false);
+                function finish(result) {
+                    dialog.hidden = true;
+                    ack.removeEventListener('change', onAck);
+                    ok.removeEventListener('click', onOk);
+                    cancel.removeEventListener('click', onCancel);
+                    dialog.removeEventListener('click', onBackdrop);
+                    document.removeEventListener('keydown', onKey);
+                    resolve(result);
+                }
+                ack.addEventListener('change', onAck);
+                ok.addEventListener('click', onOk);
+                cancel.addEventListener('click', onCancel);
+                dialog.addEventListener('click', onBackdrop);
+                document.addEventListener('keydown', onKey);
+            });
         }
 
         async function nextPrev(n) {
@@ -1307,6 +1488,9 @@
                         dateWarningAlert.classList.add("d-none");
                     }
                 } else { startDateInput.classList.add("is-invalid"); valid = false; }
+                // #StartDate is hidden; show the error on the Ethiopian date picker instead.
+                document.querySelectorAll('#ethStartPicker select').forEach(select =>
+                    select.classList.toggle('is-invalid', startDateInput.classList.contains('is-invalid')));
 
                 if (!valid) {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1724,8 +1908,8 @@
         function buildDataPreviewEngine() {
             const woredaSelect = document.getElementById("WoredaId");
             const woredaText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.WoredaName as string ?? "-"));
-            const sDate = document.getElementById("StartDate").value || "-";
-            const eDate = document.getElementById("EndDate").value || "-";
+            const sDate = document.getElementById("StartDate").value ? `${EthiopianDate.format(document.getElementById("StartDate").value)} ዓ/ም` : "-";
+            const eDate = document.getElementById("EndDate").value ? `${EthiopianDate.format(document.getElementById("EndDate").value)} ዓ/ም` : "-";
 
             let selectedKebeles = Array.from(document.querySelectorAll(".kebele-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
             let selectedDroughtKebeles = Array.from(document.querySelectorAll(".drought-kebele-checkbox:checked")).map(el => el.getAttribute("data-name")).join(", ") || "ምንም አልተመረጠም";
@@ -1864,17 +2048,38 @@
             document.getElementById("previewContainer").innerHTML = html;
         }
 
+        // Form fields grouped by name, built once per bulk restore instead of scanning ~1,500 fields per value.
+        function formFieldsByName() {
+            const map = new Map();
+            for (const field of document.getElementById('earlyWarningForm').elements) {
+                if (!field.name) continue;
+                if (!map.has(field.name)) map.set(field.name, []);
+                map.get(field.name).push(field);
+            }
+            return map;
+        }
+
+        // While a saved draft is poured into the form, the per-field change events must not each re-save
+        // the whole form (that made restoring a draft quadratic); one save follows at the end.
+        let isRestoringDraft = false;
+
         function applyServerDraftFields(fields) {
             ensureDefensiveActivityRows(Object.keys(fields || {}));
-            Object.entries(fields || {}).forEach(([name, rawValues]) => {
-                const values = Array.isArray(rawValues) ? rawValues.map(String) : [String(rawValues ?? '')];
-                Array.from(document.getElementById('earlyWarningForm').elements).filter(x => x.name === name).forEach(field => {
-                    if (field.type === 'checkbox' || field.type === 'radio') field.checked = values.includes(field.value);
-                    else field.value = values[0] ?? '';
-                    field.dispatchEvent(new Event('change', { bubbles: true }));
-                    field.dispatchEvent(new Event('input', { bubbles: true }));
+            const byName = formFieldsByName();
+            isRestoringDraft = true;
+            try {
+                Object.entries(fields || {}).forEach(([name, rawValues]) => {
+                    const values = Array.isArray(rawValues) ? rawValues.map(String) : [String(rawValues ?? '')];
+                    (byName.get(name) || []).forEach(field => {
+                        if (field.type === 'checkbox' || field.type === 'radio') field.checked = values.includes(field.value);
+                        else field.value = values[0] ?? '';
+                        field.dispatchEvent(new Event('change', { bubbles: true }));
+                        field.dispatchEvent(new Event('input', { bubbles: true }));
+                    });
                 });
-            });
+            } finally {
+                isRestoringDraft = false;
+            }
             document.querySelectorAll('.calc-table').forEach(calculateGridTotals);
         }
 
@@ -2010,11 +2215,19 @@
                 });
             });
 
-            const saveDraft = () => {
+            const writeDraftNow = () => {
+                clearTimeout(sessionDraftTimer);
                 const fields = Array.from(form.elements).filter(x => x.name && x.name !== '__RequestVerificationToken').map(x => ({
                     name: x.name, type: x.type, value: x.value, checked: x.checked
                 }));
-                sessionStorage.setItem(draftKey, JSON.stringify({ step: currentStep, fields }));
+                try { sessionStorage.setItem(draftKey, JSON.stringify({ step: currentStep, fields })); } catch { /* storage full or blocked */ }
+            };
+            // Serialising the whole form on every keystroke made typing lag; write once typing pauses.
+            let sessionDraftTimer = null;
+            const saveDraft = () => {
+                if (isRestoringDraft) return;
+                clearTimeout(sessionDraftTimer);
+                sessionDraftTimer = setTimeout(writeDraftNow, 400);
             };
             const restoreDraft = () => {
                 if (@(TempData["SuccessMessage"] != null ? "true" : "false")) { sessionStorage.removeItem(draftKey); return; }
@@ -2022,16 +2235,22 @@
                 try {
                     const draft = JSON.parse(raw);
                     ensureDefensiveActivityRows(draft.fields.map(x => x.name));
-                    draft.fields.forEach(saved => {
-                        const matches = Array.from(form.elements).filter(x => x.name === saved.name &&
-                            ((x.type === 'checkbox' || x.type === 'radio') ? x.value === saved.value : true));
-                        matches.forEach(field => {
-                            if (field.type === 'checkbox' || field.type === 'radio') field.checked = saved.checked;
-                            else field.value = saved.value;
-                            field.dispatchEvent(new Event('change', { bubbles: true }));
-                            field.dispatchEvent(new Event('input', { bubbles: true }));
+                    const byName = formFieldsByName();
+                    isRestoringDraft = true;
+                    try {
+                        draft.fields.forEach(saved => {
+                            const matches = (byName.get(saved.name) || []).filter(x =>
+                                (x.type === 'checkbox' || x.type === 'radio') ? x.value === saved.value : true);
+                            matches.forEach(field => {
+                                if (field.type === 'checkbox' || field.type === 'radio') field.checked = saved.checked;
+                                else field.value = saved.value;
+                                field.dispatchEvent(new Event('change', { bubbles: true }));
+                                field.dispatchEvent(new Event('input', { bubbles: true }));
+                            });
                         });
-                    });
+                    } finally {
+                        isRestoringDraft = false;
+                    }
                     currentStep = Math.max(0, Math.min(Number(draft.step) || 0, totalSteps - 1));
                     steps.forEach(x => x.classList.add('d-none'));
                 } catch { sessionStorage.removeItem(draftKey); }
@@ -2085,11 +2304,17 @@
                     navigateToField(document.getElementById('StartDate'));
                     return;
                 }
+                // Last chance: a sent report is locked until the zone returns it.
+                if (!await confirmFinalSubmit()) {
+                    currentStep = totalSteps - 1;
+                    showStep(currentStep);
+                    return;
+                }
                 isSubmittingWizard = true;
                 serverDraftEnabled = false;
                 clearTimeout(serverDraftTimer);
                 serverDraftRequest?.abort();
-                saveDraft();
+                writeDraftNow();   // immediate: the page is about to unload
                 form.submit();
             });
             if (!isReviewMode) {

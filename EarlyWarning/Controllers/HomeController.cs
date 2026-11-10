@@ -24,7 +24,7 @@ namespace EarlyWarning.Controllers
             _logger = logger;
             _db = db; _users = users; _aggregation = aggregation;
         }
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index([FromServices] IReportScopeService scopes, [FromServices] IWeeklyMatrixReportService matrixReport)
         {
             var user = await _users.GetUserAsync(User); if (user == null) return Challenge();
             var query = _db.WeeklyReportSubmissions.Include(x => x.Woreda).ThenInclude(x => x.Parent).AsNoTracking();
@@ -57,8 +57,18 @@ namespace EarlyWarning.Controllers
                 .OrderByDescending(x => x.People)
                 .ToList();
 
+            // The latest week in the standard report format: tiles, rain table and incidents use the same figures
+            // as the weekly report itself.
+            WeeklyNarrativeReport? narrative = null;
+            if (reports.Count > 0 && (await scopes.ResolveAsync(user)).Scope is { } scope)
+            {
+                var grid = await matrixReport.BuildAsync(scope, reports, reports[0].StartDate.Date, reports[0].EndDate.Date);
+                narrative = WeeklyNarrativeReportBuilder.Build(grid, scope.LocationName, scope.Level);
+            }
+
             return View(new DashboardViewModel
             {
+                Narrative = narrative,
                 ScopeName = scopeName,
                 UserDisplayName = $"{user.FirstName} {user.LastName}".Trim(),
                 Reports = reports.Select(x => new WeeklyWorkflowRowViewModel { Id=x.Id,WoredaId=x.WoredaId,Woreda=x.Woreda.LocationAmharicName??x.Woreda.LocationName??"",Zone=x.Woreda.Parent?.LocationAmharicName??x.Woreda.Parent?.LocationName??"",StartDate=x.StartDate,EndDate=x.EndDate,Status=x.Status,LastActionAt=x.LastActionAt,RowVersion=x.RowVersion }).ToList(),

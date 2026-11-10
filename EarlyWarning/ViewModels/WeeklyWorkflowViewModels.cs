@@ -5,8 +5,15 @@ namespace EarlyWarning.ViewModels;
 public class WeeklyWorkflowIndexViewModel
 {
     public string ScopeName { get; set; } = "";
+    /// <summary>Review/approval lists only.</summary>
     public List<WeeklyWorkflowRowViewModel> Reports { get; set; } = [];
-    public WeeklyAggregateViewModel Aggregate { get; set; } = new();
+
+    // የተጠቃለለ ሪፖርት: the selected week in the standard narrative format.
+    public string? ErrorMessage { get; set; }
+    public List<WeeklyFormReportWeek> AvailableWeeks { get; set; } = [];
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public WeeklyNarrativeReport? Narrative { get; set; }
 }
 
 public class WeeklyWorkflowRowViewModel
@@ -126,17 +133,17 @@ public class ZoneWeeklyQueueViewModel
     public List<ZoneWeeklySubmissionViewModel> Submissions { get; set; } = [];
 }
 
+/// <summary>Page 2: the standard report per zone (region users) or per woreda (zone and woreda users).</summary>
 public class WeeklyReportPageTwoViewModel
 {
+    public string ScopeName { get; set; } = "";
+    public string? ErrorMessage { get; set; }
+    public List<WeeklyFormReportWeek> AvailableWeeks { get; set; } = [];
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
-    public List<WeeklyReportPageTwoZoneViewModel> Zones { get; set; } = [];
-}
-
-public class WeeklyReportPageTwoZoneViewModel
-{
-    public string Zone { get; set; } = "";
-    public WeeklyAggregateViewModel Aggregate { get; set; } = new();
+    /// <summary>"ዞን" or "ወረዳ": what each report in <see cref="Reports"/> covers.</summary>
+    public string BreakdownWord { get; set; } = "ዞን";
+    public List<WeeklyNarrativeReport> Reports { get; set; } = [];
 }
 
 public class ZoneWeeklySubmissionViewModel

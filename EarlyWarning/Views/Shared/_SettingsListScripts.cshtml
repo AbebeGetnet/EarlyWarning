@@ -1,0 +1,30 @@
+@* Search, row click and Excel export for Setting list pages; the table must have id="settingsTable". *@
+<script>
+    $(function () {
+        $("#searchInput").on("keyup", function () {
+            var value = $(this).val().toLowerCase();
+            $("#settingsTable tbody tr").filter(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            });
+        });
+
+        // Clicking a row (outside its buttons) opens the details page.
+        $("#settingsTable tbody tr").on("click", function (e) {
+            if ($(e.target).closest(".action-buttons").length) return;
+            var detailsUrl = $(this).find(".btn-info").attr("href");
+            if (detailsUrl) window.location.href = detailsUrl;
+        });
+    });
+
+    function exportToExcel() {
+        var table = document.getElementById("settingsTable").cloneNode(true);
+        table.querySelectorAll("tr").forEach(function (row) { row.lastElementChild?.remove(); }); // drop the action column
+        var url = "data:application/vnd.ms-excel," + encodeURIComponent("﻿" + table.outerHTML);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = (document.title || "list").replace(/[\\/:*?"<>|]/g, "-") + ".xls";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>

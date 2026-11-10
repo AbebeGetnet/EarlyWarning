@@ -1,0 +1,21 @@
+@using EarlyWarning.Enums
+@model EarlyWarning.Models.CropPestAndDesease
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+<div class="form-group">
+    <label asp-for="Name" class="form-label">
+        <i class="fas fa-tag"></i> @Html.DisplayNameFor(m => m.Name) <span class="text-danger">*</span>
+    </label>
+    <input asp-for="Name" class="form-control" maxlength="200" placeholder="ለምሳሌ፦ ተምች፣ ዋግ፣ አንበጣ..." />
+    <span asp-validation-for="Name" class="text-danger"></span>
+    <div class="info-hint"><i class="fas fa-info-circle"></i> ይህ ስም በመረጃ ምዝገባ ዊዛርድ ላይ በምርጫ ዝርዝሩ ይታያል።</div>
+</div>
+
+<div class="form-group">
+    <label asp-for="CPDType" class="form-label">
+        <i class="fas fa-layer-group"></i> @Html.DisplayNameFor(m => m.CPDType) <span class="text-danger">*</span>
+    </label>
+    <select asp-for="CPDType" class="form-select" asp-items="Html.GetEnumSelectList<CPDType>()"></select>
+    <span asp-validation-for="CPDType" class="text-danger"></span>
+</div>

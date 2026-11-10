@@ -1815,6 +1815,50 @@ namespace EarlyWarning.Migrations
                         });
                 });
 
+            modelBuilder.Entity("EarlyWarning.Models.MalnutritionReport", b =>
+                {
+                    b.Property<Guid>("MalnutritionReportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("ChildrenGamRatePercent")
+                        .HasColumnType("decimal(9,2)");
+
+                    b.Property<int>("ChildrenModerate")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChildrenScreened")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChildrenSevere")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("PregnantLactatingMamRatePercent")
+                        .HasColumnType("decimal(9,2)");
+
+                    b.Property<int>("PregnantLactatingModerate")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PregnantLactatingScreened")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("WoredaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("MalnutritionReportId");
+
+                    b.HasIndex("WoredaId", "StartDate", "EndDate")
+                        .IsUnique();
+
+                    b.ToTable("MalnutritionReports");
+                });
+
             modelBuilder.Entity("EarlyWarning.Models.Migration.Death", b =>
                 {
                     b.Property<Guid>("DeathId")
@@ -3370,6 +3414,17 @@ namespace EarlyWarning.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("EarlyWarning.Models.MalnutritionReport", b =>
+                {
+                    b.HasOne("EarlyWarning.Models.Locations", "Woreda")
+                        .WithMany()
+                        .HasForeignKey("WoredaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Woreda");
                 });
 
             modelBuilder.Entity("EarlyWarning.Models.Migration.Death", b =>

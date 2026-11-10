@@ -1,0 +1,64 @@
+@model EarlyWarning.ViewModels.WeeklyNarrativeReport
+@using EarlyWarning.ViewModels
+@* The weekly report in the commission's standard narrative layout. Used by the aggregated report, the
+   per-zone report and the dashboard; styles are in _StandardWeeklyReportStyles. *@
+<article class="ewr-doc">
+    <header class="ewr-head">
+        <div class="ewr-org">@Model.Organization</div>
+        @if (!string.IsNullOrEmpty(Model.Directorate))
+        {
+            <div class="ewr-org">@Model.Directorate</div>
+        }
+        <div class="ewr-title">@Model.Title</div>
+        <div class="ewr-period">@Model.Period</div>
+        <div class="ewr-meta">ሪፖርት የላኩ ወረዳዎች፡ @Model.WoredasReported ከ @Model.WoredasInScope</div>
+    </header>
+
+    @foreach (var part in Model.Sections)
+    {
+        <section class="ewr-section ewr-level-@part.Level">
+            @if (part.Level == 1)
+            {
+                <h3 class="ewr-h1"><span class="ewr-num">@part.Number.</span> @part.Title</h3>
+            }
+            else
+            {
+                <h4 class="ewr-h2"><span class="ewr-num">@part.Number</span> @part.Title</h4>
+            }
+            @foreach (var block in part.Blocks)
+            {
+                switch (block.Kind)
+                {
+                    case NarrativeBlockKind.Paragraph:
+                        <p class="ewr-p">@block.Text</p>
+                        break;
+                    case NarrativeBlockKind.Bullets:
+                        <ul class="ewr-list">
+                            @foreach (var item in block.Items ?? [])
+                            {
+                                <li>@item</li>
+                            }
+                        </ul>
+                        break;
+                    case NarrativeBlockKind.Table:
+                        <div class="ewr-table-wrap">
+                            <table class="ewr-table">
+                                <thead><tr>@foreach (var h in block.Headers ?? []) { <th>@h</th> }</tr></thead>
+                                <tbody>
+                                    @foreach (var row in block.Rows ?? [])
+                                    {
+                                        <tr>@foreach (var c in row) { <td>@c</td> }</tr>
+                                    }
+                                </tbody>
+                                @if (block.Footer != null)
+                                {
+                                    <tfoot><tr>@foreach (var f in block.Footer) { <td>@f</td> }</tr></tfoot>
+                                }
+                            </table>
+                        </div>
+                        break;
+                }
+            }
+        </section>
+    }
+</article>

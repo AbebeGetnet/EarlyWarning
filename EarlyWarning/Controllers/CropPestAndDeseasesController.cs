@@ -22,7 +22,18 @@ namespace EarlyWarning.Controllers
         // GET: CropPestAndDeseases
         public async Task<IActionResult> Index()
         {
-            return View(await _context.CropPestAndDesease.ToListAsync());
+            ViewBag.UsageCounts = await UsageCountsAsync();
+            return View(await _context.CropPestAndDesease.OrderBy(x => x.CPDType).ThenBy(x => x.Name).ToListAsync());
+        }
+
+        // GET: CropPestAndDeseases/Details/5
+        public async Task<IActionResult> Details(Guid? id)
+        {
+            if (id == null) return NotFound();
+            var cropPestAndDesease = await _context.CropPestAndDesease.FirstOrDefaultAsync(m => m.Id == id);
+            if (cropPestAndDesease == null) return NotFound();
+            ViewBag.UsageCount = await UsageCountAsync(cropPestAndDesease.Id);
+            return View(cropPestAndDesease);
         }
                
 
@@ -115,6 +126,7 @@ namespace EarlyWarning.Controllers
                 return NotFound();
             }
 
+            ViewBag.UsageCount = await UsageCountAsync(cropPestAndDesease.Id);
             return View(cropPestAndDesease);
         }
 
@@ -124,6 +136,12 @@ namespace EarlyWarning.Controllers
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var cropPestAndDesease = await _context.CropPestAndDesease.FindAsync(id);
+            // Report details cascade-delete with their pest/disease, so a used entry must stay.
+            if (cropPestAndDesease != null && await UsageCountAsync(id) > 0)
+            {
+                ViewBag.UsageCount = await UsageCountAsync(id);
+                return View(cropPestAndDesease);
+            }
             if (cropPestAndDesease != null)
             {
                 _context.CropPestAndDesease.Remove(cropPestAndDesease);
@@ -132,6 +150,13 @@ namespace EarlyWarning.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
+        private Task<int> UsageCountAsync(Guid id) =>
+            _context.CropPestImpactDetails.CountAsync(x => x.CropPestAndDeseaseId == id);
+
+        private Task<Dictionary<Guid, int>> UsageCountsAsync() =>
+            _context.CropPestImpactDetails.GroupBy(x => x.CropPestAndDeseaseId)
+                .Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count);
 
         private bool CropPestAndDeseaseExists(Guid id)
         {

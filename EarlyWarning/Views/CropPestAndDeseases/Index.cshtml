@@ -1,41 +1,118 @@
-﻿@model IEnumerable<EarlyWarning.Models.CropPestAndDesease>
+﻿@using EarlyWarning.Enums
+@using EarlyWarning.Extensions
+@model IEnumerable<EarlyWarning.Models.CropPestAndDesease>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "የሰብል ተባይና በሽታ ዝርዝር";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var usage = ViewBag.UsageCounts as Dictionary<Guid, int> ?? new();
+    var total = Model.Count();
+    var pests = Model.Count(x => x.CPDType == CPDType.Pest);
+    var diseases = total - pests;
 }
 
-<h1>Index</h1>
+<partial name="_SettingsPageStyles" />
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CPDType)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CPDType)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1><i class="fas fa-bug"></i> @ViewData["Title"]</h1>
+                <p>በመረጃ ምዝገባ ዊዛርድ ላይ የሚመረጡ የሰብል ተባዮችንና በሽታዎችን ያስተዳድሩ</p>
+            </div>
+            <div>
+                <a asp-action="Create" class="btn-create"><i class="fas fa-plus-circle"></i> አዲስ ተባይ/በሽታ</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-header total"><i class="fas fa-list fa-2x"></i></div>
+                <div class="stat-body"><div class="stat-number">@total</div><div class="stat-label">ጠቅላላ</div></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-header warning"><i class="fas fa-bug fa-2x"></i></div>
+                <div class="stat-body"><div class="stat-number">@pests</div><div class="stat-label">ተባዮች</div></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-header inactive"><i class="fas fa-virus fa-2x"></i></div>
+                <div class="stat-body"><div class="stat-number">@diseases</div><div class="stat-label">በሽታዎች</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="search-box">
+                <div class="input-group">
+                    <input type="text" id="searchInput" class="form-control" placeholder="🔍 ተባይ/በሽታ ፈልግ..." />
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="export-buttons">
+                <button type="button" class="btn btn-success btn-export" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+                <button type="button" class="btn btn-info btn-export" onclick="window.print()"><i class="fas fa-print"></i> አትም</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table table-hover" id="settingsTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th><i class="fas fa-tag"></i> @Html.DisplayNameFor(model => model.Name)</th>
+                        <th><i class="fas fa-layer-group"></i> @Html.DisplayNameFor(model => model.CPDType)</th>
+                        <th><i class="fas fa-file-alt"></i> በሪፖርት የተጠቀሰበት</th>
+                        <th><i class="fas fa-cogs"></i> ድርጊቶች</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var row = 0; }
+                    @foreach (var item in Model)
+                    {
+                        var used = usage.GetValueOrDefault(item.Id);
+                        <tr>
+                            <td>@(++row)</td>
+                            <td><strong>@item.Name</strong></td>
+                            <td>
+                                <span class="@(item.CPDType == CPDType.Pest ? "badge-neutral" : "badge-inactive")">@ReadOnlyFields.EnumLabel(item.CPDType)</span>
+                            </td>
+                            <td>@used</td>
+                            <td class="action-buttons">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning btn-action" title="አርትዕ"><i class="fas fa-edit"></i> አርትዕ</a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info btn-action" title="ዝርዝር"><i class="fas fa-eye"></i> ዝርዝር</a>
+                                @if (used == 0)
+                                {
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger btn-action" title="ሰርዝ"><i class="fas fa-trash"></i> ሰርዝ</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-bug fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">ምንም ተባይ/በሽታ አልተመዘገበም</h4>
+                <p>አዲስ ለመጨመር ከላይ ያለውን ቁልፍ ይጫኑ</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_SettingsListScripts" />
 }
-    </tbody>
-</table>

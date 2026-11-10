@@ -66,7 +66,7 @@ public static class ReadOnlyFields
     // Many demographic columns are only labelled "ወንድ"/"ሴት"; the property name says which group they belong to.
     private static readonly (string NamePart, string Group)[] Groups =
     [
-        ("HouseHold", "አባወራ/እማወራ"), ("Household", "አባወራ/እማወራ"), ("Family", "ቤተሰብ"), ("Child", "ህጻናት"),
+        ("HouseHold", "አባወራ/እማወራ"), ("Household", "አባወራ/እማወራ"), ("Family", "ቤተሰብ"), ("Child", "ህፃናት ከ5 ዓመት በታች"),
         ("Youth", "ወጣቶች"), ("Elderly", "አረጋውያን"), ("Disabled", "አካል ጉዳተኞች")
     ];
 

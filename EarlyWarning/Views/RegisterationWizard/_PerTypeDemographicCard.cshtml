@@ -1,6 +1,6 @@
 @model (string Prefix, string Name, string Key, object Values)
 @{
-  var rows = new[] { ("HouseholdHeads","አባወራ/እማወራ"), ("FamilyMembers","ቤተሰብ"), ("Children","ህጻናት"), ("Youth","ወጣቶች"), ("Elderly","አረጋውያን"), ("Disabled","አካል ጉዳተኞች") };
+    var rows = new[] { ("HouseholdHeads", "አባወራ/እማወራ"), ("FamilyMembers", "ቤተሰብ"), ("Children", "ህፃናት ከ5 ዓመት በታች"), ("Youth", "ወጣቶች"), ("Elderly", "አረጋውያን"), ("Disabled", "አካል ጉዳተኞች") };
   long maleTotal = 0;
   long femaleTotal = 0;
   // Per-type damage fields (Field, Label, Min, Max, Step) that must be filled whenever this card is shown.

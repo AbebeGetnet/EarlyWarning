@@ -1,0 +1,12 @@
+@model EarlyWarning.Models.AnimalDisease
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+<div class="form-group">
+    <label asp-for="Name" class="form-label">
+        <i class="fas fa-tag"></i> @Html.DisplayNameFor(m => m.Name) <span class="text-danger">*</span>
+    </label>
+    <input asp-for="Name" class="form-control" maxlength="200" placeholder="ለምሳሌ፦ አባሰንጋ፣ የጉሮሮ በሽታ..." />
+    <span asp-validation-for="Name" class="text-danger"></span>
+    <div class="info-hint"><i class="fas fa-info-circle"></i> ይህ ስም በመረጃ ምዝገባ ዊዛርድ ላይ በምርጫ ዝርዝሩ ይታያል።</div>
+</div>

@@ -152,6 +152,11 @@
             <input type="hidden" name="endDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
         </form>
         <div class="d-flex gap-2">
+            @if (Model.StartDate.HasValue && Model.EndDate.HasValue)
+            {
+                <a asp-action="FormReportExcel" asp-route-startDate="@Model.StartDate.Value.ToString("yyyy-MM-dd")" asp-route-endDate="@Model.EndDate.Value.ToString("yyyy-MM-dd")"
+                   class="btn btn-success"><i class="fas fa-file-excel me-1"></i> Excel ሪፖርት</a>
+            }
             <button type="button" class="btn btn-outline-dark" onclick="window.print()"><i class="fas fa-print me-1"></i> አትም</button>
             <a asp-action="Index" class="btn btn-outline-primary">ወደ ተጠቃለለ ሪፖርት ተመለስ</a>
         </div>

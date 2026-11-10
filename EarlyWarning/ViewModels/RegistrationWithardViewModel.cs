@@ -44,6 +44,7 @@ namespace EarlyWarning.ViewModels
         public OtherProblem OtherProblem { get; set; } = new();
         public HumanDrinkWaterIssue HumanDrinkWaterIssue { get; set; } = new();
         public SchoolReport SchoolReport { get; set; } = new();
+        public MalnutritionReport MalnutritionReport { get; set; } = new();
         public List<GrainPricePerQuintal> GrainPriceRows { get; set; } = new();
         public List<AnimalPricePerUnit> AnimalPriceRows { get; set; } = new();
         public List<AccidentDetail> AccidentDetails { get; set; } = new();

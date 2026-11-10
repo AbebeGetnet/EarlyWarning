@@ -22,7 +22,8 @@ namespace EarlyWarning.Controllers
         // GET: AnimalDiseases
         public async Task<IActionResult> Index()
         {
-            return View(await _context.AnimalDisease.ToListAsync());
+            ViewBag.UsageCounts = await UsageCountsAsync();
+            return View(await _context.AnimalDisease.OrderBy(x => x.Name).ToListAsync());
         }
 
         // GET: AnimalDiseases/Details/5
@@ -40,6 +41,7 @@ namespace EarlyWarning.Controllers
                 return NotFound();
             }
 
+            ViewBag.UsageCount = await UsageCountAsync(animalDisease.Id);
             return View(animalDisease);
         }
 
@@ -132,6 +134,7 @@ namespace EarlyWarning.Controllers
                 return NotFound();
             }
 
+            ViewBag.UsageCount = await UsageCountAsync(animalDisease.Id);
             return View(animalDisease);
         }
 
@@ -141,6 +144,12 @@ namespace EarlyWarning.Controllers
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var animalDisease = await _context.AnimalDisease.FindAsync(id);
+            // Report details cascade-delete with their disease, so a used entry must stay.
+            if (animalDisease != null && await UsageCountAsync(id) > 0)
+            {
+                ViewBag.UsageCount = await UsageCountAsync(id);
+                return View(animalDisease);
+            }
             if (animalDisease != null)
             {
                 _context.AnimalDisease.Remove(animalDisease);
@@ -149,6 +158,13 @@ namespace EarlyWarning.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
+        private Task<int> UsageCountAsync(Guid id) =>
+            _context.AnimalDiseaseImpactDetails.CountAsync(x => x.AnimalDiseaseId == id);
+
+        private Task<Dictionary<Guid, int>> UsageCountsAsync() =>
+            _context.AnimalDiseaseImpactDetails.GroupBy(x => x.AnimalDiseaseId)
+                .Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count);
 
         private bool AnimalDiseaseExists(Guid id)
         {

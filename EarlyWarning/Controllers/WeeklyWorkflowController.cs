@@ -27,12 +27,28 @@ public class WeeklyWorkflowController : Controller
         _approvalTokens = dataProtection.CreateProtector("WeeklyWorkflow.DetailsApproval").ToTimeLimitedDataProtector();
     }
 
-    public async Task<IActionResult> Index(string? mode = null)
+    public async Task<IActionResult> Index([FromServices] IReportScopeService scopes, [FromServices] IWeeklyMatrixReportService matrixReport,
+        string? mode = null, DateTime? startDate = null, DateTime? endDate = null)
     {
         var user = await _users.GetUserAsync(User);
         if (user == null) return Challenge();
         if (mode == "approval" && User.IsInRole("RegionAdmin"))
             return RedirectToAction(nameof(RegionalQueue));
+
+        // የተጠቃለለ ሪፖርት: the selected week as the standard narrative report.
+        if (mode == null)
+        {
+            var (scope, error, weeks, week, weekReports) = await ResolveWeekAsync(scopes, user, startDate, endDate);
+            var summary = new WeeklyWorkflowIndexViewModel { ScopeName = scope?.LocationName ?? "", ErrorMessage = error, AvailableWeeks = weeks };
+            if (scope != null && week != null && weekReports.Count > 0)
+            {
+                summary.StartDate = week.StartDate;
+                summary.EndDate = week.EndDate;
+                var grid = await matrixReport.BuildAsync(scope, weekReports, week.StartDate, week.EndDate);
+                summary.Narrative = WeeklyNarrativeReportBuilder.Build(grid, scope.LocationName, scope.Level);
+            }
+            return View(summary);
+        }
         var reports = await ScopedReports(user).Include(x => x.Woreda).ThenInclude(x => x.Parent).AsNoTracking()
             .OrderByDescending(x => x.EndDate).ThenBy(x => x.Woreda.LocationName).ToListAsync();
         if (mode == "approval")
@@ -43,50 +59,57 @@ public class WeeklyWorkflowController : Controller
                     ? reports.Where(x => x.Status == WeeklySubmissionStatus.ZoneApproved).ToList()
                     : [];
         }
+        // Review / approval lists: the woreda reports only (the old aggregate shown here is replaced by the narrative report).
         ViewBag.WorkflowMode = mode;
-        var aggregateReports = reports;
-        if (mode == "approval" && User.IsInRole("ZoneAdmin"))
-            aggregateReports = await ScopedReports(user).Include(x => x.Woreda).ThenInclude(x => x.Parent).AsNoTracking()
-                .Where(x => x.Status == WeeklySubmissionStatus.ZoneApproved || x.Status == WeeklySubmissionStatus.RegionApproved || x.Status == WeeklySubmissionStatus.RegionRejectedToZone)
-                .ToListAsync();
-        var ids = aggregateReports.Select(x => x.WoredaId).Distinct().ToList();
-        var keys = aggregateReports.Select(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date)).ToHashSet();
-        var aggregate = await BuildAggregate(ids, keys, aggregateReports);
         return View(new WeeklyWorkflowIndexViewModel
         {
             ScopeName = await _db.Locations.Where(x => x.Id == user.LocationId).Select(x => x.LocationAmharicName ?? x.LocationName ?? "").FirstAsync(),
-            Reports = reports.Select(ToRow).ToList(), Aggregate = aggregate
+            Reports = reports.Select(ToRow).ToList()
         });
     }
 
+    // Page 2: the same standard report broken down — one per zone for region users, one per woreda for zone users.
     [Authorize(Roles = "Data Encoder,ZoneAdmin,RegionAdmin")]
-    public async Task<IActionResult> ReportPageTwo()
+    public async Task<IActionResult> ReportPageTwo([FromServices] IReportScopeService scopes, [FromServices] IWeeklyMatrixReportService matrixReport,
+        DateTime? startDate = null, DateTime? endDate = null)
     {
         var user = await _users.GetUserAsync(User);
         if (user == null) return Challenge();
 
-        var scoped = await ScopedReports(user)
-            .Include(x => x.Woreda).ThenInclude(x => x.Parent)
-            .AsNoTracking()
-            .ToListAsync();
-        var latest = scoped.OrderByDescending(x => x.EndDate).ThenByDescending(x => x.StartDate).FirstOrDefault();
-        if (latest == null) return View(new WeeklyReportPageTwoViewModel());
+        var (scope, error, weeks, week, reports) = await ResolveWeekAsync(scopes, user, startDate, endDate);
+        var model = new WeeklyReportPageTwoViewModel { ErrorMessage = error, AvailableWeeks = weeks, ScopeName = scope?.LocationName ?? "" };
+        if (scope == null || week == null || reports.Count == 0) return View(model);
 
-        var reports = scoped.Where(x => x.StartDate.Date == latest.StartDate.Date && x.EndDate.Date == latest.EndDate.Date).ToList();
-        var model = new WeeklyReportPageTwoViewModel { StartDate = latest.StartDate, EndDate = latest.EndDate };
-        foreach (var group in reports.Where(x => x.Woreda.Parent != null).GroupBy(x => new
-                 {
-                     x.Woreda.ParentId,
-                     Name = x.Woreda.Parent!.LocationAmharicName ?? x.Woreda.Parent.LocationName ?? ""
-                 }).OrderBy(x => x.Key.Name))
-        {
-            model.Zones.Add(new WeeklyReportPageTwoZoneViewModel
-            {
-                Zone = group.Key.Name,
-                Aggregate = await _aggregation.BuildAsync(group.ToList())
-            });
-        }
+        model.StartDate = week.StartDate;
+        model.EndDate = week.EndDate;
+        // One query pass with a column per woreda, then split: per zone (region) or per woreda (zone/woreda).
+        var grid = await matrixReport.BuildAsync(scope, reports, week.StartDate, week.EndDate, woredaColumns: true);
+        model.BreakdownWord = scope.Level == ReportScopeLevel.Region ? "ዞን" : "ወረዳ";
+        model.Reports = scope.Level == ReportScopeLevel.Region
+            ? WeeklyNarrativeReportBuilder.BuildPerZone(grid)
+            : grid.Units.Select((unit, index) => (unit, index)).Where(x => !x.unit.IsTotal)
+                .Select(x => WeeklyNarrativeReportBuilder.Build(grid, x.unit.Name, ReportScopeLevel.Woreda, [x.index]))
+                .ToList();
         return View(model);
+    }
+
+    /// <summary>
+    /// The user's report boundary, the weeks inside it (newest first) and the submissions of the selected week
+    /// (the requested one if it is inside the boundary, otherwise the newest). Same rules as the form report.
+    /// </summary>
+    private async Task<(ReportScope? Scope, string? Error, List<WeeklyFormReportWeek> Weeks, WeeklyFormReportWeek? Week, List<WeeklyReportSubmission> Reports)>
+        ResolveWeekAsync(IReportScopeService scopes, ApplicationUser user, DateTime? startDate, DateTime? endDate)
+    {
+        var (scope, error) = await scopes.ResolveAsync(user);
+        if (scope == null) return (null, error, [], null, []);
+        var scoped = await scopes.GetSubmissionsAsync(scope);
+        var weeks = scoped.Select(x => new WeeklyFormReportWeek(x.StartDate.Date, x.EndDate.Date)).Distinct()
+            .OrderByDescending(x => x.EndDate).ThenByDescending(x => x.StartDate).ToList();
+        var week = startDate.HasValue && endDate.HasValue
+            ? weeks.FirstOrDefault(x => x.StartDate == startDate.Value.Date && x.EndDate == endDate.Value.Date) ?? weeks.FirstOrDefault()
+            : weeks.FirstOrDefault();
+        var reports = week == null ? [] : scoped.Where(x => x.StartDate.Date == week.StartDate && x.EndDate.Date == week.EndDate).ToList();
+        return (scope, null, weeks, week, reports);
     }
 
     // Weekly report in the layout of the paper form. The boundary (woreda / zone / region) comes only from the
@@ -127,6 +150,44 @@ public class WeeklyWorkflowController : Controller
         model.Zones = reports.Select(x => x.Woreda.Parent?.LocationAmharicName ?? x.Woreda.Parent?.LocationName ?? "-").Distinct().OrderBy(x => x).ToList();
         model.Sections = await formReport.BuildAsync(reports, scope.Level);
         return View(model);
+    }
+
+    // Report menu → Excel export: the weeks inside the user's boundary, each with a download button.
+    public async Task<IActionResult> ExcelExport([FromServices] IReportScopeService scopes)
+    {
+        var user = await _users.GetUserAsync(User);
+        if (user == null) return Challenge();
+        var (scope, error) = await scopes.ResolveAsync(user);
+        if (scope == null) return View(new WeeklyExcelExportViewModel { ErrorMessage = error });
+
+        var weeks = (await scopes.GetSubmissionsAsync(scope))
+            .GroupBy(x => (Start: x.StartDate.Date, End: x.EndDate.Date))
+            .Select(g => new WeeklyExcelExportWeek(g.Key.Start, g.Key.End, g.Select(x => x.WoredaId).Distinct().Count()))
+            .OrderByDescending(x => x.EndDate).ThenByDescending(x => x.StartDate)
+            .ToList();
+        return View(new WeeklyExcelExportViewModel { ScopeName = scope.LocationName, WoredasInScope = scope.WoredaIds.Count, Weeks = weeks });
+    }
+
+    // The same week as FormReport, as an Excel workbook in the layout of the regional weekly summary
+    // (topics × zones for region users, topics × woredas for zone and woreda users).
+    public async Task<IActionResult> FormReportExcel([FromServices] IWeeklyMatrixReportService matrixReport, [FromServices] IReportScopeService scopes,
+        DateTime startDate, DateTime endDate)
+    {
+        var user = await _users.GetUserAsync(User);
+        if (user == null) return Challenge();
+        var (scope, _) = await scopes.ResolveAsync(user);
+        if (scope == null) return RedirectToAction(nameof(FormReport));
+
+        // Only a week inside the user's boundary (and visible at their level) can be exported.
+        var reports = (await scopes.GetSubmissionsAsync(scope))
+            .Where(x => x.StartDate.Date == startDate.Date && x.EndDate.Date == endDate.Date).ToList();
+        if (reports.Count == 0) return RedirectToAction(nameof(FormReport));
+
+        var report = await matrixReport.BuildAsync(scope, reports, startDate.Date, endDate.Date);
+        var start = Extensions.EthiopianDate.FromGregorian(startDate);
+        var end = Extensions.EthiopianDate.FromGregorian(endDate);
+        var fileName = $"ሳምንታዊ ሪፖርት {scope.LocationName} {start.Day:00}-{start.Month:00}-{start.Year} እስከ {end.Day:00}-{end.Month:00}-{end.Year}.xlsx";
+        return File(WeeklyMatrixExcelWriter.Write(report), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
 
     public async Task<IActionResult> Details(Guid id)

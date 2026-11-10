@@ -61,8 +61,8 @@ namespace EarlyWarning.Enums
    
     public enum CPDType
     {
-        Pest,
-        Desease
+        [Display(Name = "ተባይ")] Pest,
+        [Display(Name = "በሽታ")] Desease
     }
 
     public enum Months

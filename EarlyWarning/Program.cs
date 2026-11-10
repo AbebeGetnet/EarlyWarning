@@ -29,6 +29,7 @@ builder.Services.AddScoped<CropGrowthService>();
 builder.Services.AddScoped<IReportSaveService, ReportSaveService>();
 builder.Services.AddScoped<IWeeklyAggregationService, WeeklyAggregationService>();
 builder.Services.AddScoped<IWeeklyFormReportService, WeeklyFormReportService>();
+builder.Services.AddScoped<IWeeklyMatrixReportService, WeeklyMatrixReportService>();
 builder.Services.AddScoped<IWeeklySubmissionFormLoader, WeeklySubmissionFormLoader>();
 builder.Services.AddScoped<IReportScopeService, ReportScopeService>();
 builder.Services.AddScoped<ILocationImportService, LocationImportService>();
@@ -76,6 +77,19 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IReportFlowService, ReportFlowService>();
 
+// Compress static assets only (CSS/JS/fonts/JSON): AdminLTE's 1.4 MB stylesheet becomes ~200 KB.
+// HTML is left uncompressed on purpose: compressing pages that carry anti-forgery tokens over HTTPS
+// exposes them to BREACH-style attacks.
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.MimeTypes = ["text/css", "application/javascript", "text/javascript", "application/json", "image/svg+xml", "font/woff", "font/woff2", "application/font-woff"];
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -90,7 +104,13 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseResponseCompression();
+// Browsers keep static files for a week. The app's own files are linked with asp-append-version,
+// so a changed file gets a new URL and is fetched again straight away.
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context => context.Context.Response.Headers.CacheControl = "public,max-age=604800"
+});
 
 app.UseRouting();
 app.UseSession();

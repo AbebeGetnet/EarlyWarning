@@ -34,6 +34,10 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         if (reports.Count == 0) return sections;
 
         var ids = reports.Select(x => x.WoredaId).Distinct().ToList();
+        // Read only the reported weeks from the database; the exact (woreda, week) match below then picks each
+        // woreda's own week. Without this every saved week of every woreda in scope was loaded on each request.
+        var from = reports.Count == 0 ? DateTime.MinValue : reports.Min(x => x.StartDate.Date);
+        var to = reports.Count == 0 ? DateTime.MinValue : reports.Max(x => x.EndDate.Date).AddDays(1);
         var keys = reports.Select(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date)).ToHashSet();
         bool InWeek(Guid id, DateTime? start, DateTime? end) =>
             start.HasValue && end.HasValue && keys.Contains((id, start.Value.Date, end.Value.Date));
@@ -99,7 +103,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         };
 
         // ------------------------------------------------------------------ 1. Rain
-        var rain = (await db.RainfallReports.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var rain = (await db.RainfallReports.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         foreach (var report in rain) { report.DeserializeKebeles(); report.DeserializeDroughtKebeles(); }
         var s1 = Section(sections, "1", "የዝናብ ሁኔታ");
@@ -125,7 +129,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         s1.Items.Add(Texts("ማስታወሻ", rain.Select(x => (x.WoredaId, x.Remarks)), 0));
 
         // ------------------------------------------------------------------ 2. Farming
-        var farming = (await db.FarmingActivities.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var farming = (await db.FarmingActivities.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         var s2 = Section(sections, "2", "የመኸር የእርሻ ሥራ እንቅስቃሴ");
         s2.Items.Add(Line("2.1", "ዕቅድ በሄ/ር", (decimal)farming.Sum(x => x.MeherFarmPlan)));
@@ -141,11 +145,11 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         s2.Items.Add(Texts("ማስታወሻ", farming.Select(x => (x.WoredaId, x.Remarks)), 0));
 
         // ------------------------------------------------------------------ 3. Crops
-        var growth = (await db.CropGrowths.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var growth = (await db.CropGrowths.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         var pests = (await db.CropPestAndDeseaseReports.AsNoTracking()
                 .Include(x => x.ImpactDetails).ThenInclude(x => x.PestDisease)
-                .Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+                .Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         var s3 = Section(sections, "3", "የሰብል ሁኔታ");
         s3.Items.Add(Heading("3.1", "የሰብል እድገትና አቋም ሁኔታ"));
@@ -177,13 +181,13 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         s3.Items.Add(Texts("ማስታወሻ", pests.Select(x => (x.WoredaId, x.Remarks)), 0));
 
         // ------------------------------------------------------------------ 4. Livestock
-        var pasture = (await db.PastureStatuses.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var pasture = (await db.PastureStatuses.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
-        var water = (await db.AnimalWaterSupplyStatuses.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var water = (await db.AnimalWaterSupplyStatuses.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         var health = (await db.AnimalHealthStatuses.AsNoTracking()
                 .Include(x => x.ImpactDetails).ThenInclude(x => x.Disease)
-                .Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+                .Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         var s4 = Section(sections, "4", "የእንስሳት ግጦሽና ውሀ አቅርቦት ሁኔታ");
         s4.Items.Add(Heading("4.1", "የእንስሳት ግጦሽ ሁኔታ"));
@@ -230,7 +234,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         s4.Items.Add(Texts("ማስታወሻ", health.Select(x => (x.WoredaId, x.Remarks))));
 
         // ------------------------------------------------------------------ 5. Human drinking water
-        var humanWater = (await db.HumanDrinkWaterIssues.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var humanWater = (await db.HumanDrinkWaterIssues.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
         var s5 = Section(sections, "5", "የሰው መጠጥ ውሃ ሁኔታ");
         s5.Items.Add(CountWoredas("ችግር አለ", humanWater.Where(x => x.HasWaterProblem).Select(x => x.WoredaId), 0));
@@ -242,7 +246,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         // ------------------------------------------------------------------ 6. Human epidemic
         var epidemics = (await db.EpidemicDiseases.AsNoTracking()
                 .Include(x => x.EpidemicDiseaseSelections!).ThenInclude(x => x.EpidemicDiseaseType)
-                .Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+                .Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
         var s6 = Section(sections, "6", "የሰው ጤና በሳምንቱ በወረርሽኝ መልኩ የተከሰተ በሽታ");
         s6.Items.Add(CountWoredas("አለ", epidemics.Where(x => x.HasEpidemicDisease).Select(x => x.WoredaId), 0));
@@ -258,7 +262,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         s6.Items.Add(Texts("ማስታወሻ", epidemics.Select(x => (x.WoredaId, x.Notes)), 0));
 
         // ------------------------------------------------------------------ 7. Education
-        var schools = (await db.SchoolReports.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var schools = (await db.SchoolReports.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), null);
         var s7 = Section(sections, "7", "የትምህርት ሁኔታ");
         s7.Items.Add(CountWoredas("በሳምንቱ ያጋጠመ ችግር አለ", schools.Where(x => x.HasTeachingLearningProblem).Select(x => x.WoredaId), 0));
@@ -274,17 +278,17 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
             new[] { x.MajorSolutionOne, x.MajorSolutionTwo, x.MajorSolutionThree, x.OtherSolutionDescription }.Where(v => !string.IsNullOrWhiteSpace(v))))), 0));
 
         // ------------------------------------------------------------------ 8. Market
-        var grainSupply = (await db.GrainSupplys.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var grainSupply = (await db.GrainSupplys.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
-        var grainPrice = (await db.GrainPrices.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var grainPrice = (await db.GrainPrices.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
-        var grainRows = (await db.GrainPricePerQuintals.AsNoTracking().Include(x => x.GrainType).Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var grainRows = (await db.GrainPricePerQuintals.AsNoTracking().Include(x => x.GrainType).Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate), x.GrainTypeId), x => x.ReportDate);
-        var animalSupply = (await db.AnimalSupplys.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var animalSupply = (await db.AnimalSupplys.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
-        var animalPrice = (await db.AnimalPrice.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var animalPrice = (await db.AnimalPrice.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
-        var animalRows = (await db.AnimalPricePerUnits.AsNoTracking().Include(x => x.AnimalType).Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var animalRows = (await db.AnimalPricePerUnits.AsNoTracking().Include(x => x.AnimalType).Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate), x.AnimalTypeId), x => x.ReportDate);
         var s8 = Section(sections, "8", "የገበያ ሁኔታ");
         s8.Items.Add(Heading("8.1", "የእህል አቅርቦት ከባለፈው ሳምንት ጋር ሲነጻጸር"));
@@ -309,7 +313,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         // ------------------------------------------------------------------ 9. Hazards, migration, deaths
         var accidents = (await db.WeeklyAccidents.AsNoTracking()
                 .Include(x => x.AccidentDetails!).ThenInclude(x => x.AccidentType)
-                .Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+                .Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
         var s9 = Section(sections, "9", "በሳምንቱ የታዩ ወቅታዊ አደጋዎች");
         s9.Items.Add(CountWoredas("አለ", accidents.Where(x => x.HasAccident).Select(x => x.WoredaId), 0));
@@ -329,7 +333,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         s9.Items.Add(Texts("ማስታወሻ", accidents.Select(x => (x.WoredaId, x.Notes)).Concat(accidentDetails.Select(x => (x.WoredaId, x.Detail.Notes))), 0));
 
         var migrations = (await db.Migrations.AsNoTracking().Include(x => x.MigrationDetails)
-                .Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+                .Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
         var migrationDetails = migrations.SelectMany(m => (m.MigrationDetails ?? []).Select(d => (m.WoredaId, Detail: d))).ToList();
         var locationIds = migrationDetails.SelectMany(x => new[] { x.Detail.OriginLocationId, x.Detail.DestinationLocationId })
@@ -363,7 +367,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
             (string?)$"{AnimalName(x)} {Num(x.NumberOfAnimals)}፡ {Name(x.OriginLocation)} → {Name(x.DestinationLocation)}"))));
 
         var deaths = (await db.Deaths.AsNoTracking().Include(x => x.DeathDetails)
-                .Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+                .Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
         var deathDetails = deaths.SelectMany(d => (d.DeathDetails ?? []).Select(x => (d.WoredaId, Detail: x))).ToList();
         s9.Items.Add(Heading("", "የሞተ ካለ"));
@@ -373,11 +377,11 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         s9.Items.Add(People("የሞተ", Sum(deathDetails.Select(x => x.Detail), x => (x.MaleHouseholdHeads, x.FemaleHouseholdHeads, x.MaleFamilyMembers, x.FemaleFamilyMembers, x.MaleChildren, x.FemaleChildren, x.MaleYouth, x.FemaleYouth, x.MaleElderly, x.FemaleElderly, x.MaleDisabled, x.FemaleDisabled))));
 
         // ------------------------------------------------------------------ 10. Aid
-        var recipients = (await db.AssistanceRecipients.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var recipients = (await db.AssistanceRecipients.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
         var provided = (await db.WeeklyProvideds.AsNoTracking()
                 .Include(x => x.WeeklyProvidedDetail!).ThenInclude(x => x.SupplyType)
-                .Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+                .Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
         var s10 = Section(sections, "10", "የእርዳታ አቅርቦትና ስርጭት");
         s10.Items.Add(People("የዕለት እርዳታ ተጠቃሚ", Sum(recipients, x => (x.MaleHouseholdHeads, x.FemaleHouseholdHeads, x.MaleFamilyMembers, x.FemaleFamilyMembers, x.MaleChildren, x.FemaleChildren, x.MaleYouth, x.FemaleYouth, x.MaleElderly, x.FemaleElderly, x.MaleDisabled, x.FemaleDisabled)), 0));
@@ -403,7 +407,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         s10.Items.Add(Texts("ማስታወሻ", provided.Select(x => (x.WoredaId, x.Notes))));
 
         // ------------------------------------------------------------------ 11. Other problems
-        var other = (await db.OtherProblems.AsNoTracking().Where(x => ids.Contains(x.WoredaId)).ToListAsync())
+        var other = (await db.OtherProblems.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.ReportDate);
         var s11 = Section(sections, "11", "ሌላ ያልተገለፀ በሳምንቱ ያጋጠመ ችግር ካለ");
         s11.Items.Add(CountWoredas("ችግር የተመዘገበባቸው", other.Where(x => x.HasOtherProblem).Select(x => x.WoredaId), 0));

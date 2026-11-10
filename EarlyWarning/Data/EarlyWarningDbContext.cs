@@ -82,6 +82,7 @@ namespace EarlyWarning.Data
         public DbSet<AnimalMigrationRecord> AnimalMigrationRecords { get; set; } = default!;
         public DbSet<WeeklyAggregateSnapshot> WeeklyAggregateSnapshots { get; set; } = default!;
         public DbSet<SchoolReport> SchoolReports { get; set; } = default!;
+        public DbSet<MalnutritionReport> MalnutritionReports { get; set; } = default!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -172,6 +173,8 @@ namespace EarlyWarning.Data
                 .IsUnique();
             modelBuilder.Entity<SchoolReport>().HasIndex(x => new { x.WoredaId, x.StartDate, x.EndDate }).IsUnique();
             modelBuilder.Entity<SchoolReport>().HasOne(x => x.Woreda).WithMany().HasForeignKey(x => x.WoredaId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<MalnutritionReport>().HasIndex(x => new { x.WoredaId, x.StartDate, x.EndDate }).IsUnique();
+            modelBuilder.Entity<MalnutritionReport>().HasOne(x => x.Woreda).WithMany().HasForeignKey(x => x.WoredaId).OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<AnimalDisease> AnimalDisease { get; set; } = default!;
     }

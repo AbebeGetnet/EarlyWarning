@@ -6,16 +6,11 @@
     var hasData = Model.Reports.Any();
     var week = hasData ? Model.Reports.First() : null;
 
-    decimal Metric(string sectionPrefix, string metricName) =>
-        agg.Sections.Where(s => s.Name.StartsWith(sectionPrefix)).SelectMany(s => s.Metrics)
-            .Where(m => m.Name == metricName).Sum(m => m.Value);
     string N(decimal value) => value.ToString(value % 1 == 0 ? "#,0" : "#,0.##");
-
-    var meherPlan = agg.FarmingZones.Sum(x => x.MeherFarmPlan);
-    var meherSown = agg.FarmingZones.Sum(x => x.MeherSown);
-    var sownPercent = meherPlan == 0 ? (decimal?)null : Math.Round(meherSown / meherPlan * 100, 1);
-    var totalAffected = Model.AffectedByCause.Sum(x => x.People);
-    var migratedAnimals = agg.AnimalMigrationRoutes.Sum(x => x.NumberOfAnimals);
+    var report = Model.Narrative;
+    int Incidents(string key) => report?.Sections.FirstOrDefault(x => x.Key == key)?.IncidentCount ?? 0;
+    var rainRows = report?.RainRows ?? [];
+    var meher = report?.Meher ?? new EarlyWarning.ViewModels.NarrativeFarming();
 
     // Workflow states use the reserved status colours, always paired with an icon and a label.
     (string Label, string Css, string Icon) Status(WeeklySubmissionStatus status) => status switch
@@ -30,31 +25,40 @@
     var statusGroups = Model.Reports.GroupBy(x => Status(x.Status)).Select(g => (Info: g.Key, Count: g.Count()))
         .OrderByDescending(x => x.Count).ToList();
 
+    // Tiles follow the sections of the standard weekly report; incident tiles count the incidents listed there.
     var tiles = new List<(string Icon, string Accent, string Label, string Value, string Note)>
     {
-        ("fa-file-alt", "blue", "ሪፖርት ያስገቡ ወረዳዎች", N(agg.WoredaReports), $"የጸደቁ {N(agg.ApprovedReports)}"),
-        ("fa-cloud-sun", "orange", "ዝናብ ያላገኙ ቀበሌዎች", N(agg.NoRainKebeles), $"ሙሉ ዝናብ ያገኙ {N(agg.FullRainCoverageKebeles)}"),
-        ("fa-seedling", "aqua", "የመኸር ዘር ሽፋን", sownPercent.HasValue ? $"{sownPercent}%" : "-", $"{N(meherSown)} ከ {N(meherPlan)} ሄ/ር"),
-        ("fa-bug", "yellow", "በተባይ የተጎዳ መሬት", N((decimal)agg.AffectedCropLandHectares), "ሄክታር"),
-        ("fa-users", "red", "ጠቅላላ የተጎዳ ማህበረሰብ", N(totalAffected), "በሁሉም ምክንያቶች"),
-        ("fa-tint", "blue", "የእንስሳት ውሃ ችግር ያለባቸው ቀበሌዎች", N(Metric("4.2", "በሳምንቱ የውሃ ችግር ያለባቸው ቀበሌዎች በቁጥር")), $"የሰው መጠጥ ውሃ ችግር {N(Metric("5.", "ችግር ያለባቸው ቀበሌዎች በቁጥር"))}"),
-        ("fa-hands-helping", "green", "የዕለት እርዳታ ተጠቃሚ", N(Metric("10.", "የዕለት እርዳታ ተጠቃሚ")), "ሰዎች"),
-        ("fa-horse", "violet", "የተሰደዱ እንስሳት", N(migratedAnimals), "በሳምንቱ")
+        ("fa-file-alt", "blue", "ሪፖርት የላኩ ወረዳዎች", report == null ? "-" : $"{report.WoredasReported} ከ {report.WoredasInScope}", $"የጸደቁ {N(agg.ApprovedReports)}"),
+        ("fa-cloud-sun", "orange", "1. ዝናብ ያላገኙ ወረዳዎች", N(rainRows.Sum(x => x.None)),
+            $"ሙሉ {N(rainRows.Sum(x => x.Full))} · ከፊል {N(rainRows.Sum(x => x.Partial))} · መረጃ የለም {N(rainRows.Sum(x => x.NoData))}"),
+        ("fa-tractor", "aqua", "2. የመኸር እርሻ (የታረሰ)", meher.PloughedPercent.HasValue ? $"{meher.PloughedPercent}%" : "-", $"{N(meher.Ploughed)} ከ {N(meher.Plan)} ሄ/ር"),
+        ("fa-bug", "yellow", "2.2 የሰብል ተባይና በሽታ", N(Incidents("crop-pest")), "ክስተቶች"),
+        ("fa-tint", "blue", "3.1 የእንስሳት ውሃና ግጦሽ ችግር", N(Incidents("livestock-water")), "ክስተቶች"),
+        ("fa-horse", "violet", "3.3 የእንስሳት ጤና", N(Incidents("animal-health")), "የወረርሽኝ ክስተቶች"),
+        ("fa-virus", "red", "4. የሰው ጤና", N(Incidents("human-health")), "የወረርሽኝ ክስተቶች"),
+        ("fa-faucet", "blue", "5. የሰው መጠጥ ውሃ", N(Incidents("human-water")), "የእጥረት ክስተቶች"),
+        ("fa-people-arrows", "orange", "8. ስደት / ሞት", N(Incidents("migration-death")), "ክስተቶች"),
+        ("fa-house-damage", "red", "9. አደጋዎች", N(Incidents("hazards")), "ክስተቶች"),
+        ("fa-hands-helping", "green", "10. የእርዳታ ችግሮች", N(Incidents("aid")), "ክስተቶች")
     };
+    // The week's incidents, section by section, as listed in the weekly report.
+    var incidentSections = (report?.Sections ?? []).Where(x => x.IncidentCount > 0 && x.Key is not ("rain" or "farming" or "crop" or "prices" or "grain-supply" or "animal-supply"))
+        .Select(x => (Section: x, Items: x.Blocks.Where(b => b.Kind == EarlyWarning.ViewModels.NarrativeBlockKind.Bullets).SelectMany(b => b.Items ?? []).ToList()))
+        .ToList();
 
     var chartData = new
     {
         causes = Model.AffectedByCause.Select(x => new { label = x.Cause, value = x.People }),
-        rain = agg.RainfallZones.Select(x => new { zone = x.Zone, full = x.FullRainWoredas, partial = x.PartialRainWoredas, none = x.NoRainWoredas, noData = x.NoDataWoredas }),
+        rain = rainRows.Select(x => new { zone = x.Unit, full = x.Full, partial = x.Partial, none = x.None, noData = x.NoData }),
         meher = new[]
         {
-            new { label = "ዕቅድ", value = meherPlan },
-            new { label = "የታረሰ", value = agg.FarmingZones.Sum(x => x.MeherPloughed) },
-            new { label = "የተዘራ", value = meherSown },
-            new { label = "የተሰበሰበ", value = agg.FarmingZones.Sum(x => x.MeherHarvested) },
-            new { label = "በቀሪ እርጥበት", value = agg.FarmingZones.Sum(x => x.MeherResidualMoistureSown) }
+            new { label = "ዕቅድ", value = meher.Plan },
+            new { label = "የታረሰ", value = meher.Ploughed },
+            new { label = "የተዘራ", value = meher.Sown },
+            new { label = "የተሰበሰበ", value = meher.Harvested },
+            new { label = "በቀሪ እርጥበት", value = meher.ResidualMoisture }
         },
-        trend = Model.Trend.Select(x => new { label = x.WeekStart.ToString("dd/MM"), value = x.Woredas })
+        trend = Model.Trend.Select(x => new { label = EarlyWarning.Extensions.EthiopianDate.FromGregorian(x.WeekStart).ToString()[..5], value = x.Woredas })
     };
 }
 
@@ -121,6 +125,11 @@
     .ew-details summary .fa-chevron-down { transition: transform .2s; margin-left: auto; color: var(--muted); }
     .ew-details[open] summary .fa-chevron-down { transform: rotate(180deg); }
     .ew-details .ew-details-body { padding: 0 1.15rem 1rem; }
+    .ew-incidents { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: .9rem 1.4rem; }
+    .ew-incident-group h3 { font-size: .95rem; font-weight: 700; color: var(--brand-dark); margin: 0 0 .35rem; display: flex; align-items: center; gap: .5rem; }
+    .ew-incident-group ul { margin: 0 0 .25rem; padding-left: 1.1rem; font-size: .88rem; color: var(--ink-2); }
+    .ew-incident-group li { margin-bottom: .25rem; line-height: 1.45; }
+    .ew-more { font-size: .82rem; color: var(--brand); }
     @@media (max-width: 576px) { .ew-hero { padding: 1.1rem; } .ew-hero h1 { font-size: 1.3rem; } }
 </style>
 }
@@ -128,11 +137,11 @@
 <div class="ew-dash">
     <div class="ew-hero">
         <div>
-            <h1><i class="fas fa-satellite-dish mr-2"></i>የቅድመ ማስጠንቀቂያ ዳሽቦርድ</h1>
-            <div class="ew-sub">@(string.IsNullOrWhiteSpace(Model.ScopeName) ? "" : Model.ScopeName) @(string.IsNullOrWhiteSpace(Model.UserDisplayName) ? "" : $"· እንኳን ደህና መጡ፣ {Model.UserDisplayName}")</div>
+            <h1><i class="fas fa-satellite-dish mr-2"></i>የቅድሚያ ማስጠንቀቂያና ምላሽ ዳሽቦርድ</h1>
+            <div class="ew-sub">@(report?.Organization ?? Model.ScopeName) @(string.IsNullOrWhiteSpace(Model.UserDisplayName) ? "" : $"· እንኳን ደህና መጡ፣ {Model.UserDisplayName}")</div>
             @if (week != null)
             {
-                <span class="ew-chip"><i class="far fa-calendar-alt"></i> የቅርብ ሳምንት፡ @week.StartDate.ToString("dd/MM/yyyy") – @week.EndDate.ToString("dd/MM/yyyy")</span>
+                <span class="ew-chip"><i class="far fa-calendar-alt"></i> @(report?.Period ?? $"ሪፖርቱ የሚሸፍነው ጊዜ፡ {EarlyWarning.Extensions.EthiopianDate.FromGregorian(week.StartDate)} — {EarlyWarning.Extensions.EthiopianDate.FromGregorian(week.EndDate)} ዓ/ም")</span>
                 <span class="ew-chip"><i class="fas fa-layer-group"></i> @Model.Reports.Count ሪፖርቶች</span>
                 @if (agg.IsSnapshot && agg.GeneratedAt.HasValue)
                 {
@@ -145,8 +154,9 @@
             {
                 <a asp-controller="RegisterationWizard" asp-action="Index" class="ew-btn primary"><i class="fas fa-plus-circle"></i> አዲስ መረጃ ምዝገባ</a>
             }
+            <a asp-controller="WeeklyWorkflow" asp-action="Index" class="ew-btn"><i class="fas fa-file-alt"></i> ሳምንታዊ ሪፖርት</a>
             <a asp-controller="WeeklyWorkflow" asp-action="FormReport" class="ew-btn"><i class="fas fa-file-signature"></i> የቅጽ ሪፖርት</a>
-            <a asp-controller="WeeklyWorkflow" asp-action="Index" class="ew-btn"><i class="fas fa-list"></i> ሙሉ የሪፖርት ዝርዝር</a>
+            <a asp-controller="WeeklyWorkflow" asp-action="ExcelExport" class="ew-btn"><i class="fas fa-file-excel"></i> Excel</a>
         </div>
     </div>
 
@@ -171,6 +181,36 @@
                         <div class="ew-value">@tile.Value</div>
                         <div class="ew-note">@tile.Note</div>
                     </div>
+                </div>
+            }
+        </div>
+
+        <div class="ew-card" style="height:auto">
+            <h2>የሳምንቱ ዋና ዋና ክስተቶች</h2>
+            <div class="ew-desc">በሳምንታዊ ሪፖርቱ ደረጃ መሰረት — ዞን፣ ወረዳና ቀበሌ ከነዝርዝሩ</div>
+            @if (incidentSections.Count == 0)
+            {
+                <div class="ew-empty"><i class="fas fa-shield-alt mr-1"></i> በዚህ ሳምንት የተመዘገበ ክስተት የለም።</div>
+            }
+            else
+            {
+                <div class="ew-incidents">
+                    @foreach (var group in incidentSections)
+                    {
+                        <div class="ew-incident-group">
+                            <h3>@group.Section.Number @group.Section.Title <span class="ew-pill">@group.Items.Count</span></h3>
+                            <ul>
+                                @foreach (var item in group.Items.Take(5))
+                                {
+                                    <li>@item</li>
+                                }
+                            </ul>
+                            @if (group.Items.Count > 5)
+                            {
+                                <a asp-controller="WeeklyWorkflow" asp-action="Index" class="ew-more">ሌሎች @(group.Items.Count - 5) ክስተቶች በሳምንታዊ ሪፖርቱ ውስጥ ይመልከቱ →</a>
+                            }
+                        </div>
+                    }
                 </div>
             }
         </div>
@@ -215,14 +255,14 @@
         <div class="row">
             <div class="col-lg-6">
                 <div class="ew-card">
-                    <h2>የዝናብ ሽፋን በዞን</h2>
-                    <div class="ew-desc">ቀበሌዎች በዝናብ ሽፋን ደረጃ</div>
-                    @if (agg.RainfallZones.Any())
+                    <h2>1. የዝናብ ሁኔታ በ@(report?.UnitWord ?? "ዞን")</h2>
+                    <div class="ew-desc">ወረዳዎች በዝናብ ሽፋን፤ ሙሉ በሙሉ፣ በከፊል፣ ዝናብ ያላገኙና መረጃ ያልተገኘላቸው</div>
+                    @if (rainRows.Any())
                     {
                         <div class="ew-legend">
                             <span style="--sw:#173e50">ሙሉ በሙሉ</span><span style="--sw:#1a7aa3">በከፊል</span><span style="--sw:#6aa6be">ዝናብ የለም</span><span style="--sw:#c3c2b7">መረጃ የለም</span>
                         </div>
-                        <div class="ew-chart" style="height:@(Math.Max(140, agg.RainfallZones.Count * 40 + 40))px"><canvas id="rainChart" aria-label="የዝናብ ሽፋን በዞን" role="img"></canvas></div>
+                        <div class="ew-chart" style="height:@(Math.Max(140, rainRows.Count * 40 + 40))px"><canvas id="rainChart" aria-label="የዝናብ ሽፋን በዞን" role="img"></canvas></div>
                     }
                     else
                     {
@@ -232,9 +272,9 @@
             </div>
             <div class="col-lg-6">
                 <div class="ew-card">
-                    <h2>የመኸር እርሻ ሥራ ክንውን</h2>
+                    <h2>2. የመኸር እርሻ ሥራ እንቅስቃሴ</h2>
                     <div class="ew-desc">በሄክታር፤ ከዕቅዱ አንጻር</div>
-                    @if (meherPlan > 0 || agg.FarmingZones.Any())
+                    @if (meher.HasData)
                     {
                         <div class="ew-chart" style="height:240px"><canvas id="meherChart" aria-label="የመኸር እርሻ ሥራ ክንውን" role="img"></canvas></div>
                     }
@@ -251,7 +291,7 @@
             <div class="ew-desc">@Model.Reports.Count ሪፖርቶች</div>
             <div class="ew-table-wrap">
                 <table class="ew-table">
-                    <thead><tr><th>ዞን</th><th>ወረዳ</th><th>ሳምንት</th><th>ሁኔታ</th><th>መጨረሻ እርምጃ</th><th></th></tr></thead>
+                    <thead><tr><th>ዞን</th><th>ወረዳ</th><th>ሳምንት (ዓ/ም)</th><th>ሁኔታ</th><th>መጨረሻ እርምጃ</th><th></th></tr></thead>
                     <tbody>
                         @foreach (var r in Model.Reports.OrderBy(x => x.Zone).ThenBy(x => x.Woreda))
                         {
@@ -259,9 +299,9 @@
                             <tr>
                                 <td>@r.Zone</td>
                                 <td style="font-weight:600">@r.Woreda</td>
-                                <td>@r.StartDate.ToString("dd/MM") – @r.EndDate.ToString("dd/MM/yyyy")</td>
+                                <td>@EarlyWarning.Extensions.EthiopianDate.FromGregorian(r.StartDate) – @EarlyWarning.Extensions.EthiopianDate.FromGregorian(r.EndDate)</td>
                                 <td><span class="ew-pill"><i class="fas @st.Icon st-@st.Css"></i>@st.Label</span></td>
-                                <td>@r.LastActionAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@EarlyWarning.Extensions.EthiopianDate.FromGregorian(r.LastActionAt.ToLocalTime()) @r.LastActionAt.ToLocalTime().ToString("HH:mm")</td>
                                 <td><a asp-controller="WeeklyWorkflow" asp-action="Details" asp-route-id="@r.Id" title="ዝርዝር"><i class="fas fa-arrow-right"></i></a></td>
                             </tr>
                         }
@@ -270,18 +310,24 @@
             </div>
         </div>
 
-        <details class="ew-details">
-            <summary><i class="fas fa-table"></i> ሁሉም የተጠቃለሉ መረጃዎች (ዝርዝር ሰንጠረዥ) <i class="fas fa-chevron-down"></i></summary>
-            <div class="ew-details-body">
-                <partial name="_AggregateSections" model="Model.Aggregate" />
-            </div>
-        </details>
+        @if (report != null)
+        {
+            <details class="ew-details">
+                <summary><i class="fas fa-file-alt"></i> ሙሉ ሳምንታዊ ሪፖርት (በሪፖርት ደረጃው) <i class="fas fa-chevron-down"></i></summary>
+                <div class="ew-details-body">
+                    <partial name="_StandardWeeklyReportStyles" />
+                    <partial name="_StandardWeeklyReport" model="report" />
+                </div>
+            </details>
+        }
     }
 </div>
 
 @section Scripts {
 @if (hasData)
 {
+@* Chart.js is only needed here, so it is no longer loaded on every page. *@
+<script src="~/AdminLte/plugins/chart.js/Chart.min.js"></script>
 <script>
     (function () {
         if (typeof Chart === 'undefined') return;
@@ -321,7 +367,7 @@
                     labels: data.rain.map(x => x.zone),
                     datasets: series.map(([label, key, color]) => ({ label, data: data.rain.map(x => x[key]), backgroundColor: color, borderColor: '#fcfcfb', borderWidth: 2, barPercentage: 0.7 }))
                 },
-                options: { maintainAspectRatio: false, legend: { display: false }, tooltips: tooltip('ቀበሌ'), scales: { xAxes: [axis(true)], yAxes: [category(true)] } }
+                options: { maintainAspectRatio: false, legend: { display: false }, tooltips: tooltip('ወረዳ'), scales: { xAxes: [axis(true)], yAxes: [category(true)] } }
             });
         }
 

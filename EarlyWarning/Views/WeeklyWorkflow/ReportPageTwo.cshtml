@@ -1,162 +1,51 @@
 @model EarlyWarning.ViewModels.WeeklyReportPageTwoViewModel
 @{
-    ViewData["Title"] = "የቅድሚያ ማስጠንቀቂያና ምላሽ ሳምንታዊ ሪፖርት";
-    var sections = Model.Zones
-        .SelectMany(x => x.Aggregate.Sections)
-        .GroupBy(x => x.Name)
-        .Select(x => x.Key)
-        .ToList();
+    ViewData["Title"] = $"ሳምንታዊ ሪፖርት በ{Model.BreakdownWord}";
+    var weekRoute = new Dictionary<string, string>
+    {
+        ["startDate"] = Model.StartDate?.ToString("yyyy-MM-dd") ?? "",
+        ["endDate"] = Model.EndDate?.ToString("yyyy-MM-dd") ?? ""
+    };
 }
 
-<style>
-    .weekly-matrix { font-size: .82rem; min-width: max-content; }
-    .weekly-matrix th, .weekly-matrix td { min-width: 155px; vertical-align: middle; }
-    .weekly-matrix .number-column { min-width: 64px; width: 64px; }
-    .weekly-matrix .activity-column { min-width: 285px; max-width: 360px; }
-    .weekly-matrix thead th { position: sticky; top: 0; z-index: 3; background: #e9f1fb; }
-    .weekly-matrix .number-column { position: sticky; left: 0; z-index: 2; background: #fff; }
-    .weekly-matrix .activity-column { position: sticky; left: 64px; z-index: 2; background: #fff; }
-    .weekly-matrix thead .number-column, .weekly-matrix thead .activity-column { z-index: 4; background: #e9f1fb; }
-    .weekly-matrix .section-row th { position: static; background: #dbeafe; }
-    .weekly-matrix .summary-column { background: #f8f9fa; font-weight: 700; }
-    /* The zone-by-zone matrix is wide, so this page prints on A4 landscape (297 × 210 mm). */
-    @@page { size: A4 landscape; margin: 10mm; }
-    @@media print {
-        .report-actions, nav, footer, .main-header, .main-sidebar, .preloader, #toast-container { display: none !important; }
-        html, body { width: auto !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
-        .wrapper, .content-wrapper, .content, .container-fluid { margin: 0 !important; padding: 0 !important; min-height: 0 !important; max-width: none !important; background: #fff !important; }
-        .card { border: 0 !important; box-shadow: none !important; }
-        .table-responsive { overflow: visible !important; }
-        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        /* Fit the page width: columns share the width and long text wraps instead of running off the page. */
-        .weekly-matrix { font-size: 7pt; width: 100% !important; min-width: 0 !important; table-layout: auto; }
-        .weekly-matrix th, .weekly-matrix td { min-width: 0; padding: .1rem .2rem; overflow-wrap: anywhere; }
-        .weekly-matrix .number-column { min-width: 0; width: 28px; }
-        .weekly-matrix .activity-column { min-width: 0; width: 22%; max-width: none; }
-        .weekly-matrix thead th, .weekly-matrix .number-column, .weekly-matrix .activity-column { position: static; }
-        thead { display: table-header-group; }
-        tr { break-inside: avoid; }
-    }
-</style>
+<partial name="_StandardWeeklyReportStyles" />
 
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-start mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3 no-print">
         <div>
-            <h3 class="mb-1">የቅድሚያ ማስጠንቀቂያና ምላሽ ሳምንታዊ ሪፖርት</h3>
-            @if (Model.StartDate.HasValue && Model.EndDate.HasValue)
-            {
-                <div class="text-muted">ከ @Model.StartDate.Value.ToString("dd/MM/yyyy") — @Model.EndDate.Value.ToString("dd/MM/yyyy")</div>
-            }
+            <h3 class="mb-1">የቅድሚያ ማስጠንቀቂያና ምላሽ ሳምንታዊ ሪፖርት — በ@(Model.BreakdownWord) ዝርዝር</h3>
+            <div class="text-muted small">@Model.ScopeName · ለእያንዳንዱ @Model.BreakdownWord በሪፖርት ደረጃው (ቅርጹ) የተዘጋጀ</div>
         </div>
-        <div class="report-actions d-flex gap-2">
-            <button type="button" class="btn btn-outline-secondary" onclick="window.print()">አትም</button>
-            <a asp-action="Index" class="btn btn-outline-primary">ወደ ገጽ 1 ተመለስ</a>
+        <partial name="_WeekPicker" model='("ReportPageTwo", Model.AvailableWeeks, Model.StartDate, Model.EndDate)' />
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-outline-dark" onclick="window.print()"><i class="fas fa-print me-1"></i> አትም</button>
+            <a asp-action="Index" asp-all-route-data="weekRoute" class="btn btn-outline-primary">ወደ ተጠቃለለ ሪፖርት</a>
         </div>
     </div>
 
-    @if (!Model.Zones.Any())
+    @if (Model.ErrorMessage != null)
     {
-        <div class="alert alert-info">በመረጃ ቋቱ ውስጥ የሳምንት ሪፖርት አልተገኘም።</div>
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+    else if (Model.Reports.Count == 0)
+    {
+        <div class="alert alert-info">ለማሳየት የተላከ ሳምንታዊ ሪፖርት እስካሁን የለም።</div>
     }
     else
     {
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered text-start align-middle mb-0 weekly-matrix">
-                    <thead>
-                        <tr>
-                            <th class="number-column">ተ.ቁ</th>
-                            <th class="activity-column text-start">ዝርዝር ሥራዎች</th>
-                            @foreach (var zone in Model.Zones)
-                            {
-                                <th>@zone.Zone</th>
-                            }
-                            <th class="summary-column">ማጠቃለያ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @for (var sectionIndex = 0; sectionIndex < sections.Count; sectionIndex++)
-                    {
-                        var sectionName = sections[sectionIndex];
-                        var metricNames = Model.Zones
-                            .SelectMany(z => z.Aggregate.Sections.Where(s => s.Name == sectionName).SelectMany(s => s.Metrics))
-                            .Select(m => m.Name)
-                            .Distinct()
-                            .ToList();
-                        <tr class="section-row">
-                            <th>@(sectionIndex + 1)</th>
-                            <th colspan="@(Model.Zones.Count + 2)" class="text-start">@sectionName</th>
-                        </tr>
-                        @for (var metricIndex = 0; metricIndex < metricNames.Count; metricIndex++)
-                        {
-                            var metricName = metricNames[metricIndex];
-                            var metrics = Model.Zones
-                                .Select(z => z.Aggregate.Sections.FirstOrDefault(s => s.Name == sectionName)?.Metrics.FirstOrDefault(m => m.Name == metricName))
-                                .Where(m => m != null)
-                                .ToList();
-                            var firstMetric = metrics.FirstOrDefault();
-                            // Sums and counts add up across zones. Averages and rates are combined as a mean weighted by
-                            // the observations (or quantity) behind each zone's value, not as an average of averages.
-                            var weight = metrics.Sum(m => m!.Weight);
-                            var summary = firstMetric == null || firstMetric.Method is "SUM" or "COUNT"
-                                ? metrics.Sum(m => m!.Value)
-                                : weight > 0 ? metrics.Sum(m => m!.Value * m.Weight) / weight
-                                : metrics.Any() ? metrics.Average(m => m!.Value) : 0;
-                            <tr>
-                                <td class="number-column">@(sectionIndex + 1).@(metricIndex + 1)</td>
-                                <td class="activity-column text-start fw-semibold">@metricName</td>
-                                @foreach (var zone in Model.Zones)
-                                {
-                                    var metric = zone.Aggregate.Sections.FirstOrDefault(s => s.Name == sectionName)?.Metrics.FirstOrDefault(m => m.Name == metricName);
-                                    <td>@(metric == null ? "—" : $"{metric.Value:N2} {metric.Unit}".Trim())</td>
-                                }
-                                <td class="summary-column">@summary.ToString("N2")@if (!string.IsNullOrWhiteSpace(firstMetric?.Unit)) { <text> @firstMetric.Unit</text> }</td>
-                            </tr>
-                        }
-                    }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        var affectedEvents = Model.Zones.SelectMany(z => z.Aggregate.AffectedLocations).GroupBy(x => x.Event)
-            .Select(g => EarlyWarning.Services.AffectedLocations.Combine(g.Key, g)).Where(x => x.Woredas > 0).ToList();
-        @if (affectedEvents.Any())
+        @if (Model.Reports.Count > 1)
         {
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-primary bg-opacity-10 fw-bold">በክስተት የተጎዱ አካባቢዎች (ክልል)</div>
-                <div class="table-responsive">
-                    <table class="table table-bordered mb-0">
-                        <thead class="table-light"><tr><th>ክስተት</th><th>የተጎዱ ዞኖች</th><th>የተጎዱ ወረዳዎች</th><th>የተጎዱ ቀበሌዎች</th><th>የተጎዱ ዞኖችና ወረዳዎች</th></tr></thead>
-                        <tbody>
-                            @foreach (var affected in affectedEvents)
-                            {
-                                <tr>
-                                    <td class="fw-semibold">@affected.Event</td>
-                                    <td>@affected.Zones.ToString("N0")</td>
-                                    <td>@affected.Woredas.ToString("N0")</td>
-                                    <td>@affected.Kebeles.ToString("N0")</td>
-                                    <td>@foreach (var zone in EarlyWarning.Services.AffectedLocations.ByZone(affected)) { <div><strong>@EarlyWarning.Services.AffectedLocations.ZoneWithWoredas(zone.Key, zone.Count())፡</strong> @EarlyWarning.Services.AffectedLocations.WoredaList(zone)</div> }</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <nav class="mb-3 no-print">
+                @for (var i = 0; i < Model.Reports.Count; i++)
+                {
+                    <a href="#report-@i" class="btn btn-sm btn-outline-secondary mb-1">@Model.Reports[i].ScopeName</a>
+                }
+            </nav>
         }
-
-        var narratives = Model.Zones.SelectMany(z => z.Aggregate.TextEntries.Select(x => new { z.Zone, x.Source, x.Text })).ToList();
-        @if (narratives.Any())
+        @for (var i = 0; i < Model.Reports.Count; i++)
         {
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-primary bg-opacity-10 fw-bold">ጽሑፋዊ መረጃ</div>
-                <div class="table-responsive">
-                    <table class="table table-bordered mb-0">
-                        <thead class="table-light"><tr><th>ዞን</th><th>የመረጃ ዓይነት</th><th>ዝርዝር</th></tr></thead>
-                        <tbody>@foreach (var item in narratives) { <tr><td>@item.Zone</td><td>@item.Source</td><td>@item.Text</td></tr> }</tbody>
-                    </table>
-                </div>
-            </div>
+            <div id="report-@i"></div>
+            <partial name="_StandardWeeklyReport" model="Model.Reports[i]" />
         }
     }
 </div>
