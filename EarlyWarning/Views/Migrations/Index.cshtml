@@ -393,8 +393,7 @@
         var totalReports = Model.Count();
         var withMigrationCount = Model.Count(x => x.HasMigration);
         var withoutMigrationCount = totalReports - withMigrationCount;
-        var totalMigrants = Model.Sum(x => x.MigrationDetails?.Sum(d => d.MaleFamilyMembers + d.MaleChildren+d.MaleYouth+d.MaleDisabled+d.MaleElderly+d.MaleHouseholdHeads
-        + d.FemaleFamilyMembers + d.FemaleChildren + d.FemaleYouth + d.FemaleDisabled + d.FemaleElderly + d.FemaleHouseholdHeads) ?? 0);
+        var totalMigrants = Model.Sum(x => x.MigrationDetails?.Sum(d => d.MaleFamilyMembers + d.MaleHouseholdHeads + d.FemaleFamilyMembers + d.FemaleHouseholdHeads) ?? 0);
     }
 
     <!-- Statistics Cards -->
@@ -533,8 +532,7 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        var totalMigrantsForReport = item.MigrationDetails?.Sum(d => d.MaleFamilyMembers + d.MaleChildren + d.MaleYouth + d.MaleDisabled + d.MaleElderly + d.MaleHouseholdHeads
-                        + d.FemaleFamilyMembers + d.FemaleChildren + d.FemaleYouth + d.FemaleDisabled + d.FemaleElderly + d.FemaleHouseholdHeads) ?? 0;
+                        var totalMigrantsForReport = item.MigrationDetails?.Sum(d => d.MaleFamilyMembers + d.MaleHouseholdHeads + d.FemaleFamilyMembers + d.FemaleHouseholdHeads) ?? 0;
                         @* var origins = item.MigrationDetails?.Select(d => d.OriginLocation?.LocationAmharicName).Where(o => !string.IsNullOrEmpty(o)).Distinct().ToList() ?? new List<string>(); *@
                         var origins = item.MigrationDetails?
                         .Where(d => d.OriginLocation != null)

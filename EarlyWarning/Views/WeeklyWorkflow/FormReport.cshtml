@@ -1,4 +1,4 @@
-@model EarlyWarning.ViewModels.WeeklyFormReportViewModel
+﻿@model EarlyWarning.ViewModels.WeeklyFormReportViewModel
 @using EarlyWarning.ViewModels
 @using EarlyWarning.Services
 @{
@@ -207,15 +207,17 @@
 
                             case FormReportItemKind.People:
                                 var p = item.People!;
-                                var peopleRows = new List<(string Label, int Male, int Female)>
+                                // Household heads and family are the people counted; the other rows break those same people down
+                                // by age and disability, so they are listed under "ከዚህ ውስጥ" and never added to the total.
+                                var primaryRows = new List<(string Label, int Male, int Female)> { ("አባወራ / እማወራ", p.MaleHouseholds, p.FemaleHouseholds) };
+                                if (p.HasFamilyRow) primaryRows.Add(("ቤተሰብ", p.MaleFamily, p.FemaleFamily));
+                                var breakdownRows = new List<(string Label, int Male, int Female)>
                                 {
-                                    ("አባወራ / እማወራ", p.MaleHouseholds, p.FemaleHouseholds)
+                                    ("ህፃናት ከ5 ዓመት በታች", p.MaleChildren, p.FemaleChildren),
+                                    ("ወጣት", p.MaleYouth, p.FemaleYouth),
+                                    ("አረጋውያን", p.MaleElderly, p.FemaleElderly),
+                                    ("አካል ጉዳተኛ", p.MaleDisabled, p.FemaleDisabled)
                                 };
-                                if (p.HasFamilyRow) peopleRows.Add(("ቤተሰብ", p.MaleFamily, p.FemaleFamily));
-                                peopleRows.Add(("ህፃናት ከ5 ዓመት በታች", p.MaleChildren, p.FemaleChildren));
-                                peopleRows.Add(("ወጣት", p.MaleYouth, p.FemaleYouth));
-                                peopleRows.Add(("አረጋውያን", p.MaleElderly, p.FemaleElderly));
-                                peopleRows.Add(("አካል ጉዳተኛ", p.MaleDisabled, p.FemaleDisabled));
                                 <div class="fr-item fr-block @Level(item)">
                                     <span class="fr-num"></span>
                                     <div class="fr-body">
@@ -223,13 +225,18 @@
                                         <table class="table table-sm table-bordered align-middle fr-table fr-people-table">
                                             <thead><tr><th>ምድብ</th><th>ወንድ</th><th>ሴት</th><th>ድምር</th></tr></thead>
                                             <tbody>
-                                                @foreach (var row in peopleRows)
+                                                @foreach (var row in primaryRows)
                                                 {
                                                     <tr><td>@row.Label</td><td>@row.Male.ToString("#,0")</td><td>@row.Female.ToString("#,0")</td><td class="fw-bold">@((row.Male + row.Female).ToString("#,0"))</td></tr>
                                                 }
+                                                <tr class="fw-bold"><td>ጠቅላላ ድምር</td><td>@p.MaleTotal.ToString("#,0")</td><td>@p.FemaleTotal.ToString("#,0")</td><td>@p.Total.ToString("#,0")</td></tr>
+                                                <tr><td colspan="4" class="fst-italic text-muted small">ከዚህ ውስጥ (በድምሩ ላይ አይደመሩም)</td></tr>
+                                                @foreach (var row in breakdownRows)
+                                                {
+                                                    <tr><td class="ps-3">@row.Label</td><td>@row.Male.ToString("#,0")</td><td>@row.Female.ToString("#,0")</td><td>@((row.Male + row.Female).ToString("#,0"))</td></tr>
+                                                }
                                             </tbody>
                                             <tfoot>
-                                                <tr class="fw-bold"><td>ጠቅላላ ድምር</td><td>@peopleRows.Sum(x => x.Male).ToString("#,0")</td><td>@peopleRows.Sum(x => x.Female).ToString("#,0")</td><td>@peopleRows.Sum(x => x.Male + x.Female).ToString("#,0")</td></tr>
                                                 @if (p.LactatingAndPregnant.HasValue)
                                                 {
                                                     <tr><td colspan="3">አጥቢ እና ነፍሰጡር እናቶች በቁጥር</td><td class="fw-bold">@p.LactatingAndPregnant.Value.ToString("#,0")</td></tr>

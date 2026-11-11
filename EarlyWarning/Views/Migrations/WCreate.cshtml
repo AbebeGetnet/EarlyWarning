@@ -698,13 +698,10 @@
                     const lactatingMothers = parseInt($('#LactatingMothers').val()) || 0;
                     const pregnantWomen = parseInt($('#PregnantWomen').val()) || 0;
 
+                    // Migrants = household heads + family; children, youth, elderly, disabled, lactating and
+                    // pregnant are breakdowns of those same people and are not added.
                     totalMigrants = maleHouseholdHeads + femaleHouseholdHeads +
-                                  maleFamilyMembers + femaleFamilyMembers +
-                                  maleChildren + femaleChildren +
-                                  maleYouth + femaleYouth +
-                                  maleElderly + femaleElderly +
-                                  maleDisabled + femaleDisabled +
-                                  lactatingMothers + pregnantWomen;
+                                  maleFamilyMembers + femaleFamilyMembers;
 
                     const summaryHtml = `
                         <div class="alert alert-info">
@@ -712,8 +709,8 @@
                         </div>
                         <table class="table table-bordered">
                             <tr><td><strong>ጠቅላላ የተሰደዱ ሰዎች:</strong></td><td class="text-end">${totalMigrants.toLocaleString()}</td></tr>
-                            <tr><td><strong>ጠቅላላ ወንዶች:</strong></td><td class="text-end">${(maleHouseholdHeads + maleFamilyMembers + maleChildren + maleYouth + maleElderly + maleDisabled).toLocaleString()}</td></tr>
-                            <tr><td><strong>ጠቅላላ ሴቶች:</strong></td><td class="text-end">${(femaleHouseholdHeads + femaleFamilyMembers + femaleChildren + femaleYouth + femaleElderly + femaleDisabled + lactatingMothers + pregnantWomen).toLocaleString()}</td></tr>
+                            <tr><td><strong>ጠቅላላ ወንዶች:</strong></td><td class="text-end">${(maleHouseholdHeads + maleFamilyMembers).toLocaleString()}</td></tr>
+                            <tr><td><strong>ጠቅላላ ሴቶች:</strong></td><td class="text-end">${(femaleHouseholdHeads + femaleFamilyMembers).toLocaleString()}</td></tr>
                         </table>
                         <div class="alert alert-warning mt-3">
                             <i class="fas fa-check-circle"></i> እባክዎ መረጃውን በደንብ ይመልከቱ እና ትክክል ከሆነ መዝግብ የሚለውን ቁልፍ ይጫኑ
@@ -755,20 +752,8 @@
                 const hasMigration = $('input[name="HasMigration"]:checked').val() === 'true';
 
                 if (hasMigration) {
-                    const totalMigrants = parseInt($('#MaleHouseholdHeads').val()) || 0 +
-                                        parseInt($('#FemaleHouseholdHeads').val()) || 0 +
-                                        parseInt($('#MaleFamilyMembers').val()) || 0 +
-                                        parseInt($('#FemaleFamilyMembers').val()) || 0 +
-                                        parseInt($('#MaleChildren').val()) || 0 +
-                                        parseInt($('#FemaleChildren').val()) || 0 +
-                                        parseInt($('#MaleYouth').val()) || 0 +
-                                        parseInt($('#FemaleYouth').val()) || 0 +
-                                        parseInt($('#MaleElderly').val()) || 0 +
-                                        parseInt($('#FemaleElderly').val()) || 0 +
-                                        parseInt($('#MaleDisabled').val()) || 0 +
-                                        parseInt($('#FemaleDisabled').val()) || 0 +
-                                        parseInt($('#LactatingMothers').val()) || 0 +
-                                        parseInt($('#PregnantWomen').val()) || 0;
+                    const totalMigrants = ['MaleHouseholdHeads', 'FemaleHouseholdHeads', 'MaleFamilyMembers', 'FemaleFamilyMembers']
+                        .reduce((sum, id) => sum + (parseInt($('#' + id).val()) || 0), 0);
 
                     if (totalMigrants === 0) {
                         e.preventDefault();

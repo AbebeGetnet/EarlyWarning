@@ -92,6 +92,7 @@ namespace EarlyWarning.Enums
     }
     public enum AnimalBodyCondition
     {
+        ከፍተኛ = 3,
         መካከለኛ = 1,
         ዝቅተኛ = 2
     }

@@ -367,8 +367,8 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        var totalMales = item.MaleHouseholdHeads + item.MaleFamilyMembers + item.MaleChildren + item.MaleYouth + item.MaleElderly + item.MaleDisabled;
-                        var totalFemales = item.FemaleHouseholdHeads + item.FemaleFamilyMembers + item.FemaleChildren + item.FemaleYouth + item.FemaleElderly + item.FemaleDisabled;
+                        var totalMales = item.MaleHouseholdHeads + item.MaleFamilyMembers; // primary rows only; age/disability rows are breakdowns
+                        var totalFemales = item.FemaleHouseholdHeads + item.FemaleFamilyMembers;
                         var totalPopulation = totalMales + totalFemales;
                         var userName = item.ReportedBy;
                         if (!string.IsNullOrEmpty(item.ReportedBy) && ViewBag.UserNames != null && ViewBag.UserNames.ContainsKey(item.ReportedBy))

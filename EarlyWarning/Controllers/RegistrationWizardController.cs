@@ -398,7 +398,7 @@ namespace EarlyWarning.Controllers
                 selectedAccidentTypeIds = accidents?.AccidentDetails?.Select(x => x.AccidentTypeId),
                 grainPriceRows = grainPriceRows.Select(x => new { x.GrainTypeId, PreviousWeekPrice = x.PriceDifference.HasValue ? x.WeeklyPrice - x.PriceDifference.Value : (decimal?)null, x.WeeklyPrice, x.WeeklyMarketStatus, x.PriceDifference, x.PriceChangePercentage, x.Notes }),
                 animalPriceRows = animalPriceRows.Select(x => new { x.AnimalTypeId, PreviousWeekPrice = x.PriceDifference.HasValue ? x.WeeklyPrice - x.PriceDifference.Value : (decimal?)null, x.WeeklyPrice, x.WeeklyMarketStatus, x.PriceDifference, x.PriceChangePercentage, x.Notes }),
-                aidDistributionDetails = aid?.WeeklyProvidedDetail?.Select(x => new { x.SupplyTypeId, x.Measurement, x.ProvidedQuantity, x.DistributedQuantity, x.PercentageOfDistributedFromProvided, x.Donor }),
+                aidDistributionDetails = aid?.WeeklyProvidedDetail?.Select(x => new { x.SupplyTypeId, x.Measurement, x.RequestedQuantity, x.ProvidedQuantity, x.DistributedQuantity, x.PercentageOfDistributedFromProvided, x.Donor }),
                 cropPestImpactDetails = pest?.ImpactDetails,
                 cropDefensiveActivities = pest?.DefensiveActivities.Select(x => new { x.Activity, x.AreaCoveredInHectares }),
                 animalDiseaseImpactDetails = health?.ImpactDetails,
@@ -551,6 +551,7 @@ namespace EarlyWarning.Controllers
             }
         }
         // Process the Consolidated Multi-Step Submission
+        [SkipBeneficiaryValidation] // checked below, only for the sections answered "yes"
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitWizard(RegistrationWithardViewModel model, List<Guid> SelectedKebeliesIds, List<Guid> SelectedDroughtKebeleIds, List<Guid> SelectedCropDiseaseIds, List<Guid> SelectedAnimalDiseaseIds)
@@ -624,6 +625,7 @@ namespace EarlyWarning.Controllers
             foreach (var row in model.GrainPriceRows) ValidateNumericValues(row, "የእህል ዋጋ");
             foreach (var row in model.AnimalPriceRows) ValidateNumericValues(row, "የእንስሳት ዋጋ");
             foreach (var row in model.AidDistributionDetails) ValidateNumericValues(row, "የዕርዳታ ዝርዝር");
+            ValidateBeneficiaries(model, selectedAccidentDetails);
             if (selectedAccidentDetails.Any(x => x.DamageRateInPercent is < 0 or > 100))
                 ModelState.AddModelError(nameof(model.AccidentDetails), "የጉዳት መጠን (%) ከ0 እስከ 100 ብቻ መሆን አለበት።");
             for (var i = 0; i < model.AccidentDetails.Count; i++)
@@ -707,6 +709,10 @@ namespace EarlyWarning.Controllers
                 ModelState.AddModelError("MigrationDetail.DestinationLocationId", "ከወረዳው ለወጣ ስደት መድረሻ ወረዳ ያስፈልጋል።");
             if (model.AidDistributionDetails.Any(x => x.DistributedQuantity > x.ProvidedQuantity))
                 ModelState.AddModelError(nameof(model.AidDistributionDetails), "የተሰራጨው መጠን ከቀረበው መጠን ሊበልጥ አይችልም።");
+            if (!model.HasAnimalMigration)
+                model.AnimalMigrationRows.ForEach(x => x.NumberOfAnimals = 0);
+            else if (!model.AnimalMigrationRows.Any(x => x.NumberOfAnimals > 0))
+                ModelState.AddModelError(nameof(model.AnimalMigrationRows), "የእንስሳት ስደት ካለ ቢያንስ የአንድ እንስሳ ብዛት ያስገቡ።");
             var inwardAnimalRows = model.AnimalMigrationDirection == AnimalMigrationDirection.Inward
                 ? model.AnimalMigrationRows.Where(x => x.NumberOfAnimals > 0).ToList() : [];
             var outwardAnimalRows = model.AnimalMigrationDirection == AnimalMigrationDirection.Outward
@@ -717,8 +723,6 @@ namespace EarlyWarning.Controllers
                 ModelState.AddModelError(nameof(model.OutwardAnimalMigrationDestinationId), "ከወረዳው ለወጡ እንስሳት መድረሻ ወረዳ ይምረጡ።");
             if (model.AnimalMigrationRows.Any(x => x.NumberOfAnimals < 0 || x.NumberOfAnimals > 1_000_000_000))
                 ModelState.AddModelError(nameof(model.AnimalMigrationRows), "የእንስሳት ብዛት በ0 እና 1,000,000,000 መካከል መሆን አለበት።");
-            if (model.AnimalMigrationRows.Any(x => x.AnimalType == MigratingAnimalType.Other && x.NumberOfAnimals > 0 && string.IsNullOrWhiteSpace(x.OtherAnimalType)))
-                ModelState.AddModelError(nameof(model.AnimalMigrationRows), "'Other' ሲመረጥ የእንስሳውን አይነት ይጻፉ።");
             if (!ModelState.IsValid)
             {
                 ViewBag.SubmissionFailed = true;
@@ -991,7 +995,7 @@ namespace EarlyWarning.Controllers
                     WeeklyReportSubmissionId = workflow.Id, WoredaId = woredaId, Direction = model.AnimalMigrationDirection,
                     OriginLocationId = inward ? model.InwardAnimalMigrationOriginId!.Value : woredaId,
                     DestinationLocationId = inward ? woredaId : model.OutwardAnimalMigrationDestinationId!.Value,
-                    AnimalType = row.AnimalType, OtherAnimalType = row.AnimalType == MigratingAnimalType.Other ? row.OtherAnimalType?.Trim() : null,
+                    AnimalType = row.AnimalType, OtherAnimalType = null,
                     NumberOfAnimals = row.NumberOfAnimals
                 });
             }
@@ -1090,6 +1094,38 @@ namespace EarlyWarning.Controllers
                     .SetProperty(x => x.LastActionAt, DateTime.UtcNow));
 
             return WeeklySubmissionStatus.Draft;
+        }
+
+        // Distribution rows (age, disability) may not exceed household heads + family, per sex — only for the
+        // sections that will be saved, so leftovers in a section answered "no" do not block the submission.
+        private void ValidateBeneficiaries(RegistrationWithardViewModel model, List<Models.WeeklyAccidents.AccidentDetail> selectedAccidents)
+        {
+            void Check(string key, object? source, string section) => BeneficiaryValidationFilter.Check(ModelState, key, source, depth: 0, section);
+            void CheckRows<T>(string key, List<T> rows, Func<T, bool> saved, string section)
+            {
+                for (var i = 0; i < rows.Count; i++) if (saved(rows[i])) Check($"{key}[{i}]", rows[i], section);
+            }
+            if (model.CropPestAndDeseaseReport.HasPestAndDeseasOccured)
+            {
+                Check(nameof(model.CropPestAndDeseaseReport), model.CropPestAndDeseaseReport, "የሰብል ተባይና በሽታ");
+                CheckRows(nameof(model.CropPestImpactDetails), model.CropPestImpactDetails, x => model.SelectedCropDiseaseIds.Contains(x.CropPestAndDeseaseId), "የሰብል ተጎጂ ዝርዝር");
+            }
+            if (!model.PastureStatus.Enough) Check(nameof(model.PastureStatus), model.PastureStatus, "የግጦሽ ሁኔታ");
+            if (!model.AnimalWaterSupplyStatus.Enough) Check(nameof(model.AnimalWaterSupplyStatus), model.AnimalWaterSupplyStatus, "የእንስሳት ውሃ");
+            if (!model.AnimalHealthStatus.Enough)
+            {
+                Check(nameof(model.AnimalHealthStatus), model.AnimalHealthStatus, "የእንስሳት ጤና");
+                CheckRows(nameof(model.AnimalDiseaseImpactDetails), model.AnimalDiseaseImpactDetails, x => model.SelectedAnimalDiseaseIds.Contains(x.AnimalDiseaseId), "የእንስሳት በሽታ ተጎጂ ዝርዝር");
+            }
+            if (model.HumanDrinkWaterIssue.HasWaterProblem) Check(nameof(model.HumanDrinkWaterIssue), model.HumanDrinkWaterIssue, "የሰው መጠጥ ውሃ");
+            if (model.EpidemicDisease.HasEpidemicDisease)
+                CheckRows(nameof(model.EpidemicImpactDetails), model.EpidemicImpactDetails, x => model.SelectedEpidemicDiseaseTypeIds.Contains(x.EpidemicDiseaseTypeId), "የሰው ጤና ተጎጂ ዝርዝር");
+            if (model.WeeklyAccidents.HasAccident)
+                CheckRows(nameof(model.AccidentDetails), model.AccidentDetails, selectedAccidents.Contains, "የአደጋ ዝርዝር");
+            if (model.Migration.HasMigration) Check(nameof(model.MigrationDetail), model.MigrationDetail, "ስደት");
+            if (model.Death.HasDeath) Check(nameof(model.DeathDetail), model.DeathDetail, "ሞት");
+            Check(nameof(model.AssistanceRecipient), model.AssistanceRecipient, "የዕርዳታ ተጠቃሚ");
+            if (model.OtherProblem.HasOtherProblem) Check(nameof(model.OtherProblem), model.OtherProblem, "ሌላ ችግር");
         }
 
         private void ValidateNumericValues(object? source, string section)
@@ -1241,7 +1277,7 @@ namespace EarlyWarning.Controllers
             var weeklyProvided = await _context.WeeklyProvideds.FirstOrDefaultAsync(x => x.WoredaId == woredaId && x.StartDate == startDate && x.EndDate == endDate);
             if (weeklyProvided == null) { weeklyProvided = model.WeeklyProvided; _context.WeeklyProvideds.Add(weeklyProvided); }
             else { _context.Entry(weeklyProvided).CurrentValues.SetValues(model.WeeklyProvided); await _context.WeeklyProvidedDetails.Where(x => x.WeeklyProvidedId == weeklyProvided.WeeklyProvidedId).ExecuteDeleteAsync(); }
-            weeklyProvided.WeeklyProvidedDetail = model.AidDistributionDetails.Where(x => x.SupplyTypeId != Guid.Empty).Select(x => new WeeklyProvidedDetail { SupplyTypeId = x.SupplyTypeId, Measurement = x.Measurement, ProvidedQuantity = x.ProvidedQuantity, DistributedQuantity = x.DistributedQuantity, PercentageOfDistributedFromProvided = x.ProvidedQuantity == 0 ? 0 : x.DistributedQuantity / x.ProvidedQuantity * 100, Donor = x.Donor }).ToList();
+            weeklyProvided.WeeklyProvidedDetail = model.AidDistributionDetails.Where(x => x.SupplyTypeId != Guid.Empty).Select(x => new WeeklyProvidedDetail { SupplyTypeId = x.SupplyTypeId, Measurement = x.Measurement, RequestedQuantity = x.RequestedQuantity, ProvidedQuantity = x.ProvidedQuantity, DistributedQuantity = x.DistributedQuantity, PercentageOfDistributedFromProvided = x.ProvidedQuantity == 0 ? 0 : x.DistributedQuantity / x.ProvidedQuantity * 100, Donor = x.Donor }).ToList();
             await UpsertSimpleAsync(_context.OtherProblems, model.OtherProblem, x => x.WoredaId == woredaId && x.StartDate == startDate && x.EndDate == endDate,
                 x => { x.WoredaId = woredaId; x.StartDate = startDate; x.EndDate = endDate; x.ReportedBy = reportedBy; if (string.IsNullOrWhiteSpace(x.ProblemName)) x.ProblemName = "የለም"; });
             model.MalnutritionReport.CalculateRates();

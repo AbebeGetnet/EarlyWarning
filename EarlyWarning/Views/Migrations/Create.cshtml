@@ -657,10 +657,8 @@
 
             // Calculate totals for display
             function calculateDetailTotals(detail) {
-                var totalMales = detail.maleHouseholdHeads + detail.maleFamilyMembers + detail.maleChildren +
-                                 detail.maleYouth + detail.maleElderly + detail.maleDisabled;
-                var totalFemales = detail.femaleHouseholdHeads + detail.femaleFamilyMembers + detail.femaleChildren +
-                                   detail.femaleYouth + detail.femaleElderly + detail.femaleDisabled;
+                var totalMales = detail.maleHouseholdHeads + detail.maleFamilyMembers;
+                var totalFemales = detail.femaleHouseholdHeads + detail.femaleFamilyMembers;
                 var total = totalMales + totalFemales;
                 return { totalMales, totalFemales, total };
             }

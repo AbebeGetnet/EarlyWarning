@@ -546,11 +546,7 @@
                         {
                             totalDeaths = item.DeathDetails.Sum(d =>
                             (d.MaleHouseholdHeads + d.FemaleHouseholdHeads) +
-                            (d.MaleFamilyMembers + d.FemaleFamilyMembers) +
-                            (d.MaleChildren + d.FemaleChildren) +
-                            (d.MaleYouth + d.FemaleYouth) +
-                            (d.MaleElderly + d.FemaleElderly) +
-                            (d.MaleDisabled + d.FemaleDisabled));
+                            (d.MaleFamilyMembers + d.FemaleFamilyMembers)); // age/disability rows are breakdowns
                         }
 
                         <tr>

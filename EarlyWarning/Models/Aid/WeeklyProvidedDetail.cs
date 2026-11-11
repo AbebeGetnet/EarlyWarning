@@ -24,6 +24,10 @@ namespace EarlyWarning.Models.Aid
         [Required(ErrorMessage = "የመለኪያ አሃድ መምረጥ ያስፈልጋል")]
         public Measurement Measurement { get; set; }
 
+        [Display(Name = "የተጠየቀ መጠን")]
+        [Range(0, double.MaxValue, ErrorMessage = "እባክዎ ትክክለኛ ቁጥር ያስገቡ")]
+        public decimal RequestedQuantity { get; set; }
+
         [Display(Name = "የቀረበ መጠን")]
         [Required(ErrorMessage = "የቀረበ መጠን ያስፈልጋል")]
         [Range(0, double.MaxValue, ErrorMessage = "እባክዎ ትክክለኛ ቁጥር ያስገቡ")]

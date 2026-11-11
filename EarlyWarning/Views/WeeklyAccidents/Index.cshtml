@@ -545,7 +545,7 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        var totalAffected = item.AccidentDetails?.Sum(d => d.TotalAffectedHouseholds + d.TotalAffectedChildren + d.TotalAffectedYouth + d.TotalAffectedElderly + d.TotalAffectedDisabled) ?? 0;
+                        var totalAffected = item.AccidentDetails?.Sum(d => d.TotalAffectedHouseholds) ?? 0; // age/disability rows are breakdowns
                         var hasDetails = item.AccidentDetails != null && item.AccidentDetails.Any();
 
                         <tr>

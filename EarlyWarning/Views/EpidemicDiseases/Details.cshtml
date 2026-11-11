@@ -274,8 +274,8 @@
     </div>
 
     @{
-        var totalMales = Model.MaleHouseholdHeads + Model.MaleFamilyMembers + Model.MaleChildren + Model.MaleYouth + Model.MaleElderly + Model.MaleDisabled;
-        var totalFemales = Model.FemaleHouseholdHeads + Model.FemaleFamilyMembers + Model.FemaleChildren + Model.FemaleYouth + Model.FemaleElderly + Model.FemaleDisabled;
+        var totalMales = Model.MaleHouseholdHeads + Model.MaleFamilyMembers; // primary rows only; age/disability rows are breakdowns
+        var totalFemales = Model.FemaleHouseholdHeads + Model.FemaleFamilyMembers;
         var totalPopulation = totalMales + totalFemales;
         var totalMothers = Model.LactatingMothers + Model.PregnantWomen;
     }

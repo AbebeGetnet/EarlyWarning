@@ -354,11 +354,11 @@
 
     @{
         var totalReports = Model.Count();
-        var totalRecipients = Model.Sum(x => x.MaleChildren+ x.MaleYouth+x.MaleElderly+x.MaleDisabled+x.MaleFamilyMembers+x.MaleHouseholdHeads
-        + x.FemaleChildren + x.FemaleYouth + x.FemaleElderly + x.FemaleDisabled + x.FemaleFamilyMembers + x.FemaleHouseholdHeads);
+        // Beneficiaries = household heads + family; the age and disability columns are breakdowns of them.
+        var totalRecipients = Model.Sum(x => x.MaleFamilyMembers + x.MaleHouseholdHeads + x.FemaleFamilyMembers + x.FemaleHouseholdHeads);
         var totalHouseholds = Model.Sum(x => x.MaleHouseholdHeads+x.FemaleHouseholdHeads);
-        var totalmale =Model.Sum(x => x.MaleChildren+ x.MaleYouth+x.MaleElderly+x.MaleDisabled+x.MaleFamilyMembers+x.MaleHouseholdHeads);
-        var totalFemale = Model.Sum(x => x.FemaleChildren + x.FemaleYouth + x.FemaleElderly + x.FemaleDisabled + x.FemaleFamilyMembers + x.FemaleHouseholdHeads);
+        var totalmale = Model.Sum(x => x.MaleFamilyMembers + x.MaleHouseholdHeads);
+        var totalFemale = Model.Sum(x => x.FemaleFamilyMembers + x.FemaleHouseholdHeads);
     }
 
     <!-- Statistics Cards -->

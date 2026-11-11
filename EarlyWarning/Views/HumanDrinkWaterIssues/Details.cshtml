@@ -106,12 +106,10 @@
     <!-- POPULATION SUMMARY -->
     @{
         var totalMale =
-        Model.MaleHouseholdHeads + Model.MaleFamilyMembers + Model.MaleChildren +
-        Model.MaleYouth + Model.MaleElderly + Model.MaleDisabled;
+        Model.MaleHouseholdHeads + Model.MaleFamilyMembers;
 
         var totalFemale =
-        Model.FemaleHouseholdHeads + Model.FemaleFamilyMembers + Model.FemaleChildren +
-        Model.FemaleYouth + Model.FemaleElderly + Model.FemaleDisabled;
+        Model.FemaleHouseholdHeads + Model.FemaleFamilyMembers;
 
         var totalPopulation = totalMale + totalFemale;
     }

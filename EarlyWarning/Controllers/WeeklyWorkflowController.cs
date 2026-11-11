@@ -225,17 +225,16 @@ public class WeeklyWorkflowController : Controller
             .OrderByDescending(x => x.StartDate).ToListAsync();
         var groups = reports.GroupBy(x => new { ZoneId = x.Woreda.ParentId!.Value, x.StartDate, x.EndDate }).ToList();
         var rows = new List<ZoneWeeklySubmissionViewModel>();
+        // The queue only lists zone weeks; the zone's standard report is on ZoneDetails (no per-row aggregate here).
         foreach (var group in groups)
         {
             var items = group.ToList();
-            var keys = items.Select(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date)).ToHashSet();
             rows.Add(new ZoneWeeklySubmissionViewModel
             {
                 ZoneId = group.Key.ZoneId,
                 Zone = items[0].Woreda.Parent?.LocationAmharicName ?? items[0].Woreda.Parent?.LocationName ?? "",
                 StartDate = group.Key.StartDate, EndDate = group.Key.EndDate, WoredaCount = items.Count,
-                Woredas = items.Select(ToRow).ToList(),
-                Aggregate = await BuildAggregate(items.Select(x => x.WoredaId).ToList(), keys, items)
+                Woredas = items.Select(ToRow).ToList()
             });
         }
         var region = await _db.Locations.Where(x => x.Id == user.LocationId).Select(x => x.LocationAmharicName ?? x.LocationName ?? "").FirstAsync();
@@ -243,19 +242,30 @@ public class WeeklyWorkflowController : Controller
     }
 
     [Authorize(Roles = "RegionAdmin")]
-    public async Task<IActionResult> ZoneDetails(Guid zoneId, DateTime startDate, DateTime endDate)
+    public async Task<IActionResult> ZoneDetails([FromServices] IWeeklyMatrixReportService matrixReport, Guid zoneId, DateTime startDate, DateTime endDate)
     {
         var user = await _users.GetUserAsync(User); if (user == null) return Challenge();
         var reports = await ScopedReports(user).Include(x => x.Woreda).ThenInclude(x => x.Parent).AsNoTracking()
             .Where(x => x.Woreda.ParentId == zoneId && x.StartDate == startDate && x.EndDate == endDate && x.Status == WeeklySubmissionStatus.ZoneApproved)
             .ToListAsync();
         if (reports.Count == 0) return NotFound();
-        var keys = reports.Select(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date)).ToHashSet();
+        var zone = reports[0].Woreda.Parent?.LocationAmharicName ?? reports[0].Woreda.Parent?.LocationName ?? "";
+
+        // The zone's week in the standard report format: every active woreda of the zone is a column, so woredas
+        // whose report is not (yet) zone-approved appear as "no data".
+        var zoneWoredas = await _db.Locations.AsNoTracking()
+            .Where(x => x.ParentId == zoneId && x.Level == LocationLevel.ወረዳ && x.IsActive).Select(x => x.Id).ToListAsync();
+        var scope = new ReportScope
+        {
+            Level = ReportScopeLevel.Zone, LocationId = zoneId, LocationName = zone,
+            WoredaIds = zoneWoredas.Union(reports.Select(x => x.WoredaId)).ToList()
+        };
+        var grid = await matrixReport.BuildAsync(scope, reports, startDate.Date, endDate.Date);
         return View(new ZoneWeeklySubmissionViewModel
         {
-            ZoneId = zoneId, Zone = reports[0].Woreda.Parent?.LocationAmharicName ?? reports[0].Woreda.Parent?.LocationName ?? "",
+            ZoneId = zoneId, Zone = zone,
             StartDate = startDate, EndDate = endDate, WoredaCount = reports.Count, Woredas = reports.Select(ToRow).ToList(),
-            Aggregate = await BuildAggregate(reports.Select(x => x.WoredaId).ToList(), keys, reports)
+            Narrative = WeeklyNarrativeReportBuilder.Build(grid, zone, ReportScopeLevel.Zone)
         });
     }
 

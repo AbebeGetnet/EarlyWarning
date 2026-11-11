@@ -1,4 +1,4 @@
-using EarlyWarning.Data;
+﻿using EarlyWarning.Data;
 using EarlyWarning.Enums;
 using EarlyWarning.Extensions;
 using EarlyWarning.Models;
@@ -206,6 +206,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         s4.Items.Add(Texts("ማስታወሻ", water.Select(x => (x.WoredaId, x.Remarks))));
 
         s4.Items.Add(Heading("4.2", "የእንስሳት አቋም"));
+        s4.Items.Add(CountWoredas("ከፍተኛ", water.Where(x => x.AnimalBodyCondition == AnimalBodyCondition.ከፍተኛ).Select(x => x.WoredaId)));
         s4.Items.Add(CountWoredas("መካከለኛ", water.Where(x => x.AnimalBodyCondition == AnimalBodyCondition.መካከለኛ).Select(x => x.WoredaId)));
         s4.Items.Add(CountWoredas("ዝቅተኛ", water.Where(x => x.AnimalBodyCondition == AnimalBodyCondition.ዝቅተኛ).Select(x => x.WoredaId)));
         s4.Items.Add(Line("", "አቋማቸው ዝቅተኛ የሆነ የተጎዱ እንስሳት ብዛት", water.Sum(x => x.LowBodyConditionAnimalsAffected), 1));
@@ -388,7 +389,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         s10.Items.Add(Texts("ማስታወሻ", recipients.Select(x => (x.WoredaId, x.Notes)), 0));
         s10.Items.Add(Heading("10.1", "በሳምንቱ የቀረበ"));
         var aidDetails = provided.SelectMany(p => p.WeeklyProvidedDetail ?? []).ToList();
-        s10.Items.Add(Table(["የእህል አይነት", "መለኪያ", "የቀረበ", "የተሰራጨ", "ከቀረበው የተሰራጨው በፐርሰንት", "እርዳታውን ያቀረበው አካል"],
+        s10.Items.Add(Table(["የእህል አይነት", "መለኪያ", "የተጠየቀ", "የቀረበ", "የተሰራጨ", "ከቀረበው የተሰራጨው በፐርሰንት", "እርዳታውን ያቀረበው አካል"],
             aidDetails.GroupBy(x => (Name: x.SupplyType?.SupplyTypeName ?? "-", x.Measurement)).OrderBy(g => g.Key.Name)
                 .Select(g =>
                 {
@@ -396,7 +397,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
                     var distributed = g.Sum(x => x.DistributedQuantity);
                     return new List<string>
                     {
-                        g.Key.Name, g.Key.Measurement.ToString(), Num(given), Num(distributed),
+                        g.Key.Name, g.Key.Measurement.ToString(), Num(g.Sum(x => x.RequestedQuantity)), Num(given), Num(distributed),
                         given == 0 ? "-" : Num(distributed / given * 100) + "%",
                         string.Join(", ", g.Select(x => x.Donor).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x!.Trim()).Distinct())
                     };

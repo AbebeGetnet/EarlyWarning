@@ -1,4 +1,5 @@
-using EarlyWarning.Data;
+﻿using EarlyWarning.Data;
+using EarlyWarning.Extensions;
 using EarlyWarning.Enums;
 using EarlyWarning.Models;
 using EarlyWarning.ViewModels;
@@ -31,8 +32,10 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
         bool Match(Guid id, DateTime? start, DateTime? end) => start.HasValue && end.HasValue && keys.Contains((id, start.Value.Date, end.Value.Date));
         bool MatchRequired(Guid id, DateTime start, DateTime end) => keys.Contains((id, start.Date, end.Date));
         AggregateSectionViewModel Section(string name, params AggregateMetricViewModel[] metrics) => new() { Name = name, Metrics = metrics.ToList() };
+        // Beneficiaries are the household heads and family members only; the age and disability rows
+        // describe those same people and are not added (see Extensions/Beneficiaries).
         static decimal People(IEnumerable<(int mh, int fh, int mf, int ff, int cm, int cf, int ym, int yf, int em, int ef, int dm, int df)> rows) =>
-            rows.Sum(x => (decimal)x.mh + x.fh + x.mf + x.ff + x.cm + x.cf + x.ym + x.yf + x.em + x.ef + x.dm + x.df);
+            rows.Sum(x => (decimal)Beneficiaries.Count(x.mh, x.fh, x.mf, x.ff));
         static DateTime? Day(DateTime? value) => value?.Date;
         // Prices: a missing or non-positive price is "no data", never a zero observation.
         static AggregateMetricViewModel? Average(string name, IReadOnlyCollection<decimal> values, string unit) =>
@@ -105,7 +108,7 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
 
         var water = (await db.AnimalWaterSupplyStatuses.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         result.Sections.Add(Section("4.2 የእንስሳት ውሃ አቅርቦት ሁኔታ", M("በሳምንቱ የግጦሽ ችግር ያለባቸው ቀበሌዎች በቁጥር", water.Sum(x => x.NoOfKebeliesWithPastureShortage)), M("በሳምንቱ የውሃ ችግር ያለባቸው ቀበሌዎች በቁጥር", water.Sum(x => x.NoOfKebeliesWithWaterSupply)), M("የውሃ አቅርቦት ዝቅተኛ የሆነባቸው ወረዳዎች", water.Count(x => !x.Enough), "", "COUNT"), M("በውሃ እጥረት የተጎዳ ማህበረሰብ", People(water.Select(x => (x.MaleHouseHold,x.FemaleHouseHold,x.MaleFamily,x.FemaleFamily,x.ChildhMale,x.ChildFemale,x.YouthMale,x.YouthFemale,x.ElderlyMale,x.ElderlyFemale,x.DisabledMale,x.DisabledFemale))))));
-        result.Sections.Add(Section("4.3 የእንስሳት አቋም", M("የእንስሳት አቋም መካከለኛ የሆነባቸው ወረዳዎች", water.Count(x => x.AnimalBodyCondition == AnimalBodyCondition.መካከለኛ), "", "COUNT"), M("የእንስሳት አቋም ዝቅተኛ የሆነባቸው ወረዳዎች", water.Count(x => x.AnimalBodyCondition == AnimalBodyCondition.ዝቅተኛ), "", "COUNT"), M("አቋማቸው ዝቅተኛ የሆነ የተጎዱ እንስሳት ብዛት", water.Sum(x => x.LowBodyConditionAnimalsAffected))));
+        result.Sections.Add(Section("4.3 የእንስሳት አቋም", M("የእንስሳት አቋም ከፍተኛ የሆነባቸው ወረዳዎች", water.Count(x => x.AnimalBodyCondition == AnimalBodyCondition.ከፍተኛ), "", "COUNT"), M("የእንስሳት አቋም መካከለኛ የሆነባቸው ወረዳዎች", water.Count(x => x.AnimalBodyCondition == AnimalBodyCondition.መካከለኛ), "", "COUNT"), M("የእንስሳት አቋም ዝቅተኛ የሆነባቸው ወረዳዎች", water.Count(x => x.AnimalBodyCondition == AnimalBodyCondition.ዝቅተኛ), "", "COUNT"), M("አቋማቸው ዝቅተኛ የሆነ የተጎዱ እንስሳት ብዛት", water.Sum(x => x.LowBodyConditionAnimalsAffected))));
 
         var health = (await db.AnimalHealthStatuses.Include(x => x.Woreda).AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync()).Where(x => Match(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         result.AnimalDiseaseAffectedPeople = (int)People(health.Select(x => (x.MaleHouseHold,x.FemaleHouseHold,x.MaleFamily,x.FemaleFamily,x.ChildhMale,x.ChildFemale,x.YouthMale,x.YouthFemale,x.ElderlyMale,x.ElderlyFemale,x.DisabledMale,x.DisabledFemale)));
@@ -131,14 +134,14 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
 
         var accidents = (await db.WeeklyAccidents.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         var accidentIds = accidents.Select(x => x.WeeklyAccidentsId).ToList(); var accidentRows = await db.AccidentDetails.AsNoTracking().Where(x => accidentIds.Contains(x.WeeklyAccidentsId)).ToListAsync();
-        result.Sections.Add(Section("9. በሳምንቱ የታዩ ወቅታዊ አደጋዎች", M("የተጎዳ መሬት በሄ/ር", accidentRows.Sum(x => x.DamagedLandInHectares) ?? 0, "ሄ/ር"), M("የተጎዳ ቤተሰብ", accidentRows.Sum(x => x.AffectedHouseholdsMale + x.AffectedHouseholdsFemale)), M("በእያንዳንዱ ጉዳት የተጎዳ ማህበረሰብ", accidentRows.Sum(x => x.AffectedChildrenMale+x.AffectedChildrenFemale+x.AffectedYouthMale+x.AffectedYouthFemale+x.AffectedElderlyMale+x.AffectedElderlyFemale+x.AffectedDisabledMale+x.AffectedDisabledFemale))));
+        result.Sections.Add(Section("9. በሳምንቱ የታዩ ወቅታዊ አደጋዎች", M("የተጎዳ መሬት በሄ/ር", accidentRows.Sum(x => x.DamagedLandInHectares) ?? 0, "ሄ/ር"), M("የተጎዳ ቤተሰብ", accidentRows.Sum(x => x.AffectedHouseholdsMale + x.AffectedHouseholdsFemale)), M("በእያንዳንዱ ጉዳት የተጎዳ ማህበረሰብ", accidentRows.Sum(x => (decimal)Beneficiaries.Count(x.AffectedHouseholdsMale, x.AffectedHouseholdsFemale, 0, 0)))));
 
         var other = (await db.OtherProblems.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         result.Sections.Add(Section("11. ሌላ ያልተገለፀ በሳምንቱ ያጋጠመ ችግር ካለ", M("ችግር የተመዘገበባቸው ወረዳዎች", other.Count(x => x.HasOtherProblem), "", "COUNT"), M("በጉዳቱ የተጎዳ ማህበረሰብ", People(other.Select(x => (x.MaleHouseholdHeads,x.FemaleHouseholdHeads,x.MaleFamilyMembers,x.FemaleFamilyMembers,x.MaleChildren,x.FemaleChildren,x.MaleYouth,x.FemaleYouth,x.MaleElderly,x.FemaleElderly,x.MaleDisabled,x.FemaleDisabled))))));
 
         var aid = (await db.WeeklyProvideds.AsNoTracking().Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync()).Where(x => MatchRequired(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, x.StartDate.Date, x.EndDate.Date), x => x.ReportDate);
         var aidIds = aid.Select(x => x.WeeklyProvidedId).ToList(); var aidRows = await db.WeeklyProvidedDetails.AsNoTracking().Where(x => aidIds.Contains(x.WeeklyProvidedId)).ToListAsync();
-        result.Sections.Add(Section("10.1 በሳምንቱ የቀረበ", M("የቀረበ", aidRows.Sum(x => x.ProvidedQuantity)), M("የተሰራጨ", aidRows.Sum(x => x.DistributedQuantity)), M("ከቀረበው የተሰራጨው በፐርሰንት", aidRows.Sum(x => x.ProvidedQuantity) == 0 ? 0 : aidRows.Sum(x => x.DistributedQuantity) / aidRows.Sum(x => x.ProvidedQuantity) * 100, "%", "RECALCULATED", aidRows.Sum(x => x.ProvidedQuantity))));
+        result.Sections.Add(Section("10.1 በሳምንቱ የቀረበ", M("የተጠየቀ", aidRows.Sum(x => x.RequestedQuantity)), M("የቀረበ", aidRows.Sum(x => x.ProvidedQuantity)), M("የተሰራጨ", aidRows.Sum(x => x.DistributedQuantity)), M("ከቀረበው የተሰራጨው በፐርሰንት", aidRows.Sum(x => x.ProvidedQuantity) == 0 ? 0 : aidRows.Sum(x => x.DistributedQuantity) / aidRows.Sum(x => x.ProvidedQuantity) * 100, "%", "RECALCULATED", aidRows.Sum(x => x.ProvidedQuantity))));
 
         // Each item is averaged on its own, over the woredas that reported a valid price for it.
         List<AggregateMetricViewModel> PriceMetrics(IEnumerable<(string Item, decimal? Previous, decimal? Current)> rows) =>
@@ -215,7 +218,7 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
 
     public async Task SaveSnapshotAsync(Guid scopeId, LocationLevel level, DateTime start, DateTime end, WeeklySubmissionStatus status, string userId, IReadOnlyCollection<WeeklyReportSubmission> reports)
     {
-        var aggregate = await BuildAsync(reports); aggregate.IsSnapshot = true;
+        var aggregate = await BuildAsync(reports); aggregate.IsSnapshot = true; aggregate.CalculationVersion = WeeklyAggregateViewModel.CurrentCalculationVersion;
         var existing = await db.WeeklyAggregateSnapshots.Where(x=>x.ScopeLocationId==scopeId&&x.ScopeLevel==level&&x.StartDate==start.Date&&x.EndDate==end.Date&&x.ApprovalStatus==status).ToListAsync();
         db.WeeklyAggregateSnapshots.RemoveRange(existing);
         db.WeeklyAggregateSnapshots.Add(new WeeklyAggregateSnapshot { ScopeLocationId=scopeId,ScopeLevel=level,StartDate=start.Date,EndDate=end.Date,ApprovalStatus=status,SourceReportCount=reports.Count,GeneratedAt=DateTime.UtcNow,GeneratedById=userId,AggregateJson=JsonSerializer.Serialize(aggregate,JsonOptions)});
@@ -225,6 +228,9 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
     public async Task<WeeklyAggregateViewModel?> GetSnapshotAsync(Guid scopeId, LocationLevel level, DateTime start, DateTime end)
     {
         var row=await db.WeeklyAggregateSnapshots.AsNoTracking().Where(x=>x.ScopeLocationId==scopeId&&x.ScopeLevel==level&&x.StartDate==start.Date&&x.EndDate==end.Date).OrderByDescending(x=>x.GeneratedAt).FirstOrDefaultAsync();
-        if(row==null)return null; var value=JsonSerializer.Deserialize<WeeklyAggregateViewModel>(row.AggregateJson,JsonOptions); if(value!=null){value.IsSnapshot=true;value.GeneratedAt=row.GeneratedAt;} return value;
+        if(row==null)return null; var value=JsonSerializer.Deserialize<WeeklyAggregateViewModel>(row.AggregateJson,JsonOptions);
+        // Snapshots taken under older rules (e.g. age/disability rows added to the people count) are not served; callers rebuild live.
+        if(value==null||value.CalculationVersion<WeeklyAggregateViewModel.CurrentCalculationVersion)return null;
+        {value.IsSnapshot=true;value.GeneratedAt=row.GeneratedAt;} return value;
     }
 }

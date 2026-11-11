@@ -685,9 +685,7 @@
                 var notes = $('#deathNotesInput').val();
 
                 // Calculate total deaths
-                var totalDeaths = maleHouseholds + femaleHouseholds + maleFamily + femaleFamily +
-                                 maleChildren + femaleChildren + maleYouth + femaleYouth +
-                                 maleElderly + femaleElderly + maleDisabled + femaleDisabled;
+                var totalDeaths = maleHouseholds + femaleHouseholds + maleFamily + femaleFamily;
 
                 // Validation: At least one death
                 if (totalDeaths === 0) {
@@ -753,10 +751,8 @@
                 html += '<tr><th>የሞት ምክንያት</th><th>ወንዶች</th><th>ሴቶች</th><th>ጠቅላላ</th><th>ማስታወሻ</th><th>ድርጊት</th></tr></thead><tbody>';
 
                 $.each(deathDetails, function(index, item) {
-                    var totalMales = (item.maleHouseholds || 0) + (item.maleFamilyMembers || 0) + (item.maleChildren || 0) +
-                                    (item.maleYouth || 0) + (item.maleElderly || 0) + (item.maleDisabled || 0);
-                    var totalFemales = (item.femaleHouseholds || 0) + (item.femaleFamilyMembers || 0) + (item.femaleChildren || 0) +
-                                      (item.femaleYouth || 0) + (item.femaleElderly || 0) + (item.femaleDisabled || 0);
+                    var totalMales = (item.maleHouseholds || 0) + (item.maleFamilyMembers || 0);
+                    var totalFemales = (item.femaleHouseholds || 0) + (item.femaleFamilyMembers || 0);
                     var total = totalMales + totalFemales;
 
                     html += '<tr>';
@@ -798,10 +794,8 @@
                 var totalMales = 0, totalFemales = 0, totalDeaths = 0;
 
                 $.each(deathDetails, function(index, item) {
-                    var males = (item.maleHouseholds || 0) + (item.maleFamilyMembers || 0) + (item.maleChildren || 0) +
-                               (item.maleYouth || 0) + (item.maleElderly || 0) + (item.maleDisabled || 0);
-                    var females = (item.femaleHouseholds || 0) + (item.femaleFamilyMembers || 0) + (item.femaleChildren || 0) +
-                                 (item.femaleYouth || 0) + (item.femaleElderly || 0) + (item.femaleDisabled || 0);
+                    var males = (item.maleHouseholds || 0) + (item.maleFamilyMembers || 0);
+                    var females = (item.femaleHouseholds || 0) + (item.femaleFamilyMembers || 0);
 
                     totalMales += males;
                     totalFemales += females;

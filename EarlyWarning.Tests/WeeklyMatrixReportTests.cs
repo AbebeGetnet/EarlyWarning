@@ -96,6 +96,7 @@ public class WeeklyMatrixReportTests : IDisposable
         {
             HumanDrinkWaterIssueId = Guid.NewGuid(), WoredaId = _b1.Id, StartDate = WeekStart, EndDate = WeekEnd, ReportDate = WeekEnd,
             HasWaterProblem = true, NumberOfAffectedKebeles = 1, MaleHouseholdHeads = 30, FemaleHouseholdHeads = 20,
+            MaleChildren = 12, FemaleYouth = 9, FemaleDisabled = 3, // breakdowns of the 50: never added to it
             AdditionalNotes = "ምንጩ ደርቋል።"
         };
         _db.HumanDrinkWaterIssues.Add(issue);

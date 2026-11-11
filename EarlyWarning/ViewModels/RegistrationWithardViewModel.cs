@@ -66,6 +66,7 @@ namespace EarlyWarning.ViewModels
         public List<AnimalType> AnimalTypes { get; set; } = new();
         public List<SupplyType> SupplyTypes { get; set; } = new();
         public List<Locations> MigrationLocations { get; set; } = new();
+        public bool HasAnimalMigration { get; set; }
         public EarlyWarning.Enums.AnimalMigrationDirection AnimalMigrationDirection { get; set; }
         public Guid? InwardAnimalMigrationOriginId { get; set; }
         public Guid? OutwardAnimalMigrationDestinationId { get; set; }

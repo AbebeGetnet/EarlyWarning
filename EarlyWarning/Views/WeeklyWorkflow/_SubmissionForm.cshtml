@@ -1,10 +1,11 @@
-@model EarlyWarning.ViewModels.WeeklySubmissionFormViewModel
+﻿@model EarlyWarning.ViewModels.WeeklySubmissionFormViewModel
 @using EarlyWarning.Enums
 @using EarlyWarning.Extensions
 @{
     var form = Model;
     string N(decimal? value) => ReadOnlyFields.Format(value);
-    int People(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l) => a + b + c + d + e + f + g + h + i + j + k + l;
+    // Beneficiaries = household heads + family members; the age and disability columns describe those same people.
+    int People(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l) => (int)EarlyWarning.Extensions.Beneficiaries.Count(a, b, c, d);
 
     void Fields(object? source, params string[] skip)
     {
@@ -257,11 +258,11 @@
             else
             {
                 <div class="table-responsive"><table class="table table-sm table-bordered mb-0">
-                    <thead class="table-light"><tr><th>አቅርቦት</th><th>መለኪያ</th><th>የቀረበ</th><th>የተሰራጨ</th><th>%</th><th>ለጋሽ</th></tr></thead>
+                    <thead class="table-light"><tr><th>አቅርቦት</th><th>መለኪያ</th><th>የተጠየቀ</th><th>የቀረበ</th><th>የተሰራጨ</th><th>%</th><th>ለጋሽ</th></tr></thead>
                     <tbody>
                     @foreach (var row in rows)
                     {
-                        <tr><td>@row.SupplyType?.SupplyTypeName</td><td>@ReadOnlyFields.EnumLabel(row.Measurement)</td><td>@N(row.ProvidedQuantity)</td><td>@N(row.DistributedQuantity)</td><td>@N(row.PercentageOfDistributedFromProvided)</td><td>@row.Donor</td></tr>
+                        <tr><td>@row.SupplyType?.SupplyTypeName</td><td>@ReadOnlyFields.EnumLabel(row.Measurement)</td><td>@N(row.RequestedQuantity)</td><td>@N(row.ProvidedQuantity)</td><td>@N(row.DistributedQuantity)</td><td>@N(row.PercentageOfDistributedFromProvided)</td><td>@row.Donor</td></tr>
                     }
                     </tbody>
                 </table></div>

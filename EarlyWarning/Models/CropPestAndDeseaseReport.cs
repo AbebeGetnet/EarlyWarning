@@ -67,12 +67,12 @@ namespace EarlyWarning.Models
         public int TotalDisabled => DisabledMale + DisabledFemale;
         [NotMapped]
         [DisplayName("ወንድ")]
-        public int TotalMale => MaleHouseHold + MaleFamily + ChildFemale + YouthMale + ElderlyMale + DisabledMale;
+        public int TotalMale => MaleHouseHold + MaleFamily; // primary rows only; age/disability rows are breakdowns of these
 
         [NotMapped]
         [DisplayName("ሴት")]
 
-        public int TotalFemale => FemaleHouseHold + FemaleFamily + ChildFemale + YouthFemale + ElderlyFemale + DisabledFemale;
+        public int TotalFemale => FemaleHouseHold + FemaleFamily;
         [NotMapped]
         [DisplayName("ጠቅላላ ድምር")]
 

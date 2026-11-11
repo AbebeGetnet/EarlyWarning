@@ -48,6 +48,12 @@ public class WeeklyAggregateViewModel
     // One entry per event (flood, drought, …): affected kebeles, woredas and zones are counted separately.
     public List<AffectedLocationSummaryViewModel> AffectedLocations { get; set; } = [];
     public bool IsSnapshot { get; set; }
+    /// <summary>
+    /// Version of the calculation rules a snapshot was built with. 2 = beneficiaries counted from household
+    /// heads + family only (age and disability rows no longer added). Older snapshots are rebuilt live.
+    /// </summary>
+    public int CalculationVersion { get; set; }
+    public const int CurrentCalculationVersion = 2;
     public DateTime? GeneratedAt { get; set; }
 }
 
@@ -154,7 +160,8 @@ public class ZoneWeeklySubmissionViewModel
     public DateTime EndDate { get; set; }
     public int WoredaCount { get; set; }
     public List<WeeklyWorkflowRowViewModel> Woredas { get; set; } = [];
-    public WeeklyAggregateViewModel Aggregate { get; set; } = new();
+    /// <summary>ZoneDetails: the zone's week in the standard narrative report format.</summary>
+    public WeeklyNarrativeReport? Narrative { get; set; }
 }
 
 public class WeeklyWorkflowHistoryViewModel

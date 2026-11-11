@@ -322,10 +322,10 @@
     </div>
 
     @{
-        var totalMigrants = Model.MigrationDetails?.Sum(d => d.FemaleChildren + d.FemaleDisabled + d.FemaleElderly + d.FemaleDisabled + d.FemaleHouseholdHeads + d.FemaleFamilyMembers + d.FemaleYouth
-        + d.MaleChildren + d.FemaleYouth + d.MaleDisabled + d.MaleElderly + d.MaleFamilyMembers + d.MaleHouseholdHeads ) ?? 0;
-        var totalMales = Model.MigrationDetails?.Sum(d => d.MaleChildren + d.FemaleYouth + d.MaleDisabled + d.MaleElderly + d.MaleFamilyMembers + d.MaleHouseholdHeads) ?? 0;
-        var totalFemales = Model.MigrationDetails?.Sum(d => d.FemaleChildren + d.FemaleDisabled + d.FemaleElderly + d.FemaleDisabled + d.FemaleHouseholdHeads + d.FemaleFamilyMembers + d.FemaleYouth) ?? 0;
+        // Migrants = household heads + family; the age and disability rows are breakdowns of them, not extra people.
+        var totalMales = Model.MigrationDetails?.Sum(d => d.MaleHouseholdHeads + d.MaleFamilyMembers) ?? 0;
+        var totalFemales = Model.MigrationDetails?.Sum(d => d.FemaleHouseholdHeads + d.FemaleFamilyMembers) ?? 0;
+        var totalMigrants = totalMales + totalFemales;
         
     }
 

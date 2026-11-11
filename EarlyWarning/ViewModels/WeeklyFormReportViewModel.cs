@@ -1,4 +1,4 @@
-using EarlyWarning.Services;
+﻿using EarlyWarning.Services;
 
 namespace EarlyWarning.ViewModels;
 
@@ -74,6 +74,11 @@ public class FormReportPeople
     /// <summary>Null when the source record has no lactating/pregnant field.</summary>
     public int? LactatingAndPregnant { get; set; }
     public bool HasFamilyRow { get; set; } = true;
+
+    // Totals come from the primary rows only; children, youth, elderly and disabled are breakdowns of them.
+    public int MaleTotal => MaleHouseholds + MaleFamily;
+    public int FemaleTotal => FemaleHouseholds + FemaleFamily;
+    public int Total => MaleTotal + FemaleTotal;
 
     public void Add(int mh, int fh, int mf, int ff, int mc, int fc, int my, int fy, int me, int fe, int md, int fd)
     {

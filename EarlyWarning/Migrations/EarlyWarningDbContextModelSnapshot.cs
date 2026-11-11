@@ -261,6 +261,9 @@ namespace EarlyWarning.Migrations
                     b.Property<decimal>("ProvidedQuantity")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("RequestedQuantity")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<Guid>("SupplyTypeId")
                         .HasColumnType("uniqueidentifier");
 

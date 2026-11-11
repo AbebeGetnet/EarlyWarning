@@ -1,4 +1,5 @@
 @model EarlyWarning.ViewModels.ZoneWeeklyQueueViewModel
+@using EarlyWarning.Extensions
 @{ ViewData["Title"] = "የዞን ሳምንታዊ ሪፖርት ፍቃድ"; }
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -7,18 +8,33 @@
     </div>
     @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
     @if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
-    <div class="alert alert-info">እያንዳንዱ ረድፍ በዞኑ የጸደቁ የወረዳ ሪፖርቶችን የያዘ የአንድ ሳምንት የዞን ድምር ነው። የክልል ማጽደቂያ የሚሰጠው ለእያንዳንዱ ወረዳ ሪፖርት በዝርዝር ገጹ ላይ ብቻ ነው።</div>
-    <div class="card shadow-sm"><div class="table-responsive"><table class="table table-hover align-middle mb-0">
-        <thead class="table-light"><tr><th>ዞን</th><th>የሪፖርት ሳምንት</th><th>የወረዳዎች ብዛት</th><th>አጭር ድምር</th><th style="min-width:260px">የወረዳ ሪፖርቶች (ለመወሰን ዝርዝሩን ይክፈቱ)</th></tr></thead>
-        <tbody>
-        @foreach (var item in Model.Submissions) {
-            <tr>
-                <td class="fw-bold">@item.Zone</td><td>@item.StartDate.ToString("yyyy-MM-dd") — @item.EndDate.ToString("yyyy-MM-dd")</td><td>@item.WoredaCount</td>
-                <td><small>ሙሉ ዝናብ፡ @item.Aggregate.FullRainCoverageKebeles<br/>የተጎዳ መሬት፡ @item.Aggregate.AffectedCropLandHectares<br/>ከትምህርት የወጡ፡ @(item.Aggregate.Sections.FirstOrDefault(x => x.Name == "የትምህርት ቤት ሁኔታ")?.Metrics.FirstOrDefault(x => x.Name == "ጠቅላላ ከትምህርት የወጡ")?.Value ?? 0)</small><br/><a asp-action="ZoneDetails" asp-route-zoneId="@item.ZoneId" asp-route-startDate="@item.StartDate.ToString("yyyy-MM-dd")" asp-route-endDate="@item.EndDate.ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-primary mt-1">የዞን ድምርና ወረዳዎች ይመልከቱ</a></td>
-                <td>@foreach (var w in item.Woredas) { <a asp-action="Details" asp-route-id="@w.Id" class="btn btn-sm btn-outline-success me-1 mb-1">@w.Woreda</a> }</td>
-            </tr>
-        }
-        @if (!Model.Submissions.Any()) { <tr><td colspan="5" class="text-center text-muted py-4">በክልል ፍቃድ የሚጠብቅ የዞን ሪፖርት የለም።</td></tr> }
-        </tbody>
-    </table></div></div>
+    <div class="alert alert-info">
+        እያንዳንዱ ረድፍ በዞኑ የጸደቁ የወረዳ ሪፖርቶችን የያዘ የአንድ ሳምንት የዞን ሪፖርት ነው። የዞኑን ሳምንታዊ ሪፖርት (በሪፖርት ደረጃው) ይመልከቱ፤
+        የክልል ማጽደቂያ የሚሰጠው ለእያንዳንዱ ወረዳ ሪፖርት በዝርዝር ገጹ ላይ ብቻ ነው።
+    </div>
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>ዞን</th><th>የሪፖርት ሳምንት (ዓ/ም)</th><th>የወረዳዎች ብዛት</th><th>የዞን ሪፖርት</th><th style="min-width:260px">የወረዳ ሪፖርቶች (ለመወሰን ዝርዝሩን ይክፈቱ)</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Submissions)
+                    {
+                        <tr>
+                            <td class="fw-bold">@item.Zone</td>
+                            <td>@EthiopianDate.FromGregorian(item.StartDate) — @EthiopianDate.FromGregorian(item.EndDate)</td>
+                            <td>@item.WoredaCount</td>
+                            <td>
+                                <a asp-action="ZoneDetails" asp-route-zoneId="@item.ZoneId" asp-route-startDate="@item.StartDate.ToString("yyyy-MM-dd")" asp-route-endDate="@item.EndDate.ToString("yyyy-MM-dd")"
+                                   class="btn btn-sm btn-outline-primary"><i class="fas fa-file-alt me-1"></i> ሳምንታዊ ሪፖርቱን ይመልከቱ</a>
+                            </td>
+                            <td>@foreach (var w in item.Woredas) { <a asp-action="Details" asp-route-id="@w.Id" class="btn btn-sm btn-outline-success me-1 mb-1">@w.Woreda</a> }</td>
+                        </tr>
+                    }
+                    @if (!Model.Submissions.Any()) { <tr><td colspan="5" class="text-center text-muted py-4">በክልል ፍቃድ የሚጠብቅ የዞን ሪፖርት የለም።</td></tr> }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

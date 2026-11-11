@@ -570,14 +570,10 @@
             function calculateTotals() {
 
                 let maleFields = [
-                    'MaleHouseholdHeads','MaleFamilyMembers','MaleChildren',
-                    'MaleYouth','MaleElderly','MaleDisabled'
-                ];
+                    'MaleHouseholdHeads','MaleFamilyMembers']; // primary rows only; age/disability rows are breakdowns
 
                 let femaleFields = [
-                    'FemaleHouseholdHeads','FemaleFamilyMembers','FemaleChildren',
-                    'FemaleYouth','FemaleElderly','FemaleDisabled'
-                ];
+                    'FemaleHouseholdHeads','FemaleFamilyMembers'];
 
                 let totalMales = 0;
                 let totalFemales = 0;

@@ -185,8 +185,8 @@
             var totalDisabled  = disabledMale + disabledFemale;
 
             // Overall gender totals
-            var totalMale   = maleHouseHold + maleFamily + childMale + youthMale + elderlyMale + disabledMale;
-            var totalFemale = femaleHouseHold + femaleFamily + childFemale + youthFemale + elderlyFemale + disabledFemale;
+            var totalMale   = maleHouseHold + maleFamily; // children, youth, elderly, disabled are breakdowns of these, not extra people
+            var totalFemale = femaleHouseHold + femaleFamily;
             var totalAffected = totalMale + totalFemale;
 
             // Update disabled total fields (they remain disabled)

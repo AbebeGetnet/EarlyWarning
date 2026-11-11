@@ -654,8 +654,8 @@
                 var femaleElderly = parseInt($('#FemaleElderly').val()) || 0;
                 var femaleDisabled = parseInt($('#FemaleDisabled').val()) || 0;
 
-                var totalMales = maleHouseholdHeads + maleFamilyMembers + maleChildren + maleYouth + maleElderly + maleDisabled;
-                var totalFemales = femaleHouseholdHeads + femaleFamilyMembers + femaleChildren + femaleYouth + femaleElderly + femaleDisabled;
+                var totalMales = maleHouseholdHeads + maleFamilyMembers; // age/disability rows are breakdowns, not extra people
+                var totalFemales = femaleHouseholdHeads + femaleFamilyMembers;
                 var totalPopulation = totalMales + totalFemales;
                 var affectedKebeles = parseInt($('#NumberOfAffectedKebeles').val()) || 0;
 

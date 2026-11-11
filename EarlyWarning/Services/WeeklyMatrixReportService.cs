@@ -1,4 +1,4 @@
-using EarlyWarning.Data;
+﻿using EarlyWarning.Data;
 using EarlyWarning.Enums;
 using EarlyWarning.Extensions;
 using EarlyWarning.Models;
@@ -206,7 +206,9 @@ public sealed class WeeklyMatrixReportService(EarlyWarningDbContext db) : IWeekl
             string.Join(PartSeparator, parts.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x!.Trim().TrimEnd('።', '.')));
         static string? Labeled(string label, string? text) => string.IsNullOrWhiteSpace(text) ? null : $"{label}፡ {text.Trim()}";
         static string? Count(int value, string unit) => value > 0 ? $"{value:#,0} {unit}" : null;
-        static int People(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l) => a + b + c + d + e + f + g + h + i + j + k + l;
+        // Beneficiaries = household heads + family members; the age and disability rows (e–l) describe
+        // those same people and are not added (see Extensions/Beneficiaries).
+        static int People(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l) => (int)Beneficiaries.Count(a, b, c, d);
         // Remarks with no incident: "• <place>፡ <text>", or "-" when nobody wrote anything.
         string Notes(Unit u, IEnumerable<(Guid WoredaId, string? Text)> rows)
         {

@@ -170,6 +170,15 @@ When adding or changing a configurable variable:
 
 All rules below apply only after the parent `WeeklyReportSubmission` passes the hierarchy's inclusion filter.
 
+**Beneficiary (demographic) tables.** Every table with the rows አባወራ/እማወራ, ቤተሰብ, ህፃናት, ወጣቶች, አረጋውያን, አካል ጉዳተኞች follows one rule, implemented once in `Extensions/Beneficiaries.cs` and mirrored for the forms in `wwwroot/js/beneficiaries.js`:
+
+- The people counted are the primary rows only: male total = male household heads + male family; female total likewise; grand total = male + female. Accident details have no family row, so their households are the primary.
+- Children, youth and elderly (age) and disabled (health status) are breakdowns of those same people. They are summed and reported per sex, but never added to the total.
+- Validation, per sex: children + youth + elderly ≤ primary total, and disabled ≤ primary total. Equality is not required because the age groups do not cover every adult. Forms show the error live; the server rejects it (`BeneficiaryValidationFilter` on every POST; the wizard checks only sections answered "yes").
+- Wherever the table below says "`SUM` demographics", the people total is the `SUM` of the primary rows; each distribution row is `SUM`med separately.
+- Confirmed with the business owner (2026-11-11): ቤተሰብ does not include the household head, so the two primary rows are added; no distribution has to equal the primary total; accidents count households only; lactating mothers and pregnant women are breakdowns, reported but not added.
+- Aggregate snapshots carry `CalculationVersion`; snapshots from before this rule (version < 2) are rebuilt live instead of being served.
+
 | Wizard area / main table | Child or configurable relationship | Collection/update rule | Aggregate/output rule |
 |---|---|---|---|
 | Rainfall — `RainfallReports` | Kebele selections serialized in JSON; Woreda Kebeles from `Locations` | Counts by coverage and amount; selected Kebeles must belong to Woreda | `SUM` Kebele counts for full, partial, no rain, no data, low, medium, high. Preserve narrative/Kebele source data for detail review |

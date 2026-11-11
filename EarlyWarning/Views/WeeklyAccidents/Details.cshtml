@@ -334,7 +334,7 @@
         var totalYouth = Model.AccidentDetails?.Sum(d => d.TotalAffectedYouth) ?? 0;
         var totalElderly = Model.AccidentDetails?.Sum(d => d.TotalAffectedElderly) ?? 0;
         var totalDisabled = Model.AccidentDetails?.Sum(d => d.TotalAffectedDisabled) ?? 0;
-        var totalAffected = totalHouseholds + totalChildren + totalYouth + totalElderly + totalDisabled;
+        var totalAffected = totalHouseholds; // the age and disability rows are breakdowns of the households, not extra people
     }
 
     <!-- Basic Information Card -->

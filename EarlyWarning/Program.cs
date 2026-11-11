@@ -1,4 +1,4 @@
-using EarlyWarning.Data;
+﻿using EarlyWarning.Data;
 using EarlyWarning.Models;
 using EarlyWarning.Service;
 using EarlyWarning.Repositories;
@@ -64,7 +64,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllersWithViews().AddJsonOptions(options =>
+// Every POST: age and disability rows of a beneficiary table may not exceed household heads + family.
+builder.Services.AddControllersWithViews(options => options.Filters.Add<EarlyWarning.Extensions.BeneficiaryValidationFilter>()).AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 

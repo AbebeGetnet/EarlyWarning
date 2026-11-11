@@ -336,12 +336,10 @@
         if (hasDetails)
         {
             totalMales = Model.DeathDetails.Sum(d =>
-            d.MaleHouseholdHeads + d.MaleFamilyMembers + d.MaleChildren +
-            d.MaleYouth + d.MaleElderly + d.MaleDisabled);
+            d.MaleHouseholdHeads + d.MaleFamilyMembers);
 
             totalFemales = Model.DeathDetails.Sum(d =>
-            d.FemaleHouseholdHeads + d.FemaleFamilyMembers + d.FemaleChildren +
-            d.FemaleYouth + d.FemaleElderly + d.FemaleDisabled);
+            d.FemaleHouseholdHeads + d.FemaleFamilyMembers);
 
             totalDeaths = totalMales + totalFemales;
         }
@@ -409,10 +407,8 @@
             <div class="card-body-custom">
                 @foreach (var detail in Model.DeathDetails)
                 {
-                    var detailTotalMales = detail.MaleHouseholdHeads + detail.MaleFamilyMembers + detail.MaleChildren +
-                    detail.MaleYouth + detail.MaleElderly + detail.MaleDisabled;
-                    var detailTotalFemales = detail.FemaleHouseholdHeads + detail.FemaleFamilyMembers + detail.FemaleChildren +
-                    detail.FemaleYouth + detail.FemaleElderly + detail.FemaleDisabled;
+                    var detailTotalMales = detail.MaleHouseholdHeads + detail.MaleFamilyMembers;
+                    var detailTotalFemales = detail.FemaleHouseholdHeads + detail.FemaleFamilyMembers;
                     var detailTotal = detailTotalMales + detailTotalFemales;
 
                     <div class="death-detail-card">

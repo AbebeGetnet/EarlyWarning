@@ -22,9 +22,9 @@
   @foreach (var row in rows) {
     var male = Convert.ToInt64(Model.Values.GetType().GetProperty($"Male{row.Item1}")?.GetValue(Model.Values) ?? 0);
     var female = Convert.ToInt64(Model.Values.GetType().GetProperty($"Female{row.Item1}")?.GetValue(Model.Values) ?? 0);
-    maleTotal += male;
-    femaleTotal += female;
+    // Only household heads and family are counted; the other rows are breakdowns of them.
+    if (row.Item1 is "HouseholdHeads" or "FamilyMembers") { maleTotal += male; femaleTotal += female; }
     <tr><td>@row.Item2</td><td><input name="@(Model.Prefix).Male@(row.Item1)" type="number" min="0" value="@male" class="form-control val-male" /></td><td><input name="@(Model.Prefix).Female@(row.Item1)" type="number" min="0" value="@female" class="form-control val-female" /></td><td class="row-total">@(male + female)</td></tr>
   }
-  </tbody><tfoot class="table-light fw-bold"><tr><td>ጠቅላላ ድምር</td><td class="total-male">@maleTotal</td><td class="total-female">@femaleTotal</td><td class="grand-total bg-primary text-white">@(maleTotal + femaleTotal)</td></tr></tfoot></table></div></div>
+  </tbody><tfoot class="table-light fw-bold"><tr><td>ጠቅላላ ድምር (አባወራ/እማወራ + ቤተሰብ)</td><td class="total-male">@maleTotal</td><td class="total-female">@femaleTotal</td><td class="grand-total bg-primary text-white">@(maleTotal + femaleTotal)</td></tr></tfoot></table></div></div>
 </div>

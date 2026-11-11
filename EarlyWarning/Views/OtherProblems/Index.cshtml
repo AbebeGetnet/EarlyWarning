@@ -375,8 +375,7 @@
         var totalReports = Model.Count();
         var withProblemCount = Model.Count(x => x.HasOtherProblem);
         var withoutProblemCount = totalReports - withProblemCount;
-        var totalAffectedPopulation = Model.Sum(x => x.FemaleChildren + x.FemaleDisabled + x.FemaleElderly + x.FemaleFamilyMembers+x.FemaleHouseholdHeads
-        + x.FemaleYouth + x.MaleChildren + x.MaleDisabled + x.MaleElderly + x.MaleFamilyMembers + x.MaleHouseholdHeads+ x.MaleYouth);
+        var totalAffectedPopulation = Model.Sum(x => x.FemaleFamilyMembers + x.FemaleHouseholdHeads + x.MaleFamilyMembers + x.MaleHouseholdHeads);
     }
 
     <!-- Statistics Cards -->
@@ -515,8 +514,7 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        var totalPopulation = Model.Sum(x => x.FemaleChildren + x.FemaleDisabled + x.FemaleElderly + x.FemaleFamilyMembers + x.FemaleHouseholdHeads
-                        + x.FemaleYouth + x.MaleChildren + x.MaleDisabled + x.MaleElderly + x.MaleFamilyMembers + x.MaleHouseholdHeads + x.MaleYouth); ;
+                        var totalPopulation = Model.Sum(x => x.FemaleFamilyMembers + x.FemaleHouseholdHeads + x.MaleFamilyMembers + x.MaleHouseholdHeads); ;
 
                         <tr>
                             <td>@item.StartDate.ToString("yyyy-MM-dd")</td>

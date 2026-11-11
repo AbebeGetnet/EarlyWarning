@@ -850,11 +850,8 @@
 
                 var totalAffected = 0;
                 $.each(accidents, function(index, item) {
+                    // Households are the people counted; children, youth, elderly, disabled are breakdowns of them.
                     totalAffected += (item.maleHouseholds || 0) + (item.femaleHouseholds || 0);
-                    totalAffected += (item.maleChildren || 0) + (item.femaleChildren || 0);
-                    totalAffected += (item.maleYouth || 0) + (item.femaleYouth || 0);
-                    totalAffected += (item.maleElderly || 0) + (item.femaleElderly || 0);
-                    totalAffected += (item.maleDisabled || 0) + (item.femaleDisabled || 0);
                 });
                 $('#totalAffected').text(totalAffected);
             }
