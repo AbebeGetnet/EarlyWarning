@@ -885,6 +885,20 @@
         let serverDraftRequest = null;
         let isSubmittingWizard = false;
         let isHydratingWeeklyData = false;
+        // Offline work (see wwwroot/js/offline.js). The local draft remembers whether it holds changes the
+        // server has not saved yet; such a draft wins over the server's copy when the page is opened again.
+        let localDraftNeedsUpload = false;
+        let offlineNoticeShown = false;
+        let writeLocalDraft = () => { };
+        const OFFLINE_MESSAGE = 'ከመስመር ውጭ ነዎት። የሚሞሉት መረጃ በዚህ መሣሪያ ላይ ይቀመጣል፤ ሪፖርቱን ሲልኩት ግንኙነት ሲመለስ በራሱ ይላካል።';
+        const isNetworkError = error => error instanceof TypeError;   // fetch() rejects with TypeError when the server cannot be reached
+        function goneOffline() {
+            localDraftNeedsUpload = true;
+            writeLocalDraft();
+            window.EWOffline?.setReachable(false);
+            if (!offlineNoticeShown) showWizardMessage(OFFLINE_MESSAGE, 'secondary', false);
+            offlineNoticeShown = true;
+        }
         const isReviewMode = @((ViewBag.IsReviewMode == true).ToString().ToLowerInvariant());
 
         // One delegated calculator covers every demographic table, including
@@ -1195,13 +1209,13 @@
             }
         }
 
-        function showWizardMessage(message, type = 'danger') {
+        function showWizardMessage(message, type = 'danger', scroll = true) {
             const banner = document.getElementById('wizardModeBanner');
             const text = document.getElementById('wizardModeText');
             if (!banner || !text) return;
             banner.className = `alert alert-${type} py-2 shadow-sm animate-fade-in`;
             text.textContent = message;
-            banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (scroll) banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         async function checkSelectedWeek() {
@@ -1214,6 +1228,10 @@
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return await response.json();
             } catch (error) {
+                if (isNetworkError(error)) {
+                    goneOffline();
+                    return { checkFailed: true, offline: true };
+                }
                 console.error('Weekly duplicate check failed:', error);
                 showWizardMessage('የሳምንቱን መዝገብ ማረጋገጥ አልተቻለም። እባክዎ ግንኙነቱን አረጋግጠው እንደገና ይሞክሩ።', 'warning');
                 return { checkFailed: true };
@@ -1254,9 +1272,14 @@
                 ? 'የዚህ ሳምንት የተቀመጠው ረቂቅ መረጃ ተጭኗል፤ ከቆሙበት ቀጥለው ያጠናቅቁ።'
                 : data.canEdit ? `ሪፖርቱ በዞን ተመልሷል፤ ማስተካከልና እንደገና መላክ ይችላሉ። ${data.latestWorkflowComment ? 'ምክንያት፡ ' + data.latestWorkflowComment : ''}`
                 : `ሪፖርቱ ተልኳል እና ተቆልፏል (${data.workflowStatus || 'በግምገማ ላይ'})።`;
+            const keepLocalChanges = localDraftNeedsUpload && data.canEdit;
+            if (keepLocalChanges)
+                document.getElementById('wizardModeText').innerText = 'በዚህ መሣሪያ ላይ ያለ ግንኙነት የሞሉት መረጃ ተጭኗል፤ ወደ ዳታቤዝ ይቀመጣል።';
             isHydratingWeeklyData = true;
             try {
-                if (data.workflowStatus === 'Draft' && data.draftFields) {
+                if (keepLocalChanges) {
+                    // Changes made offline are newer than the server's draft.
+                } else if (data.workflowStatus === 'Draft' && data.draftFields) {
                     if (data.recordStartDate) document.getElementById('StartDate').value = data.recordStartDate;
                     if (data.recordEndDate) document.getElementById('EndDate').value = data.recordEndDate;
                     applyServerDraftFields(data.draftFields);
@@ -1275,6 +1298,7 @@
             }
             await refreshPreviousWeekPrices();
             serverDraftEnabled = Boolean(data.canEdit);
+            if (keepLocalChanges) await saveServerDraft(false);
             if (!data.canEdit) {
                 document.querySelectorAll("#earlyWarningForm input, #earlyWarningForm select, #earlyWarningForm textarea, #earlyWarningForm button[type='submit']")
                     .forEach(el => {
@@ -1304,9 +1328,18 @@
                     return false;
                 }
                 if (showConfirmation) showWizardMessage('ረቂቅ መረጃው በዳታቤዝ ተቀምጧል። በሌላ ጊዜ ተመልሰው መቀጠል ይችላሉ።', 'success');
+                else if (offlineNoticeShown) showWizardMessage('ግንኙነት ተመልሷል፤ ያለ ግንኙነት የሞሉት መረጃ በዳታቤዝ ተቀምጧል።', 'success', false);
+                offlineNoticeShown = false;
+                localDraftNeedsUpload = false;
+                writeLocalDraft();
+                window.EWOffline?.setReachable(true);
                 return true;
             } catch (error) {
                 if (error.name === 'AbortError') return true;
+                if (isNetworkError(error)) {
+                    goneOffline();
+                    return true;
+                }
                 console.error('Draft save failed:', error);
                 showWizardMessage('ረቂቅ መረጃውን ማስቀመጥ አልተቻለም፤ ግንኙነቱን አረጋግጠው ይሞክሩ።', 'warning');
                 return false;
@@ -1514,11 +1547,17 @@
                     return false;
                 }
                 serverDraftEnabled = true;
-                if (!duplicate?.exists && !await saveServerDraft(true)) return false;
-
-                try {
-                    await loadExistingWeeklyData(true);
-                } catch (err) { console.error("Database graph API error:", err); }
+                if (duplicate?.offline) {
+                    // No connection: continue on this device; the draft is uploaded once the server answers.
+                } else {
+                    if (!duplicate?.exists && !await saveServerDraft(true)) return false;
+                    try {
+                        await loadExistingWeeklyData(true);
+                    } catch (err) {
+                        if (isNetworkError(err)) goneOffline();
+                        else console.error("Database graph API error:", err);
+                    }
+                }
             }
             
             // STEP 2 METADATA GEOMETRIC SUM LIMIT EVALUATION (Rainfall Report)
@@ -2187,6 +2226,7 @@
 
         document.addEventListener("DOMContentLoaded", async function() {
             const form = document.getElementById("earlyWarningForm");
+            const draftStartDate = document.getElementById("StartDate")?.value || '';
             const draftKey = `early-warning-wizard:${document.getElementById("WoredaId")?.value || "woreda"}:${document.getElementById("StartDate")?.value || "week"}`;
 
             document.querySelectorAll('#earlyWarningForm input[type="number"]').forEach(input => {
@@ -2223,8 +2263,11 @@
                 const fields = Array.from(form.elements).filter(x => x.name && x.name !== '__RequestVerificationToken').map(x => ({
                     name: x.name, type: x.type, value: x.value, checked: x.checked
                 }));
-                try { sessionStorage.setItem(draftKey, JSON.stringify({ step: currentStep, fields })); } catch { /* storage full or blocked */ }
+                try {
+                    localStorage.setItem(draftKey, JSON.stringify({ step: currentStep, fields, pending: localDraftNeedsUpload, savedAt: new Date().toISOString() }));
+                } catch { /* storage full or blocked */ }
             };
+            writeLocalDraft = writeDraftNow;
             // Serialising the whole form on every keystroke made typing lag; write once typing pauses.
             let sessionDraftTimer = null;
             const saveDraft = () => {
@@ -2233,10 +2276,14 @@
                 sessionDraftTimer = setTimeout(writeDraftNow, 400);
             };
             const restoreDraft = () => {
-                if (@(TempData["SuccessMessage"] != null ? "true" : "false")) { sessionStorage.removeItem(draftKey); return; }
-                const raw = sessionStorage.getItem(draftKey); if (!raw) return;
+                const forget = () => { try { localStorage.removeItem(draftKey); sessionStorage.removeItem(draftKey); } catch { /* ignore */ } };
+                if (@(TempData["SuccessMessage"] != null ? "true" : "false")) { forget(); return; }
+                let raw = null;
+                try { raw = localStorage.getItem(draftKey) ?? sessionStorage.getItem(draftKey); } catch { /* storage blocked */ }
+                if (!raw) return;
                 try {
                     const draft = JSON.parse(raw);
+                    localDraftNeedsUpload = Boolean(draft.pending);
                     ensureDefensiveActivityRows(draft.fields.map(x => x.name));
                     const byName = formFieldsByName();
                     isRestoringDraft = true;
@@ -2256,8 +2303,42 @@
                     }
                     currentStep = Math.max(0, Math.min(Number(draft.step) || 0, totalSteps - 1));
                     steps.forEach(x => x.classList.add('d-none'));
-                } catch { sessionStorage.removeItem(draftKey); }
+                } catch { forget(); }
             };
+
+            // A report finished offline waits in the outbox; the form stays read-only until it is sent.
+            const lockForOutbox = () => {
+                isSubmittingWizard = true;   // stops autosave
+                serverDraftEnabled = false;
+                document.querySelectorAll("#earlyWarningForm input, #earlyWarningForm select, #earlyWarningForm textarea, #earlyWarningForm button")
+                    .forEach(el => { if (el.type !== 'hidden') el.disabled = true; });
+                showWizardMessage('ሪፖርቱ በዚህ መሣሪያ ላይ ተቀምጧል፤ ግንኙነት ሲመለስ በራሱ ይላካል። ገጹን ወይም አሳሹን መዝጋት ይችላሉ፤ ሪፖርቱ አይጠፋም።', 'info');
+            };
+            const queueForLater = () => {
+                const start = document.getElementById('StartDate')?.value;
+                const end = document.getElementById('EndDate')?.value;
+                const fields = [...new FormData(form)].filter(([name, value]) => name !== '__RequestVerificationToken' && typeof value === 'string');
+                const saved = window.EWOffline?.queue({
+                    key: draftKey,
+                    url: '@Url.Action("SubmitWizard", "RegisterationWizard")',
+                    openUrl: `@Url.Action("Index", "RegisterationWizard")?startDate=${encodeURIComponent(draftStartDate)}`,   // opens the page under the same draft key
+                    label: start && end ? `የ${EthiopianDate.format(start)}–${EthiopianDate.format(end)} ሪፖርት` : 'ሳምንታዊ ሪፖርት',
+                    fields
+                });
+                if (saved) { lockForOutbox(); return; }
+                isSubmittingWizard = false;
+                serverDraftEnabled = true;
+                showWizardMessage('በመሣሪያው ላይ በቂ ቦታ ስለሌለ ሪፖርቱን ማስቀመጥ አልተቻለም። ግንኙነት ሲኖር እንደገና ይላኩ።', 'danger');
+            };
+            document.addEventListener('ew-outbox-sent', event => {
+                if (event.detail.key === draftKey) showWizardMessage(event.detail.message || 'ሪፖርቱ ተልኳል።', 'success');
+            });
+            document.addEventListener('ew-outbox-failed', event => {
+                if (event.detail.key !== draftKey) return;
+                localDraftNeedsUpload = true;
+                writeDraftNow();
+                location.reload();   // reopens the report, unlocked, with the reasons shown (see below)
+            });
             form.addEventListener('input', saveDraft);
             form.addEventListener('change', saveDraft);
             form.addEventListener('input', scheduleServerDraftSave);
@@ -2301,7 +2382,7 @@
                     return;
                 }
                 const duplicate = await checkSelectedWeek();
-                if (duplicate?.checkFailed) return;
+                if (duplicate?.checkFailed && !duplicate.offline) return;
                 if (duplicate?.exists && !duplicate.editable) {
                     showWizardMessage(duplicate.message, 'danger');
                     navigateToField(document.getElementById('StartDate'));
@@ -2317,6 +2398,12 @@
                 serverDraftEnabled = false;
                 clearTimeout(serverDraftTimer);
                 serverDraftRequest?.abort();
+                if (duplicate?.offline) {
+                    localDraftNeedsUpload = true;
+                    writeDraftNow();
+                    queueForLater();
+                    return;
+                }
                 writeDraftNow();   // immediate: the page is about to unload
                 form.submit();
             });
@@ -2327,13 +2414,24 @@
                 } finally {
                     isHydratingWeeklyData = false;
                 }
+                const outboxEntry = window.EWOffline?.find(draftKey);
+                if (outboxEntry?.status === 'pending') lockForOutbox();
+                else if (outboxEntry?.status === 'failed') {
+                    window.EWOffline.remove(draftKey);
+                    localDraftNeedsUpload = true;
+                    writeDraftNow();
+                    showWizardMessage(`ያለ ግንኙነት የላኩት ሪፖርት አልተቀበለም፤ ያስተካክሉና እንደገና ይላኩ። ምክንያት፡ ${(outboxEntry.errors || []).join(' • ')}`, 'danger');
+                }
             }
             const initialWeeklyRecord = isReviewMode ? { exists: true } : await checkSelectedWeek();
             if (initialWeeklyRecord?.exists) {
                 try { await loadExistingWeeklyData(false); }
                 catch (error) {
-                    console.error('Initial weekly data load failed:', error);
-                    showWizardMessage('የተቀመጠውን የሳምንት መረጃ መጫን አልተቻለም። ገጹን እንደገና ይጫኑ።', 'danger');
+                    if (isNetworkError(error)) goneOffline();
+                    else {
+                        console.error('Initial weekly data load failed:', error);
+                        showWizardMessage('የተቀመጠውን የሳምንት መረጃ መጫን አልተቻለም። ገጹን እንደገና ይጫኑ።', 'danger');
+                    }
                 }
             } else {
                 await refreshPreviousWeekPrices();

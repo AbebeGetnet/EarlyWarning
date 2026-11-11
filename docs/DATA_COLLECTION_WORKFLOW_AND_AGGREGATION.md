@@ -132,6 +132,14 @@ Every successful transition creates a history row. `RowVersion` prevents two rev
 - Upsert identity is normally `(WoredaId, StartDate, EndDate)`. Child/type rows are replaced on resubmission so removed selections do not remain stale.
 - The prior price for a type is the latest row for the same Woreda/type whose `EndDate` is before the current `StartDate`.
 
+### Offline collection (weekly wizard)
+
+- The wizard keeps its draft in the browser's `localStorage` (per Woreda and week), so it survives closing the browser. The draft records whether it holds changes the server has not saved; when the page is opened online, those changes win over the server draft and are uploaded.
+- Without a connection the encoder can still move through the steps and press submit. The report then goes into the browser's outbox (`wwwroot/js/offline.js`, one outbox per user) and the form is locked. The outbox posts it to `SubmitWizard` as soon as the server answers (page load, the browser's `online` event, every minute) with a fresh anti-forgery token from `AntiforgeryToken`.
+- Requests carrying `X-Offline-Sync: 1` get JSON from `SubmitWizard`: `{ ok, message }` on success, `422 { ok: false, errors }` on any rejection. All server rules still apply at send time; a rejected report reopens in the wizard with the reasons.
+- If the login has expired, the outbox waits and asks the encoder to sign in. Reports are never sent under another user's login.
+- The service worker (`wwwroot/sw.js`) keeps visited pages and their files so the wizard opens without a connection. Browsers allow service workers only over HTTPS (or on `localhost`); on a plain `http://` address the wizard must already be open when the connection drops. Pages sent with `X-Offline-Cache: no` (the page shown right after a submit) and `/Identity` pages are never kept; logout clears the kept pages.
+
 ## 6. Configurable/master variables and relationships
 
 These tables control available selections without changing the main weekly schema. Deactivate a value with `IsActive` when supported instead of deleting a value already referenced by historical reports.

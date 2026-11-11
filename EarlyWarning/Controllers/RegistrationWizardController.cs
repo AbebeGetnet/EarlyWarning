@@ -118,6 +118,7 @@ namespace EarlyWarning.Controllers
                     ? "የዚህ ሳምንት ሪፖርት ለማስተካከያ ተመልሷል፤ ነባሩን መዝገብ ያርሙና እንደገና ይላኩ።"
                     : "ለዚህ ወረዳና የሪፖርት ሳምንት መረጃ ቀድሞ ተመዝግቧል፤ አዲስ መዝገብ መፍጠር አይቻልም።";
 
+            if (TempData.Peek("SuccessMessage") != null) Response.Headers["X-Offline-Cache"] = "no";
             ViewBag.TotalKebeles = kebeles.Count;
             ViewBag.WoredaName = await _context.Locations.Where(x => x.Id == targetWoredaId)
                 .Select(x => x.LocationAmharicName ?? x.LocationName ?? "-").FirstOrDefaultAsync();
@@ -743,7 +744,7 @@ namespace EarlyWarning.Controllers
                 ViewBag.SubmissionErrors = submissionErrors;
                 await PopulateLookupListsAsync(model);
                 ViewBag.TotalKebeles = model.Kebelies.Count;
-                return View("Index", model);
+                return SubmissionRejected(model);
             }
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -974,7 +975,7 @@ namespace EarlyWarning.Controllers
                     ModelState.AddModelError(string.Empty, "ይህ ሪፖርት በሌላ ጥያቄ ተቀይሯል ወይም ቀድሞ ተልኳል። እባክዎ ገጹን እንደገና ይክፈቱ።");
                     await PopulateLookupListsAsync(model);
                     ViewBag.TotalKebeles = model.Kebelies.Count;
-                    return View("Index", model);
+                    return SubmissionRejected(model);
                 }
             }
             _context.WeeklyReportWorkflowHistories.Add(new WeeklyReportWorkflowHistory
@@ -1045,7 +1046,7 @@ namespace EarlyWarning.Controllers
                             $"መረጃው በሌላ ጥያቄ ተቀይሯል ({entityNames})። እባክዎ ገጹን እንደገና ይክፈቱና ይሞክሩ።");
                         await PopulateLookupListsAsync(model);
                         ViewBag.TotalKebeles = model.Kebelies.Count;
-                        return View("Index", model);
+                        return SubmissionRejected(model);
                     }
                 }
                 await transaction.CommitAsync();
@@ -1056,12 +1057,34 @@ namespace EarlyWarning.Controllers
                 ModelState.AddModelError(string.Empty, "ለዚህ ወረዳና የሪፖርት ሳምንት መረጃ ቀድሞ ተመዝግቧል። ድጋሚ መመዝገብ አይቻልም።");
                 await PopulateLookupListsAsync(model);
                 ViewBag.TotalKebeles = model.Kebelies.Count;
-                return View("Index", model);
+                return SubmissionRejected(model);
             }
 
-            TempData["SuccessMessage"] = "የሳምንቱ መረጃ ለዞን ግምገማ ተልኳል እና ተቆልፏል።";
+            const string sent = "የሳምንቱ መረጃ ለዞን ግምገማ ተልኳል እና ተቆልፏል።";
+            if (IsOfflineSync) return Json(new { ok = true, message = sent });
+            TempData["SuccessMessage"] = sent;
             return RedirectToAction("Index");
         }
+
+        // A report finished without a connection is kept in the browser's outbox (wwwroot/js/offline.js)
+        // and posted here later with this header; it gets JSON back instead of a page.
+        private bool IsOfflineSync => Request.Headers["X-Offline-Sync"] == "1";
+
+        private IActionResult SubmissionRejected(RegistrationWithardViewModel model)
+        {
+            if (!IsOfflineSync) return View("Index", model);
+            var errors = ViewBag.SubmissionErrors as List<string> ?? ModelState.Values
+                .SelectMany(x => x.Errors).Select(x => x.ErrorMessage)
+                .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
+            return UnprocessableEntity(new { ok = false, errors });
+        }
+
+        // The outbox asks for a fresh token when it sends: the one in the page may belong to an
+        // anti-forgery cookie that ended with the browser session.
+        [HttpGet]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public IActionResult AntiforgeryToken([FromServices] Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery)
+            => Json(new { token = antiforgery.GetAndStoreTokens(HttpContext).RequestToken });
 
         private static DateTime GetReportingWeekStart(DateTime date)
         {
