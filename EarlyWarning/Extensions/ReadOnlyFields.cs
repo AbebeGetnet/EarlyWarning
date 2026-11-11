@@ -12,6 +12,8 @@ namespace EarlyWarning.Extensions;
 /// </summary>
 public static class ReadOnlyFields
 {
+    private static readonly HashSet<string> RetiredWhenEmpty = ["MajorSolutionTwo", "MajorSolutionThree"];
+
     private static readonly HashSet<string> Excluded =
     [
         "UserId", "LasModifiedAt", "DeletedAt", "StartDate", "EndDate", "Status", "ReportDate", "ReportedBy", "ApprovalStatus",
@@ -44,7 +46,7 @@ public static class ReadOnlyFields
         ["FemaleStudentDropouts"] = "ከትምህርት የወጡ ሴት ተማሪዎች",
         ["AverageDropoutAge"] = "የወጡ ተማሪዎች አማካይ ዕድሜ",
         ["ClosedSchools"] = "የተዘጉ ትምህርት ቤቶች ብዛት",
-        ["MajorSolutionOne"] = "መፍትሄ 1",
+        ["MajorSolutionOne"] = "ችግሩን ለመቆጣጠር/ለመፍታት የተወሰደ ዋና መፍትሄ",
         ["MajorSolutionTwo"] = "መፍትሄ 2",
         ["MajorSolutionThree"] = "መፍትሄ 3",
         ["WasActionSatisfactory"] = "የተወሰደው እርምጃ አጥጋቢ ነበር?",
@@ -76,7 +78,10 @@ public static class ReadOnlyFields
         if (source == null) return [];
         return source.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => Visible(p) && !skip.Contains(p.Name))
-            .Select(p => (Label(p), Format(p.GetValue(source))))
+            .Select(p => (Property: p, Value: Format(p.GetValue(source))))
+            // Fields no longer collected appear only on older records that filled them.
+            .Where(x => !RetiredWhenEmpty.Contains(x.Property.Name) || !string.IsNullOrWhiteSpace(x.Value))
+            .Select(x => (Label(x.Property), x.Value))
             .ToList();
     }
 

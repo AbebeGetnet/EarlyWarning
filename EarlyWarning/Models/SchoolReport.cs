@@ -21,6 +21,7 @@ public class SchoolReport : IValidatableObject
     [Range(typeof(decimal), "0", "100")] public decimal? AverageDropoutAge { get; set; }
     [Range(0, 100_000)] public int ClosedSchools { get; set; }
     [StringLength(500)] public string? MajorSolutionOne { get; set; }
+    // No longer collected (one main solution only); kept so older reports still show their 2nd and 3rd solutions.
     [StringLength(500)] public string? MajorSolutionTwo { get; set; }
     [StringLength(500)] public string? MajorSolutionThree { get; set; }
     public bool? WasActionSatisfactory { get; set; }
@@ -36,8 +37,8 @@ public class SchoolReport : IValidatableObject
     {
         if (!HasTeachingLearningProblem) yield break;
         if (string.IsNullOrWhiteSpace(Cause)) yield return new("የችግሩ ምክንያት ግዴታ ነው።", [nameof(Cause)]);
-        if (string.IsNullOrWhiteSpace(MajorSolutionOne) || string.IsNullOrWhiteSpace(MajorSolutionTwo) || string.IsNullOrWhiteSpace(MajorSolutionThree))
-            yield return new("ሶስቱንም ዋና ዋና መፍትሄዎች ያስገቡ።", [nameof(MajorSolutionOne), nameof(MajorSolutionTwo), nameof(MajorSolutionThree)]);
+        if (string.IsNullOrWhiteSpace(MajorSolutionOne))
+            yield return new("ችግሩን ለመቆጣጠር/ለመፍታት የተወሰደውን ዋና መፍትሄ ያስገቡ።", [nameof(MajorSolutionOne)]);
         if (WasActionSatisfactory == null) yield return new("የተወሰደው እርምጃ አጥጋቢ መሆኑን ይምረጡ።", [nameof(WasActionSatisfactory)]);
         if (!(StudentRelatedSolution || TeacherExpenseSolution || ClassroomMaterialsSolution || SchoolBuildingServiceSolution || OtherSolution))
             yield return new("ቢያንስ አንድ የመፍትሄ ምድብ ይምረጡ።", [nameof(StudentRelatedSolution)]);

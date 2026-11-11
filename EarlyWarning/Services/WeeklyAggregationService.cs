@@ -189,7 +189,7 @@ public sealed class WeeklyAggregationService(EarlyWarningDbContext db) : IWeekly
         var schoolTexts = schools.Where(x => x.HasTeachingLearningProblem).SelectMany(x => new[]
         {
             Text("የትምህርት ችግር ምክንያት", x.WoredaId, x.Cause ?? "-"),
-            Text("ሶስት ዋና መፍትሄዎች", x.WoredaId, string.Join(" | ", new[] { x.MajorSolutionOne, x.MajorSolutionTwo, x.MajorSolutionThree }.Where(v => !string.IsNullOrWhiteSpace(v))))
+            Text("ዋና መፍትሄ", x.WoredaId, string.Join(" | ", new[] { x.MajorSolutionOne, x.MajorSolutionTwo, x.MajorSolutionThree }.Where(v => !string.IsNullOrWhiteSpace(v))))
         }).Concat(schools.Where(x => x.OtherSolution && !string.IsNullOrWhiteSpace(x.OtherSolutionDescription)).Select(x => Text("ሌላ የትምህርት መፍትሄ", x.WoredaId, x.OtherSolutionDescription!)));
         // Text keeps its woreda and zone; empty and repeated entries are dropped.
         result.TextEntries = pests.Where(x => !string.IsNullOrWhiteSpace(x.Remarks)).Select(x => Text("የሰብል ተባይ/በሽታ", x.WoredaId, x.Remarks!))
