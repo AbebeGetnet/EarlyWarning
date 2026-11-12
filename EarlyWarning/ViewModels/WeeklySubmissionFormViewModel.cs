@@ -36,4 +36,5 @@ public class WeeklySubmissionFormViewModel
     public WeeklyProvided? Aid { get; set; }
     public OtherProblem? OtherProblem { get; set; }
     public SchoolReport? School { get; set; }
+    public MalnutritionReport? Malnutrition { get; set; }
 }

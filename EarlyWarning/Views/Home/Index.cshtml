@@ -41,6 +41,32 @@
         ("fa-house-damage", "red", "9. አደጋዎች", N(Incidents("hazards")), "ክስተቶች"),
         ("fa-hands-helping", "green", "10. የእርዳታ ችግሮች", N(Incidents("aid")), "ክስተቶች")
     };
+    // Key indicators for response planning (same figures as the report's "ዋና ዋና አመልካቾች" section).
+    var ind = Model.Indicators;
+    string LevelCss(EarlyWarning.ViewModels.AlertLevel level) => level switch
+    {
+        EarlyWarning.ViewModels.AlertLevel.Emergency => "critical",
+        EarlyWarning.ViewModels.AlertLevel.Alarm => "warning",
+        EarlyWarning.ViewModels.AlertLevel.Watch => "muted",
+        _ => "good"
+    };
+    if (ind != null && ind.HasData)
+    {
+        int Level(EarlyWarning.ViewModels.AlertLevel level) => ind.Priorities.Count(x => x.Level == level);
+        tiles.Insert(1, ("fa-exclamation-triangle", "red", "ቅድሚያ ትኩረት የሚያስፈልጋቸው ወረዳዎች",
+            N(Level(EarlyWarning.ViewModels.AlertLevel.Emergency) + Level(EarlyWarning.ViewModels.AlertLevel.Alarm)),
+            $"አስቸኳይ {N(Level(EarlyWarning.ViewModels.AlertLevel.Emergency))} · ከፍተኛ ስጋት {N(Level(EarlyWarning.ViewModels.AlertLevel.Alarm))} · ክትትል {N(Level(EarlyWarning.ViewModels.AlertLevel.Watch))}"));
+        var gam = ind.MalnutritionTotal?.GamRate;
+        tiles.Add(("fa-child", "orange", "የህጻናት የምግብ እጥረት (GAM)", gam.HasValue ? $"{N(gam.Value)}%" : "-",
+            gam.HasValue ? EarlyWarning.Services.WeeklyIndicators.GamBand(gam.Value).Name : "የልየታ መረጃ የለም"));
+        var coverage = ind.Kpis.FirstOrDefault(x => x.Label.StartsWith("ከተጠየቀው የቀረበ"));
+        tiles.Add(("fa-box-open", "green", "የእርዳታ ፍላጎት ሽፋን", coverage?.Value ?? "-", coverage?.Note ?? "የተጠየቀ እርዳታ አልተመዘገበም"));
+        var trade = ind.TermsOfTrade.FirstOrDefault();
+        if (trade != null)
+            tiles.Add(("fa-balance-scale", "violet", $"የእንስሳትና የእህል ልውውጥ", $"{N(trade.Current)} ኪ.ግ",
+                $"1 {trade.Animal} = {N(trade.Current)} ኪ.ግ {trade.Grain}" + (trade.Change.HasValue ? $" ({(trade.Change > 0 ? "+" : "")}{N(trade.Change.Value)}%)" : "")));
+    }
+
     // The week's incidents, section by section, as listed in the weekly report.
     var incidentSections = (report?.Sections ?? []).Where(x => x.IncidentCount > 0 && x.Key is not ("rain" or "farming" or "crop" or "prices" or "grain-supply" or "animal-supply"))
         .Select(x => (Section: x, Items: x.Blocks.Where(b => b.Kind == EarlyWarning.ViewModels.NarrativeBlockKind.Bullets).SelectMany(b => b.Items ?? []).ToList()))
@@ -184,6 +210,62 @@
                 </div>
             }
         </div>
+
+        @if (ind != null && ind.HasData)
+        {
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="ew-card">
+                        <h2>ቅድሚያ ትኩረት የሚያስፈልጋቸው ወረዳዎች</h2>
+                        <div class="ew-desc">ከሪፖርቱ በተገኙ ችግሮች ክብደት የተሰላ የስጋት ደረጃ</div>
+                        @if (ind.Priorities.Count == 0)
+                        {
+                            <div class="ew-empty"><i class="fas fa-shield-alt mr-1"></i> ልዩ ትኩረት የሚያስፈልገው ወረዳ የለም።</div>
+                        }
+                        else
+                        {
+                            <div class="ew-table-wrap">
+                                <table class="ew-table">
+                                    <thead><tr><th>ወረዳ</th><th>ደረጃ</th><th>ዋና ዋና ችግሮች</th></tr></thead>
+                                    <tbody>
+                                        @foreach (var p in ind.Priorities.Take(15))
+                                        {
+                                            <tr>
+                                                <td class="fw-bold">@p.Woreda<div class="ew-note">@p.Zone</div></td>
+                                                <td><span class="ew-pill st-@LevelCss(p.Level)"><i class="fas fa-circle"></i> @EarlyWarning.Services.WeeklyIndicators.LevelName(p.Level)</span></td>
+                                                <td>@string.Join("፤ ", p.Flags)</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="ew-card">
+                        <h2>ለምላሽ ዕቅድ የሚመከሩ እርምጃዎች</h2>
+                        <div class="ew-desc">በቅድሚያ ደረጃ የተደረደሩ፤ ሙሉውን በሳምንታዊ ሪፖርቱ ይመልከቱ</div>
+                        @if (ind.Actions.Count == 0)
+                        {
+                            <div class="ew-empty"><i class="fas fa-check mr-1"></i> ከመደበኛ ክትትል ውጪ የሚመከር እርምጃ የለም።</div>
+                        }
+                        else
+                        {
+                            <ul class="ew-status-list">
+                                @foreach (var a in ind.Actions.Take(8))
+                                {
+                                    <li style="align-items:flex-start">
+                                        <i class="fas fa-circle st-@LevelCss(a.Level)" style="margin-top:.35rem;font-size:.6rem"></i>
+                                        <span><b>@a.Sector፡</b> @a.Action @if (a.Woredas.Count > 0) { <span class="ew-note d-block">@string.Join("፣ ", a.Woredas)</span> }</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
 
         <div class="ew-card" style="height:auto">
             <h2>የሳምንቱ ዋና ዋና ክስተቶች</h2>

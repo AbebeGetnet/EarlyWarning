@@ -85,6 +85,8 @@ public class WeeklySubmissionFormLoader(EarlyWarningDbContext db) : IWeeklySubmi
             .FirstOrDefaultAsync(x => x.WoredaId == woredaId && x.StartDate == start && x.EndDate == end);
         form.School = await db.SchoolReports.AsNoTracking()
             .FirstOrDefaultAsync(x => x.WoredaId == woredaId && x.StartDate == start && x.EndDate == end);
+        form.Malnutrition = await db.MalnutritionReports.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.WoredaId == woredaId && x.StartDate == start && x.EndDate == end);
         return form;
     }
 

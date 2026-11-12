@@ -28,7 +28,7 @@ public class WeeklyWorkflowController : Controller
     }
 
     public async Task<IActionResult> Index([FromServices] IReportScopeService scopes, [FromServices] IWeeklyMatrixReportService matrixReport,
-        string? mode = null, DateTime? startDate = null, DateTime? endDate = null)
+        [FromServices] IWeeklyIndicatorService indicators, string? mode = null, DateTime? startDate = null, DateTime? endDate = null)
     {
         var user = await _users.GetUserAsync(User);
         if (user == null) return Challenge();
@@ -46,6 +46,9 @@ public class WeeklyWorkflowController : Controller
                 summary.EndDate = week.EndDate;
                 var grid = await matrixReport.BuildAsync(scope, weekReports, week.StartDate, week.EndDate);
                 summary.Narrative = WeeklyNarrativeReportBuilder.Build(grid, scope.LocationName, scope.Level);
+                // Key indicators, priority woredas and recommended actions (not in the Excel workbook).
+                var facts = await indicators.LoadAsync(weekReports);
+                WeeklyIndicatorReport.Append(summary.Narrative, WeeklyIndicators.Summarize(facts, summary.Narrative.WoredasInScope));
             }
             return View(summary);
         }
@@ -71,7 +74,7 @@ public class WeeklyWorkflowController : Controller
     // Page 2: the same standard report broken down — one per zone for region users, one per woreda for zone users.
     [Authorize(Roles = "Data Encoder,ZoneAdmin,RegionAdmin")]
     public async Task<IActionResult> ReportPageTwo([FromServices] IReportScopeService scopes, [FromServices] IWeeklyMatrixReportService matrixReport,
-        DateTime? startDate = null, DateTime? endDate = null)
+        [FromServices] IWeeklyIndicatorService indicators, DateTime? startDate = null, DateTime? endDate = null)
     {
         var user = await _users.GetUserAsync(User);
         if (user == null) return Challenge();
@@ -90,6 +93,13 @@ public class WeeklyWorkflowController : Controller
             : grid.Units.Select((unit, index) => (unit, index)).Where(x => !x.unit.IsTotal)
                 .Select(x => WeeklyNarrativeReportBuilder.Build(grid, x.unit.Name, ReportScopeLevel.Woreda, [x.index]))
                 .ToList();
+        // Each zone's (or woreda's) own indicators, from one read of the week.
+        var facts = await indicators.LoadAsync(reports);
+        foreach (var narrative in model.Reports)
+        {
+            var own = facts.Where(x => scope.Level == ReportScopeLevel.Region ? x.Zone == narrative.ScopeName : x.Woreda == narrative.ScopeName).ToList();
+            WeeklyIndicatorReport.Append(narrative, WeeklyIndicators.Summarize(own, narrative.WoredasInScope));
+        }
         return View(model);
     }
 
@@ -115,7 +125,7 @@ public class WeeklyWorkflowController : Controller
     // Weekly report in the layout of the paper form. The boundary (woreda / zone / region) comes only from the
     // signed-in user's assigned location; the only request input is the week, which must be one inside that boundary.
     public async Task<IActionResult> FormReport([FromServices] IWeeklyFormReportService formReport, [FromServices] IReportScopeService scopes,
-        DateTime? startDate = null, DateTime? endDate = null)
+        [FromServices] IWeeklyIndicatorService indicators, DateTime? startDate = null, DateTime? endDate = null)
     {
         var user = await _users.GetUserAsync(User);
         if (user == null) return Challenge();
@@ -149,6 +159,9 @@ public class WeeklyWorkflowController : Controller
         model.WoredaCount = reports.Select(x => x.WoredaId).Distinct().Count();
         model.Zones = reports.Select(x => x.Woreda.Parent?.LocationAmharicName ?? x.Woreda.Parent?.LocationName ?? "-").Distinct().OrderBy(x => x).ToList();
         model.Sections = await formReport.BuildAsync(reports, scope.Level);
+        // Nutrition, key indicators, priority woredas and recommended actions follow the paper form's sections.
+        var summary = WeeklyIndicators.Summarize(await indicators.LoadAsync(reports), model.WoredasInScope);
+        model.Sections.AddRange(WeeklyIndicatorReport.FormSections(summary, model.Sections.Count + 1));
         return View(model);
     }
 

@@ -5,6 +5,8 @@ public class DashboardViewModel
     public string ScopeName { get; set; } = "";
     /// <summary>The latest week in the standard narrative report format (null when nothing was reported).</summary>
     public WeeklyNarrativeReport? Narrative { get; set; }
+    /// <summary>The same week's key indicators, priority woredas and recommended actions.</summary>
+    public WeeklyIndicatorSummary? Indicators { get; set; }
     public string UserDisplayName { get; set; } = "";
     /// <summary>Reports of the latest week in the user's scope.</summary>
     public List<WeeklyWorkflowRowViewModel> Reports { get; set; } = [];

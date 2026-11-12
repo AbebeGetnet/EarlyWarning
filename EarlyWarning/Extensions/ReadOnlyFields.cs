@@ -110,9 +110,16 @@ public static class ReadOnlyFields
         return type.IsPrimitive || type.IsEnum || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime);
     }
 
+    // Amharic labels for the read-only page where the model's own display name is in English.
+    private static readonly Dictionary<string, string> AmharicOverrides = new()
+    {
+        ["ChildrenGamRatePercent"] = "የህጻናት አጣዳፊ የምግብ እጥረት መጠን (%)",
+        ["PregnantLactatingMamRatePercent"] = "የእርጉዝና የሚያጠቡ እናቶች የምግብ እጥረት መጠን (%)"
+    };
+
     private static string Label(PropertyInfo p)
     {
-        var label = p.GetCustomAttribute<DisplayAttribute>()?.GetName() ?? p.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName
+        var label = AmharicOverrides.GetValueOrDefault(p.Name) ?? p.GetCustomAttribute<DisplayAttribute>()?.GetName() ?? p.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName
             ?? Labels.GetValueOrDefault(p.Name) ?? p.Name;
         label = label.Trim();
         // Same "group (ወንድ/ሴት)" form as the other people fields.

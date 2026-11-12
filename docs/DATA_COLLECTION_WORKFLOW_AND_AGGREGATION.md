@@ -291,6 +291,31 @@ The final regional output contains:
 
 Exports introduced later (Excel, PDF, API) must consume the same `WeeklyAggregateViewModel` or snapshot JSON rather than reimplementing formulas independently.
 
+### Key indicators, priorities and recommended actions
+
+`Services/WeeklyIndicatorService.cs` reads every wizard topic for the week once (one `WoredaWeekFacts` per reporting woreda), and `WeeklyIndicators.Summarize` turns any subset into the indicators. `Services/WeeklyIndicatorReport.cs` adds them to the narrative report (summary, per zone/woreda page, dashboard) and the paper-form report. The Excel workbook is written from the report grid only and does not include them.
+
+- **Added to the narrative report:** "ዋና ዋና አመልካቾች" at the top (KPI table and people affected by cause), terms of trade under prices, animal migration under migration, aid quantities under aid, and new sections for nutrition, priority woredas and recommended actions.
+- **Added to the paper-form report:** crop-pest control measures under section 3, and the same nutrition, KPI, priority and action sections after section 11. The woreda review page now also shows the malnutrition record.
+- **KPIs:**
+  - Reporting coverage.
+  - Woredas without rain; drought and flood kebeles.
+  - Meher/Belg ploughed and sown as % of plan.
+  - Pest-affected land and % covered by control measures.
+  - Livestock pasture/water shortage, low body condition, disease and out-migration.
+  - People affected by epidemic, drinking water, hazards (households), displacement and deaths.
+  - Child GAM (recomputed from pooled counts, WHO bands <5 / 5–10 / 10–15 / ≥15%) and pregnant/lactating women MAM.
+  - Closed schools and dropouts.
+  - Average grain and livestock price change.
+  - Livestock-to-grain terms of trade (kg of the first staple with prices — maize, sorghum, wheat, teff, barley — bought by one goat, sheep or ox).
+  - Aid recipients; aid coverage (provided ÷ requested) and distribution rate (distributed ÷ provided), averaged per item because units differ.
+- **Woreda flags and weights:**
+  - 3 (life-threatening): human epidemic, deaths, GAM ≥ 15%.
+  - 2 (serious): no rain, drought, flood, low body condition, animal disease, drinking water shortage, hazard with households affected, displacement, GAM 10–15%, a pest outbreak with less than half the land controlled.
+  - 1 (watch): other pests, pasture or animal water shortage, out-migrating animals, SAM cases, pregnant/lactating MAM ≥ 10%, school closures or dropouts, staple price rise ≥ 10%, aid problem, other problem.
+- **Levels:** a score of 7 or more is emergency (አስቸኳይ ምላሽ); 4–6, or any weight-3 flag, is alarm (ከፍተኛ ስጋት); 1–3 is watch (ክትትል).
+- **Recommended actions:** one per flag type (sector, action, woredas), ordered by severity. They are followed by scope-wide actions for any unmet aid request, a terms-of-trade decline of 10% or more, and woredas that did not report.
+
 ## 10. Performance and consistency rules
 
 - Filter by eligible submission IDs/Woreda/date before aggregation.

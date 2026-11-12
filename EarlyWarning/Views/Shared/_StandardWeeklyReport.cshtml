@@ -19,7 +19,7 @@
         <section class="ewr-section ewr-level-@part.Level">
             @if (part.Level == 1)
             {
-                <h3 class="ewr-h1"><span class="ewr-num">@part.Number.</span> @part.Title</h3>
+                <h3 class="ewr-h1">@if (part.Number != "") { <span class="ewr-num">@part.Number.</span> }@part.Title</h3>
             }
             else
             {

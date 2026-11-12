@@ -149,6 +149,7 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         var pests = (await db.CropPestAndDeseaseReports.AsNoTracking()
                 .Include(x => x.ImpactDetails).ThenInclude(x => x.PestDisease)
+                .Include(x => x.DefensiveActivities)
                 .Where(x => ids.Contains(x.WoredaId) && x.StartDate >= from && x.StartDate < to).ToListAsync())
             .Where(x => InWeek(x.WoredaId, x.StartDate, x.EndDate)).LatestPer(x => (x.WoredaId, Day(x.StartDate), Day(x.EndDate)), x => x.LasModifiedAt);
         var s3 = Section(sections, "3", "የሰብል ሁኔታ");
@@ -178,6 +179,14 @@ public sealed class WeeklyFormReportService(EarlyWarningDbContext db) : IWeeklyF
         // Damaged land is entered per pest; older reports only have the report-level figure.
         s3.Items.Add(Line("", "በሰብል ተባይ የተጎዳ መሬት ሄ/ር", pests.Sum(x => x.ImpactDetails.Count > 0 ? x.ImpactDetails.Sum(d => d.AffectedLandInHectares) : (decimal)(x.AffectedLandInHectar ?? 0)), 1));
         s3.Items.Add(Texts("የሰብል አይነት", pests.Select(x => (x.WoredaId, x.TypeOfCropAffected))));
+        var defence = pests.SelectMany(p => p.DefensiveActivities.Select(d => (p.WoredaId, Activity: d))).ToList();
+        if (defence.Count > 0)
+        {
+            s3.Items.Add(Heading("", "ለጉዳቱ ምላሽ የተወሰዱ የመከላከል ተግባራት"));
+            s3.Items.Add(Table(["የተወሰደ የመከላከል ተግባር", occurredIn, "የተሸፈነ መሬት (ሄ/ር)"],
+                defence.GroupBy(x => x.Activity.Activity.Trim()).OrderBy(g => g.Key)
+                    .Select(g => new List<string> { g.Key, Places(g.Select(x => x.WoredaId)), Num(g.Sum(x => x.Activity.AreaCoveredInHectares ?? 0)) })));
+        }
         s3.Items.Add(Texts("ማስታወሻ", pests.Select(x => (x.WoredaId, x.Remarks)), 0));
 
         // ------------------------------------------------------------------ 4. Livestock

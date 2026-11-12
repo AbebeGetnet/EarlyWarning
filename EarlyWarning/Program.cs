@@ -30,6 +30,7 @@ builder.Services.AddScoped<IReportSaveService, ReportSaveService>();
 builder.Services.AddScoped<IWeeklyAggregationService, WeeklyAggregationService>();
 builder.Services.AddScoped<IWeeklyFormReportService, WeeklyFormReportService>();
 builder.Services.AddScoped<IWeeklyMatrixReportService, WeeklyMatrixReportService>();
+builder.Services.AddScoped<IWeeklyIndicatorService, WeeklyIndicatorService>();
 builder.Services.AddScoped<IWeeklySubmissionFormLoader, WeeklySubmissionFormLoader>();
 builder.Services.AddScoped<IReportScopeService, ReportScopeService>();
 builder.Services.AddScoped<ILocationImportService, LocationImportService>();
