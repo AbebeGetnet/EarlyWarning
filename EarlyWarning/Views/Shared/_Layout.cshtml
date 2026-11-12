@@ -82,11 +82,17 @@
                             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                                 @if (SignInManager.IsSignedIn(User))
                                 {
-                                    <p>Hi @SignInManager.UserManager.GetUserName(User) !</p> 
-
-                                    <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
-                                        <button type="submit" class="nav-link btn btn-link text-dark">Click here to Logout</button>
-                                    </form>
+                                    <div class="px-3 pt-2 pb-1 text-muted small">ሰላም፣ <b>@SignInManager.UserManager.GetUserName(User)</b></div>
+                                    <div class="dropdown-divider"></div>
+                                    @* Two large buttons, one under the other, so either is easy to hit. *@
+                                    <div class="px-3 pb-2 d-grid gap-2">
+                                        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post" class="m-0">
+                                            <button type="submit" class="btn btn-danger btn-block w-100 py-2"><i class="fas fa-sign-out-alt me-1"></i> ውጣ (Logout)</button>
+                                        </form>
+                                        <a asp-area="" asp-controller="UserRoles" asp-action="ChangePassword" class="btn btn-outline-primary btn-block w-100 py-2 mt-2">
+                                            <i class="fas fa-key me-1"></i> የይለፍ ቃል ቀይር (Change password)
+                                        </a>
+                                    </div>
                                 } 
                             </div>
                         </li>

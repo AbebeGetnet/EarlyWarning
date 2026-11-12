@@ -30,19 +30,19 @@
                         <td>@user.LastName</td>
                         <td>@user.Email</td>
                         <td>@user.Location.LocationName</td>
-                        @if (SignInManager.IsSignedIn(User) && User.IsInRole("Supper Administrator"))
+                        @if (SignInManager.IsSignedIn(User) && (User.IsInRole("Supper Administrator") || User.IsInRole("Administrator")))
                         {
-                            <td>                                
-                                <a asp-controller="UserRoles" asp-action="ResetPassword" asp-route-userId="@user.Id" class="btn btn-warning">Reset Password</a>
-                                <a asp-controller="UserRoles" asp-action="ChangePassword" asp-route-userId="@user.Id" class="btn btn-danger">Change Password</a>
+                            <td>
+                                @* Sets the password to the default (UserRolesController.DefaultPassword); the user then changes it. *@
+                                <form asp-controller="UserRoles" asp-action="ResetPassword" asp-route-userId="@user.Id" method="post" class="d-inline"
+                                      data-confirm="የ@(user.FirstName) @(user.LastName) የይለፍ ቃል ወደ መነሻው (@EarlyWarning.Controllers.UserRolesController.DefaultPassword) ይመለስ?" onsubmit="return confirm(this.dataset.confirm);">
+                                    <button type="submit" class="btn btn-warning"><i class="fas fa-undo me-1"></i> የይለፍ ቃል ወደ መነሻ መልስ</button>
+                                </form>
                             </td>
                         }
-                        else if (SignInManager.IsSignedIn(User) && User.IsInRole("Administrator"))
+                        else
                         {
-                            <td>                                
-                                <a asp-controller="UserRoles" asp-action="ResetPassword" asp-route-userId="@user.Id" class="btn btn-warning">Reset Password</a>
-                                <a asp-controller="UserRoles" asp-action="ChangePassword" asp-route-userId="@user.Id" class="btn btn-danger">Change Password</a>
-                            </td>
+                            <td>-</td>
                         }
                         @if (@user.LockoutEnd == null)
                         {

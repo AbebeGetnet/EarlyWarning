@@ -15,9 +15,14 @@ using EarlyWarning.ViewModels.UserManagementViewModel;
 namespace EarlyWarning.Controllers
 {
     //[Authorize(Roles = "Administrator")]
+    [Authorize]
     [AutoValidateAntiforgeryToken]
     public class UserRolesController : Controller
     {
+        /// <summary>The password an administrator's reset gives a user; the user should change it after logging in.</summary>
+        public const string DefaultPassword = "SaleGod@1";
+        private const string AdminRoles = "Supper Administrator,Administrator";
+
         private readonly EarlyWarningDbContext _context;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -396,85 +401,65 @@ namespace EarlyWarning.Controllers
             return new List<string>(await _userManager.GetRolesAsync(user));
         }
 
+        // Administrator: set a user's password back to DefaultPassword (and lift a lockout from failed logins).
+        // POST only, so a link or a crawler can never reset a password.
+        [HttpPost]
+        [Authorize(Roles = AdminRoles)]
         public async Task<IActionResult> ResetPassword(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                TempData["error"] = "User not found";
+                TempData[SD.Error] = "ተጠቃሚው አልተገኘም።";
                 return RedirectToAction(nameof(Index));
             }
-            // Define your default password here
-            var passwordResetKey = await _context.PasswordResetKeys.FirstOrDefaultAsync();
-            if (passwordResetKey == null)
-            {
-                TempData["error"] = "Sett passwordreset key first";
-                return RedirectToAction(nameof(Index));
-            }
-            string defaultPassword = passwordResetKey.PasswordResetValue;
-            // Generate a password reset token
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            // Reset the password to the default password
-            var result = await _userManager.ResetPasswordAsync(user, token, defaultPassword);
-            if (result.Succeeded)
+            var result = await _userManager.ResetPasswordAsync(user, token, DefaultPassword);
+            if (!result.Succeeded)
             {
-                TempData["success"] = "Password reset successfully.";
-                return RedirectToAction("ChangePassword", new { id = userId });
-            }
-            // Handle errors
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
-            return BadRequest(ModelState);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> ChangePassword(string userId)
-        {
-            if (userId == null)
-            {
-                TempData["success"] = "No user selected";
+                TempData[SD.Error] = "የይለፍ ቃሉን መመለስ አልተቻለም፡ " + string.Join(" ", result.Errors.Select(PasswordError));
                 return RedirectToAction(nameof(Index));
             }
-            var user = await _userManager.FindByIdAsync(userId);
-            var changePasswordViewModel = new ChangePasswordViewModel
-            {
-                UserId = userId,
-            };
-            return View(changePasswordViewModel);
-        }
-
-        // POST: Change Password
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize]
-        public async Task<IActionResult> ChangePassword(string? userId, ChangePasswordViewModel changePasswordViewModel)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (ModelState.IsValid)
-            {
-                if (user == null)
-                {
-                    TempData["error"] = "No user selected";
-                    return RedirectToAction(nameof(Index));
-                }
-                var result = await _userManager.ChangePasswordAsync(user, changePasswordViewModel.CurrentPassword, changePasswordViewModel.NewPassword);
-                if (result.Succeeded)
-                {
-                    await _signInManager.SignOutAsync();
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-
-                    TempData["success"] = "Your password has been changed successfully!";
-                    return RedirectToAction(nameof(Index));
-                }
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-            }
-            TempData["error"] = "Incorrect password";
+            await _userManager.SetLockoutEndDateAsync(user, null);
+            await _userManager.ResetAccessFailedCountAsync(user);
+            _logger.LogInformation("Password of user {UserId} reset to the default by {Admin}.", user.Id, _userManager.GetUserId(User));
+            TempData[SD.Success] = $"የ{user.FirstName} {user.LastName} የይለፍ ቃል ወደ መነሻው ({DefaultPassword}) ተመልሷል። ተጠቃሚው ከገባ በኋላ እንዲቀይረው ያሳውቁ።";
             return RedirectToAction(nameof(Index));
         }
+
+        // Every signed-in user: change their own password (never anyone else's).
+        [HttpGet]
+        public IActionResult ChangePassword() => View(new ChangePasswordViewModel());
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError(error.Code == "PasswordMismatch" ? nameof(model.CurrentPassword) : nameof(model.NewPassword), PasswordError(error));
+                return View(model);
+            }
+            await _signInManager.RefreshSignInAsync(user);
+            TempData[SD.Success] = "የይለፍ ቃልዎ በተሳካ ሁኔታ ተቀይሯል።";
+            return RedirectToAction("Index", "Home");
+        }
+
+        /// <summary>Identity's password errors in Amharic.</summary>
+        internal static string PasswordError(IdentityError error) => error.Code switch
+        {
+            "PasswordMismatch" => "የአሁኑ የይለፍ ቃል ትክክል አይደለም።",
+            "PasswordTooShort" => "የይለፍ ቃሉ በጣም አጭር ነው (ቢያንስ 6 ፊደላት)።",
+            "PasswordRequiresDigit" => "የይለፍ ቃሉ ቢያንስ አንድ ቁጥር (0-9) መያዝ አለበት።",
+            "PasswordRequiresLower" => "የይለፍ ቃሉ ቢያንስ አንድ ትንሽ የእንግሊዝኛ ፊደል (a-z) መያዝ አለበት።",
+            "PasswordRequiresUpper" => "የይለፍ ቃሉ ቢያንስ አንድ ትልቅ የእንግሊዝኛ ፊደል (A-Z) መያዝ አለበት።",
+            "PasswordRequiresNonAlphanumeric" => "የይለፍ ቃሉ ቢያንስ አንድ ምልክት (ለምሳሌ @ # !) መያዝ አለበት።",
+            "PasswordRequiresUniqueChars" => "የይለፍ ቃሉ የተለያዩ ፊደላትን መያዝ አለበት።",
+            _ => error.Description
+        };
     }
 }
