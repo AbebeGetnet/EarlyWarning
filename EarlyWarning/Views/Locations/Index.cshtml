@@ -9,6 +9,9 @@
     <div class="btn btn-info">
         <h4 style="color: white;padding-left:10px;">የአድራሻ መመዝገቢያ</h4>
         <a asp-action="Create" class="btn btn-success">አዲስ አድራሻ ጨምር</a>
+        <a asp-action="ZoneIndex" class="btn btn-light">ዞኖች</a>
+        <a asp-action="WoredaIndex" class="btn btn-light">ወረዳዎች</a>
+        <a asp-action="KebelieIndex" class="btn btn-light">ቀበሌዎች</a>
         @if (User.IsInRole("Supper Administrator"))
         {
             <a asp-action="Import" class="btn btn-light"><i class="fas fa-file-import mr-1"></i>ከፋይል አስገባ (Excel/CSV)</a>
@@ -73,9 +76,9 @@
                         {
                             <a asp-action="AddNewWoreda" asp-route-id="@item.Id" class="btn btn-success">ወረዳ ጨምር</a>
                         }
-                        else 
+                        else if (item.Level == LocationLevel.ወረዳ)
                         {
-                            <a asp-action="AddNewKebelie" asp-route-id="@item.ParentId" class="btn btn-success">ቀበሌ ጨምር </a>
+                            <a asp-action="AddNewKebelie" asp-route-id="@item.Id" class="btn btn-success">ቀበሌ ጨምር</a>
                         }
                     </td>
 
@@ -91,9 +94,9 @@
                         {
                             <a asp-action="LocationIndex" asp-route-id="@item.Id" class="btn btn-info">ወረዳዎች</a>
                         }
-                        else 
+                        else if (item.Level == LocationLevel.ወረዳ)
                         {
-                            <a asp-action="LocationIndex" asp-route-id="@item.ParentId" class="btn btn-info">ቀበሌዎች </a>
+                            <a asp-action="LocationIndex" asp-route-id="@item.Id" class="btn btn-info">ቀበሌዎች</a>
                         }
                     </td>
                     <td>

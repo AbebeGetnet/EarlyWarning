@@ -8,7 +8,7 @@ using EarlyWarning.Static_files;
 
 namespace EarlyWarning.Controllers
 {
-    //[Authorize(Roles = "Administrator")]
+    [Authorize(Roles = SD.SuperAdmin)]
     [AutoValidateAntiforgeryToken]
     public class RolesController : Controller
     {

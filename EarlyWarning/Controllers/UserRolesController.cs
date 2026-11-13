@@ -14,14 +14,13 @@ using EarlyWarning.ViewModels.UserManagementViewModel;
 
 namespace EarlyWarning.Controllers
 {
-    //[Authorize(Roles = "Administrator")]
-    [Authorize]
+    // User management is for the Supper Administrator only; ChangePassword below stays open to every signed-in user.
+    [Authorize(Roles = SD.SuperAdmin)]
     [AutoValidateAntiforgeryToken]
     public class UserRolesController : Controller
     {
         /// <summary>The password an administrator's reset gives a user; the user should change it after logging in.</summary>
         public const string DefaultPassword = "SaleGod@1";
-        private const string AdminRoles = "Supper Administrator,Administrator";
 
         private readonly EarlyWarningDbContext _context;
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -404,7 +403,6 @@ namespace EarlyWarning.Controllers
         // Administrator: set a user's password back to DefaultPassword (and lift a lockout from failed logins).
         // POST only, so a link or a crawler can never reset a password.
         [HttpPost]
-        [Authorize(Roles = AdminRoles)]
         public async Task<IActionResult> ResetPassword(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -428,12 +426,17 @@ namespace EarlyWarning.Controllers
         }
 
         // Every signed-in user: change their own password (never anyone else's).
+        // AllowAnonymous lifts the controller's Supper Administrator rule; the signed-in check is done here instead.
         [HttpGet]
-        public IActionResult ChangePassword() => View(new ChangePasswordViewModel());
+        [AllowAnonymous]
+        public IActionResult ChangePassword() =>
+            User.Identity?.IsAuthenticated == true ? View(new ChangePasswordViewModel()) : Challenge();
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
+            if (User.Identity?.IsAuthenticated != true) return Challenge();
             if (!ModelState.IsValid) return View(model);
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();

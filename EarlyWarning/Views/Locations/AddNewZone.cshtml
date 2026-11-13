@@ -6,12 +6,12 @@
 
 <div class="card">
     <div class="btn btn-info">
-        <h4 style="color: white;padding-left:10px;">አዲስ መዝግብ</h4>
+        <h4 style="color: white;padding-left:10px;">አዲስ መዝግብ – በ @ViewBag.ParentName ስር</h4>
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-12">
-                <form asp-action="AddNewZone">
+                <form asp-action="AddNewZone" asp-route-id="@ViewContext.RouteData.Values["id"]">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <div class="row col-md-12">
                         <div class="col-md-3">

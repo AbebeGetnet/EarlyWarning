@@ -31,13 +31,16 @@ namespace EarlyWarning.Controllers
             var query = _db.WeeklyReportSubmissions.Include(x => x.Woreda).ThenInclude(x => x.Parent).AsNoTracking();
             if (User.IsInRole("Data Encoder")) query = query.Where(x => x.WoredaId == user.LocationId && x.Status != WeeklySubmissionStatus.Draft);
             else if (User.IsInRole("ZoneAdmin")) query = query.Where(x => x.Woreda.ParentId == user.LocationId && (x.Status == WeeklySubmissionStatus.ZoneApproved || x.Status == WeeklySubmissionStatus.RegionApproved || x.Status == WeeklySubmissionStatus.RegionRejectedToZone));
-            else if (User.IsInRole("RegionAdmin")) query = query.Where(x => x.Woreda.Parent != null && x.Woreda.Parent.ParentId == user.LocationId && x.Status == WeeklySubmissionStatus.RegionApproved);
+            // Region users see every report that has reached the region: zone-approved (awaiting the region) and region-approved.
+            else if (User.IsInRole("RegionAdmin")) query = query.Where(x => x.Woreda.Parent != null && x.Woreda.Parent.ParentId == user.LocationId &&
+                (x.Status == WeeklySubmissionStatus.ZoneApproved || x.Status == WeeklySubmissionStatus.RegionApproved));
             else query = query.Where(x => false);
             var latest = await query.MaxAsync(x => (DateTime?)x.ReportingWeekStart);
             var reports = latest == null ? [] : await query.Where(x => x.ReportingWeekStart == latest.Value).ToListAsync();
             WeeklyAggregateViewModel aggregate;
             if (reports.Count == 0) aggregate = new WeeklyAggregateViewModel();
-            else if (User.IsInRole("RegionAdmin"))
+            // The regional snapshot covers region-approved reports only; serve it only when that is all the week holds.
+            else if (User.IsInRole("RegionAdmin") && reports.All(x => x.Status == WeeklySubmissionStatus.RegionApproved))
                 aggregate = await _aggregation.GetSnapshotAsync(user.LocationId, user.UserLocationLevl, reports[0].StartDate, reports[0].EndDate) ?? await _aggregation.BuildAsync(reports);
             else aggregate = await _aggregation.BuildAsync(reports);
             var scopeName = await _db.Locations.Where(x => x.Id == user.LocationId).Select(x => x.LocationAmharicName ?? x.LocationName ?? "").FirstOrDefaultAsync() ?? "";

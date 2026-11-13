@@ -21,7 +21,8 @@ using Microsoft.Extensions.Logging;
 
 namespace EarlyWarning.Areas.Identity.Pages.Account
 {
-    [AllowAnonymous]
+    // Creating users is user management: Supper Administrator only (no public self-registration).
+    [Authorize(Roles = EarlyWarning.Static_files.SD.SuperAdmin)]
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;

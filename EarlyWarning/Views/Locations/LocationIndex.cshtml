@@ -3,11 +3,24 @@
 
 @{
     ViewData["Title"] = "Index";
+    LocationLevel? parentLevel = ViewBag.ParentLevel;
+    var (ChildWord, AddAction) = parentLevel switch
+    {
+        LocationLevel.ክልል => ("ዞኖች", "AddNewZone"),
+        LocationLevel.ዞን => ("ወረዳዎች", "AddNewWoreda"),
+        LocationLevel.ወረዳ => ("ቀበሌዎች", "AddNewKebelie"),
+        _ => ("አድራሻዎች", (string?)null)
+    };
 }
 
 <div class="card card-info card-outline">
     <div class="btn btn-info">
-        <h4 style="color: white;padding-left:10px;">የአድራሻ መመዝገቢያ</h4>
+        <h4 style="color: white;padding-left:10px;">@(ViewBag.ParentName) – @(ChildWord) ዝርዝር</h4>
+        @if (AddAction != null)
+        {
+            <a asp-action="@AddAction" asp-route-id="@ViewBag.ParentId" class="btn btn-success">@ChildWord ጨምር</a>
+        }
+        <a asp-action="Index" class="btn btn-secondary">ተመለስ</a>
     </div>
     <div class="card-body">
         <table id="dataTable" class="table">

@@ -2,6 +2,7 @@
 using EarlyWarning.Data;
 using EarlyWarning.Enums;
 using EarlyWarning.Models;
+using EarlyWarning.Static_files;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -21,7 +22,7 @@ using EarlyWarning.ViewModels.AddressViewModel;
 
 namespace EarlyWarning.Controllers
 {
-    //[Authorize(Roles = "Supper Administrator")]
+    [Authorize(Roles = SD.SuperAdmin)]
     public class LocationsController : Controller
     {
         private readonly EarlyWarningDbContext _context;
@@ -137,7 +138,7 @@ namespace EarlyWarning.Controllers
                 }
             }
             TempData["error"] = "ያልተፈቀደ።";
-            return View();
+            return View(new List<Locations>());
         }
         public async Task<IActionResult> WoredaIndex()
         {
@@ -156,7 +157,7 @@ namespace EarlyWarning.Controllers
                 }
             }
             TempData["error"] = "ያልተፈቀደ።";
-            return View();
+            return View(new List<Locations>());
         }
         public async Task<IActionResult> KebelieIndex()
         {
@@ -175,12 +176,11 @@ namespace EarlyWarning.Controllers
                 }
             }
             TempData["error"] = "ያልተፈቀደ።";
-            return View();
+            return View(new List<Locations>());
         }
 
 
         // GET: Locations
-        [AllowAnonymous]
         public async Task<IActionResult> LocationsIndex()
         {
             var applicationDbContext = _context.Locations.Include(l => l.Parent);
@@ -191,7 +191,17 @@ namespace EarlyWarning.Controllers
         {
             if (id != Guid.Empty)
             {
-                var locations = await _context.Locations.Include(l => l.Parent).Where(l => l.ParentId == id).ToListAsync(); ;
+                var parent = await _context.Locations.AsNoTracking().FirstOrDefaultAsync(l => l.Id == id);
+                if (parent == null)
+                {
+                    TempData["error"] = "አድራሻው አልተገኘም።";
+                    return RedirectToAction(nameof(Index));
+                }
+                ViewBag.ParentName = parent.LocationAmharicName ?? parent.LocationName;
+                ViewBag.ParentId = parent.Id;
+                ViewBag.ParentLevel = parent.Level;
+                var locations = await _context.Locations.Include(l => l.Parent).Where(l => l.ParentId == id)
+                    .OrderBy(l => l.LocationAmharicName ?? l.LocationName).ToListAsync();
                 return View(locations);
             }
             TempData["error"] = "Select Parent Location First";
@@ -276,6 +286,9 @@ namespace EarlyWarning.Controllers
 
         public async Task<IActionResult> AddNewZone(Guid id)
         {
+            var parent = await ParentForNewChildAsync(id, LocationLevel.ክልል);
+            if (parent == null) return RedirectToAction(nameof(Index));
+            ViewBag.ParentName = parent.LocationAmharicName ?? parent.LocationName;
             return View();
         }
 
@@ -286,6 +299,9 @@ namespace EarlyWarning.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddNewZone(Guid id, Locations location)
         {
+            var parent = await ParentForNewChildAsync(id, LocationLevel.ክልል);
+            if (parent == null) return RedirectToAction(nameof(Index));
+            ViewBag.ParentName = parent.LocationAmharicName ?? parent.LocationName;
             if (!ModelState.IsValid)
             {
                 if (!await ZoneCodeExistsAsync(location.LocationCode))
@@ -297,7 +313,7 @@ namespace EarlyWarning.Controllers
                                         
                     await _context.SaveChangesAsync();
                     TempData["success"] = "በትክክል ተመዝግቧል።";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(LocationIndex), new { id });
                 }
                 TempData["error"] = "ያስገቡት የአድራሻ መለያ ኮድ ተይዟል።";
                 return RedirectToAction(nameof(Index));
@@ -309,6 +325,9 @@ namespace EarlyWarning.Controllers
 
         public async Task<IActionResult> AddNewWoreda(Guid id)
         {
+            var parent = await ParentForNewChildAsync(id, LocationLevel.ዞን);
+            if (parent == null) return RedirectToAction(nameof(Index));
+            ViewBag.ParentName = parent.LocationAmharicName ?? parent.LocationName;
             return View();
         }
 
@@ -319,6 +338,9 @@ namespace EarlyWarning.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddNewWoreda(Guid id, Locations location)
         {
+            var parent = await ParentForNewChildAsync(id, LocationLevel.ዞን);
+            if (parent == null) return RedirectToAction(nameof(Index));
+            ViewBag.ParentName = parent.LocationAmharicName ?? parent.LocationName;
             if (!ModelState.IsValid)
             {
                 if (!await ZoneCodeExistsAsync(location.LocationCode))
@@ -330,7 +352,7 @@ namespace EarlyWarning.Controllers
                                         
                     await _context.SaveChangesAsync();
                     TempData["success"] = "በትክክል ተመዝግቧል።";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(LocationIndex), new { id });
                 }
                 TempData["error"] = "ያስገቡት የአድራሻ መለያ ኮድ ተይዟል።";
                 return RedirectToAction(nameof(Index));
@@ -342,6 +364,9 @@ namespace EarlyWarning.Controllers
 
         public async Task<IActionResult> AddNewKebelie(Guid id)
         {
+            var parent = await ParentForNewChildAsync(id, LocationLevel.ወረዳ);
+            if (parent == null) return RedirectToAction(nameof(Index));
+            ViewBag.ParentName = parent.LocationAmharicName ?? parent.LocationName;
             return View();
         }
 
@@ -352,6 +377,9 @@ namespace EarlyWarning.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddNewKebelie(Guid id, Locations location)
         {
+            var parent = await ParentForNewChildAsync(id, LocationLevel.ወረዳ);
+            if (parent == null) return RedirectToAction(nameof(Index));
+            ViewBag.ParentName = parent.LocationAmharicName ?? parent.LocationName;
             if (!ModelState.IsValid)
             {
                 if (!await ZoneCodeExistsAsync(location.LocationCode))
@@ -363,7 +391,7 @@ namespace EarlyWarning.Controllers
                                         
                     await _context.SaveChangesAsync();
                     TempData["success"] = "በትክክል ተመዝግቧል።";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(LocationIndex), new { id });
                 }
                 TempData["error"] = "ያስገቡት የአድራሻ መለያ ኮድ ተይዟል።";
                 return RedirectToAction(nameof(Index));
@@ -456,6 +484,21 @@ namespace EarlyWarning.Controllers
         {
             return _context.Locations.AnyAsync(e => e.Id == id);
         }
+        /// <summary>
+        /// The location a new child is added under: it must exist and sit exactly one level above the child
+        /// (region → zone → woreda → kebele). Returns null, with an error message, otherwise.
+        /// </summary>
+        private async Task<Locations?> ParentForNewChildAsync(Guid parentId, LocationLevel expectedLevel)
+        {
+            var parent = await _context.Locations.AsNoTracking().FirstOrDefaultAsync(l => l.Id == parentId);
+            if (parent == null || parent.Level != expectedLevel)
+            {
+                TempData["error"] = "አዲሱ አድራሻ የሚመዘገብበት የበላይ አድራሻ ትክክል አይደለም።";
+                return null;
+            }
+            return parent;
+        }
+
         private Task<bool> LocationCodeExistsAsync(LocationLevel? level, string code)
         {
             return _context.Locations.AnyAsync(e => e.Level == level && e.LocationCode == code);
